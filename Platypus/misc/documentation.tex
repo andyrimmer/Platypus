@@ -1,0 +1,272 @@
+1. Requirements
+===============
+
+Platypus_0.2.2 requires Python 2.6 or greater, but is not tested with the Python 3.X
+series.
+
+
+2. Installation
+===============
+
+To build Platypus, run the 'buildPlatypus.sh' script included in the distribution:
+
+cd Platypus_0.2.2
+./buildPlatypus.sh
+
+and this will compile all the required libraries. Platypus can then be run from the Platypus_0.2.2
+directory as follows:
+
+# Try running Platypus
+python2.6 Platypus_0.2.2/Platypus.py callVariants --bamFiles=LIST_OF_BAMS --refFile=REF.fa --regions=chr20:0-1000000 --output=Calls.vcf
+
+You can see a list of all the possible input options by running the following comand:
+
+python2.6 Platypus.py callVariants --help
+
+
+3. Running in Variant-Calling Mode
+==================================
+
+The standard way of running Platypus is to use it to detect variants in one or more BAM files. Variants are detected by
+comparing the BAM reads with a reference sequence. This can be done using the following command:
+
+python Platypus.py callVariants --bamFiles=DATA.bam --regions=chr20 --output=test.vcf --refFile=GENOME.fa
+
+where the input BAM files, and the genome reference must be indexed using samtools, or a program that produces compatible
+index files.
+
+
+4. Running in Genotyping Mode
+=============================
+
+Platypus can take as input a compressed, indexed VCF file, and genotype the BAMs for all alleles in the compressed, indexed VCF.
+To run Platypus in genotyping mode, use the following command:
+
+python Platypus.py callVariants --bamFiles=DATA.bam --regions=chr20 --output=test.vcf --refFile=GENOME.fa --source=INPUT.vcf.gz --minPosterior=0 --getVariantsFromBAMs=0
+
+You must use as input a VCF that has been compressed, with bgzip, and indexed with tabix. To create this, do the following:
+
+bgzip file.vcf # Converts file.vcf into file.vcf.gz
+tabix -p vcf file.vcf # Creates the index file.vcf.gz.tbi
+
+
+4.1 Known issues with genotyping
+================================
+
+Sometimes variants in the input VCF don't get genotypes in the output VCF. This only happens in complex regions, when
+the particular variant is not well supported by the data, typically when there are lots of indels close together.
+
+
+5. Running in Combined Genotyping/Calling Mode
+==============================================
+
+If required, Platypus can detect variants from the input BAM files, as well as using an input allele list. This can be done as
+follows:
+
+python Platypus.py callVariants --bamFiles=DATA.bam --regions=chr20 --output=test.vcf --refFile=GENOME.fa --source=INPUT.vcf.gz
+
+For cases 3 and 4, if you want reference calls to be reported, then set the argument --minPosterior=0, and the output VCF will then also contain variants candidates which
+were not called in any of the samples.
+
+
+6. Main command-line arguments to Platypus
+==========================================
+
+--output                   # Name of output VCF file
+--logFileName              # Name of output log file (default is log.txt)
+--refFile                  # Name of indexed FASTA reference file
+--regions                  # List of regions to search. The format is e.g. chrX:1000-100000. This argument can be a comma-separated list of regions, or a text file of regions
+--bamFiles                 # List of BAM files. Currently must be a space-separated list of indexed BAMs.
+--bufferSize               # Specifies how much (as a genomic region) of the BAMs to buffer into memory at any time (default is 1 Megabase)
+--minReads                 # The minimum number of reads required to support a variants (default is 2)
+--maxReads                 # The maximium allowed coverage in a region of "bufferSize". If there are more reads than this, the region will be skipped, and a warning issued (default is 5,000,000)
+--maxVariants              # The maximium number of variants to consider in a given window (default is 8)
+--verbosity                # Level of logging (default is 2. Set to 3 for debug output)
+--minMapQual               # Minimum mapping quality of reads to consider. Any reads with map qual below this are ignored (default is 20)
+--minBaseQual              # Minimum allowed base-calling quality. Any bases with qual below this are ignored in SNP-calling (default is 20)
+--source                   # Name of input VCF file to use for genotyping (default is None)
+--nCPU                     # Number of processors to use (default is 1. If > 1, then multiple processes are run in parallel, and the output is combined at the end)
+--getVariantsFromBAMs      # If set to 1 (default), variant candidates will be generated from BAMs as well as any other inputs
+--genSNPs                  # If set to 1 (default), SNP candidates will be considered
+--genIndels                # If set to 1 (default), Indel candidates will be considered
+--minPosterior             # Only variants with posterior >= minPosterior will be output to the VCF. (default is 5; phred-scaled)
+
+# Arguments for local assembly
+--useCortex                # Set to 1 to turn on local assembly. Default is 0
+--assemblyRegionSize       # Size of genomic windows to assemble. Default is 2kb
+--assembleBrokenPairs      # Set to 1 to assemble read pairs where reads map far apart or to different chromosomes. This will slow Platypus down quite a bit. Default is 1.
+--assembleBadReads         # If 1, then all filtered reads (low map qual etc) are used for local assembly. Default=1.
+--cortexKmerSize           # Kmer size to use for local assembly. Increasing this makes assembly-based variant generation less sensitive and more specific.r Default is 31.
+
+
+These are not all the possible arguments. To get a complete list, run "python Platypus.py callVariants --help"
+
+
+7. VCF output
+=============
+
+The VCF files output by Platypus contain a number of annotations, some of which are deprecated and will be removed in future releases.
+
+
+7.1 INFO fields
+===============
+
+FR        # Estimated haplotype population frequency
+TC        # Total coverage at this locus
+TCR       # Total reverse strand coverage at this locus
+TCF       # Total forward strand coverage at this locus
+NR        # Total number of reverse reads containing this variant
+NF        # Total number of forward reads containing this variant
+TR        # Total number of reads containing this variant
+HP        # Homopolmer run length in 20 bases either side of variant position
+PP        # Posterior probability (phred scaled) that this variant segregates in the data.
+SC        # Genomic sequence 10 bases either side of variant position
+MMLQ      # Median minimum base quality for bases around variant. If this is low (<=10) then the variant is only supported by low-quality reads.
+
+
+7.2 FILTER fields
+=================
+
+strandBias     # Variant fails strand-bias filter
+alleleBias     # Variant fails allele-bias filter
+badReads       # Variant is supported only by low-quality reads
+Q20            # Variant-call has low posterior score ( < phred-score of 20)
+GOF            # Variant-call fails goodness-of-fit test
+PASS           # Variant passes all filters
+
+For multi-allelic sites, the filter field is based on information from the best variant
+call at that site, so there may be variants which fail filters at these sites. VCF does not
+allow allele-specific filter values.
+
+
+7.3 FORMAT fields
+=================
+
+GL   # Genotype log-likelihoods (natural log) for AA,AB and BB genotypes, where A = ref and B = variant. Only applicable for bi-allelic sites
+GQ   # Phred-scaled quality score for the genotype call
+GOF  # Phred-scaled goodness-of-fit score for the genotype call
+GT   # Unphased genotype calls
+NR   # Number of reads covering variant position in this sample
+NV   # Number of reads at variant position which support the called variant in this sample
+
+
+8 Known Issues
+==============
+
+When genotyping, if there are many variants close together, then not all will be reported in the output VCF. This is only true for variants
+which are not supported by the data. Variants that are well supported will have genotype calls.
+
+
+9 Release History
+=================
+
+0.1.5
+===== 
+
+Released in November 2011. First stable release of Platypus
+
+0.1.6
+===== 
+
+Released on 23 Feb 2012. Various bug-fixes and tweaks, the most significant being
+the following:
+
+- Improved output when genotyping. FILTER and INFO fields are now correctly computed
+- Fixed multi-sample genotyping, which previously had an underflow error in high-coverage regions
+- Fixed small bug in posterior calculation, which was sometimes slightly wrong for high-confidence calls
+- Improved data-filtering for duplicate reads and broken read pairs
+- Added NV and NR fields to the per-sample FORMAT columns. NV is the number of variant-supporting reads, and NR is the total number of reads covering that position
+- Fixed off-by-one error in VCF parsing, by adding pysam version check
+- Added experimental flag --mergeClusteredVariants for calling in divergent samples. This is not fully tested, and does slow down calling substantially.
+- Numerous other small fixes and performance tweaks
+
+0.1.7
+===== 
+
+Released on 14 March 2012.
+
+- Fixed error caused by zero coverage in window
+- Improved read filtering: pairs with small inserts no longer lead to spurious insertion calls
+- Improved haplotype generation: adjacent SNP/deletion haplotypes not generated correctly
+- Switched to using single sample likelihoods by default, not EM likelihoods: this fixes various
+  inconsistencies between the genotype calls and likelihoods
+- Fixed bug when genotyping complex regions, which lead to incorrect genotypes being assigned
+- Improved window algorithm when the --mergeClusteredVariants flag is set to 1
+- Removed cap on likelihoods in alignment function, to improve calling in divergent regions
+- Switched off EM filtering. Now uses simple coverage filter to remove noise.
+- Fixed small big in VCF INFO computations
+- Fixed bug in left-normalisation. If Platypus cannot left-normalise an indel, it reports it in the position it was originally
+  seen in the BAM.
+
+0.1.8
+===== 
+
+Released on 19 March 2012.
+
+- Various small bug-fixes
+- Extended badReads filter to cover regions where many reads are filtered
+- Improved Haplotype representation. Padded Haplotypes with Ns around window
+- Improved strand bias and allele bias filtering
+
+0.1.9
+===== 
+
+Released on 12 April 2012.
+
+- Numerous small bug-fixes
+
+- Platypus can now automatically handle samples spread across multiple BAMs. The BAMs are merged on the fly based on the
+  value of the SM tag
+
+
+0.2.0
+===== 
+
+Released on 25 July 2012
+
+- First release to include (experimental) use of Cortex for local haplotype assembly
+
+
+0.2.1
+===== 
+
+Released on 25 Jan 2013.
+
+- Numerous small bug-fixes and minor improvements to filtering
+
+
+0.2.3
+===== 
+
+- Introduced MNP and complex-replacement calling. Fixed various small bugs. Improved efficiency of EM algorithm.
+
+\author
+{
+  Dr Andrew Rimmer\\
+  Wellcome Centre For Human Genetics\\
+  University of Oxford\\
+}
+
+\date{\today}
+\documentclass[8pt,a4paper]{report}
+\usepackage[usenames,dvipsnames]{color}
+\usepackage[usenames,dvipsnames,svgnames,table]{xcolor}
+\usepackage[toc,page]{appendix}
+\usepackage{boxedminipage}
+\usepackage{listings}
+\usepackage{xcolor}
+\usepackage{xcolor}
+\usepackage{graphicx}
+
+
+\begin{document}
+
+###################################################################################################
+#
+# Platypus 0.2.3 readme file
+#
+###################################################################################################
+
+
+
+\end{document}

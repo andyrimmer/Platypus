@@ -1,0 +1,61 @@
+EB_OTH_0018 (child) / 0019 / 0020; chromosome 20
+Mendelian errors with good variant call quality:
+
+
+Potential for improvement:
+
+20      595117  .       C       A       200     PASS	strong calls, but mixture of real and error indels.  Solution: extend window and add candidates?
+
+20      879895  .       T       A       106     PASS	combination of A4->A5 (0.00043) and T14->T13 (>0.136), called as SNP (0.001).  
+							Solution: add factor 3 to SNP prior;
+								  extend homopolymer prior to 14; 
+								  realign to consider the indels as candidates. 
+							(Partly done: now prior A4->A5 .00043; T14->T13 0.43; SNP .00033; ratio .56 still in favor of SNP)
+
+20      1239320 .       C       T       98      PASS	Called as het (correctly) in child, but hom ref (incorrectly: is het) in parents.  Many low MAPQ reads, but
+							correct call supported by several MAPQ=23 reads in parents.  
+							Solution: tweak read filtering to allow mapq 23; 
+								  add call filter based on on too many low mapping quality reads.
+
+20      1347896 .       A       G       200     PASS	G3->G4 (.00015) and A13->A12 (.33).  Alleles: child G4,A12 / ref; parent1 G3,A12 / ref, parent2 G4,A12 / G4,A12.
+							With modified priors, ratio is 1.5 in favour of indels.  (Still calls A13->A12 and A->G, not G3->G4)
+							Solution: realign to consider more indels as candidates. 
+
+20      1746712 .       T       C       141     PASS	at boundary of ~300 bp messy and low-complexity region 1,746,606 - 1,746,935, with locally low coverage.
+							Solution: filter difficult regions on the basis of number of candidates in window spanning low-complexity content
+
+20      2264997 .       T       A       200     PASS	in middle of ~150 bp approximate AAAAT repeat.
+							Solution: filter difficult regions on the basis of window size spanning low-complexity content
+
+20      2387501 .       A       C       200     PASS	support for het call A->C (or more complex event) in parent1; but called hom alt, prob. because of aggressive
+							and biased filtering of reads supporting ref.  Reads supporting ref have long polyA region causing long 
+							low-quality tail; alternative haplotype has much shorter polyA tail.
+							Solution: less aggressive filtering on long low-quality tails.
+
+20      3172647 .       T       A       200     PASS	Strong SNP at edge of AC28 (0.49).
+							Solution: filter difficult regions on the basis of window size spanning low-complexity content
+
+
+Honest mistakes:
+
+20      221754  .       T       A       200     PASS	186 bp region with 11 SNPs; het in child but one SNP has little support for ref allele (one q=2, one read with
+                                                        mate in different chromosome.) Called as hom alt.  Other SNPs are called correctly.  Extending window would
+							put this SNP on a separate allele; but should we penalize for that?
+
+20      446677  .       A       T       200     PASS	called homalt in father, with evidence for het; correctly homref in child.  Weak genotype quality (-3.86)
+
+20      1051568 .       G       A       86      PASS	Deletion TG15->TG13 called as het in all, but is het in parents only. 
+							Deletion TG15->TG11 (.09) in child, not called.  Instead SNP called.  Medium call quality (61); strong genotype Qs.
+							Solution: ??
+
+20      2515016 .       C       A       200     PASS	unclear what's going on.  Marginal support for hom alt in child and parent2; different allele (homozyg?) in parent1
+
+20      2735616 .       A       C       75      PASS	(C9)ACA -> (C9)AACA.  Unclear whether actual transversion, or nonstandard slippage event.
+
+20      3013354 .       A       G       200     PASS	Looks like strong evidence for child hom alt (called weakly), parent1 het, parent2 hom ref.
+
+
+
+							
+
+
