@@ -16,4 +16,4 @@ cdef class HaploidGenotype:
     cdef Haplotype hap1
     cdef double calculateDataLikelihood(self, cAlignedRead** start, cAlignedRead** end, int individualIndex, int nIndividuals)
 
-cdef list generateAllGenotypesFromHaplotypeList(int ploidy, list haplotypes)
+cdef list generateAllGenotypesFromHaplotypeList(list haplotypes)

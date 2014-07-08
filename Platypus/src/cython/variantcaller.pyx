@@ -112,10 +112,10 @@ cdef void callVariantsInWindow(dict window, options, FastaFile refFile, list rea
             #logger.debug("There are %s variants after filtering" %(len(window['variants'])))
 
     # Create haplotype list using all data from all samples. Always consider the reference haplotype.
-    cdef list allVarHaplotypes = variantFilter.getHaplotypesInWindow(window, nReadsThisWindow, refFile, options.ploidy, options.maxReads, options.minMapQual, options.minBaseQual, options.maxHaplotypes, options.maxVariants, options.rlen, options.useIndelErrorModel, options.verbosity, readBuffers, options)
+    cdef list allVarHaplotypes = variantFilter.getHaplotypesInWindow(window, nReadsThisWindow, refFile, options.maxReads, options.minMapQual, options.minBaseQual, options.maxHaplotypes, options.maxVariants, options.rlen, options.useIndelErrorModel, options.verbosity, readBuffers, options)
     #cdef list allUniqueHaplotypes = list(set([refHaplotype] + allVarHaplotypes))
     cdef list allUniqueHaplotypes = mergeHaplotypes([refHaplotype] + allVarHaplotypes, refFile)
-    cdef list allGenotypes = generateAllGenotypesFromHaplotypeList(options.ploidy, allUniqueHaplotypes)
+    cdef list allGenotypes = generateAllGenotypesFromHaplotypeList(allUniqueHaplotypes)
 
     cdef int nUniqueHaplotypes = len(allUniqueHaplotypes)
 
@@ -134,7 +134,7 @@ cdef void callVariantsInWindow(dict window, options, FastaFile refFile, list rea
 
             return
 
-    pop.setup(variants, allUniqueHaplotypes, allGenotypes, options.nInd, options.ploidy, options.verbosity, readBuffers)
+    pop.setup(variants, allUniqueHaplotypes, allGenotypes, options.nInd, options.verbosity, readBuffers)
 
     cdef int maxEMIterations = 100
     pop.call(maxEMIterations, 1)

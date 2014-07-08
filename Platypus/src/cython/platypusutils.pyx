@@ -94,10 +94,6 @@ def getSampleNamesAndLoadIterators(bamFileNames, regions, options):
 
         bamFile = Samfile(fileName)
         bamFile._open('rbh', True)
-
-        if options.cacheOffsets == 1:
-            bamFile.loadOffsetsForRegions(regions)
-
         bamFiles.append(bamFile)
 
         try:
