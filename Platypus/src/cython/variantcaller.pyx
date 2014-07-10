@@ -634,8 +634,16 @@ def outputRefCall(bytes chrom, Population pop, vcfFile, FastaFile refFile, outpu
 
 
     # Sort out VCF output
-    ref = "N"
-    alt = ["."]
+    ref = refFile.getSequence(chrom, windowStart, windowStart+1)
+    alt = None
+
+    # Kludge. To keep within the VCF standard, REF and ALT must be different. At least one of
+    # the fields will always be 'N', which should help to avoid confusion with normal variant calls
+    if ref == "N":
+        alt = ["T"]
+    else:
+        alt = ["N"]
+
     id = "."
     linefilter = ["REFCALL"]
     lineinfo = {}

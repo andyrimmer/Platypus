@@ -158,31 +158,31 @@ def checkVCF(vcfName):
     for key,val in inconsistentGenotypes.iteritems():
         print "%s = %s (%1.2f %%)" %(key,val,100*val/nInconsistentGenotypes)
 
-    print ""
-    print "1Kg Membership:"
+    #print ""
+    #print "1Kg Membership:"
 
-    if vcfName.endswith("gz"):
-        os.system("zcat %s | python scripts/computePhaseOneMembership.py Phase1SNPs_Chr20.gz" %(vcfName))
-    else:
-        os.system("cat %s | python scripts/computePhaseOneMembership.py Phase1SNPs_Chr20.gz" %(vcfName))
+    #if vcfName.endswith("gz"):
+    #    os.system("zcat %s | python scripts/computePhaseOneMembership.py Phase1SNPs_Chr20.gz" %(vcfName))
+    #else:
+    #    os.system("cat %s | python scripts/computePhaseOneMembership.py Phase1SNPs_Chr20.gz" %(vcfName))
 
 ###################################################################################################
 
-rest = ""
-vcfName = sys.argv[1]
+if len(sys.argv) < 4:
+    print ""
+    print "Invalid usage."
+    print ""
+    print "Correct usage as follows:"
+    print "python sanityChecks.py data.bam ref.fa output.vcf"
+    print ""
+    print ""
+    sys.exit(1)
 
-if len(sys.argv) > 2:
-    rest = "".join(sys.argv[2:])
+bams = sys.argv[1]
+ref = sys.argv[2]
+vcfName = sys.argv[3]
+rest = " ".join(sys.argv[4:])
 
-bams = "/home/rimmer/Analysis/PlatypusPaper/NA12878/NA12878_40k.bam"
-ref = "/home/rimmer/Genomes/human_g1k_v37_ebv.fa"
 command = "time python bin/Platypus.py callVariants --bamFiles=%s --refFile=%s --output=%s --regions=20 %s" %(bams,ref,vcfName,rest)
 os.system(command)
 checkVCF(vcfName)
-
-
-#ref = "/home/rimmer/Genomes/Human37.fa"
-#bams = "/home/rimmer/Analysis/AgilentIlluminaComp/BAMs/Illumina/NA12878.bam,/home/rimmer/Analysis/AgilentIlluminaComp/BAMs/Agilent/NA12878.bam"
-#command = "time python Platypus.py callVariants --bamFiles=%s --refFile=%s --output=test.vcf --regions=chr20 %s" %(bams, ref, rest)
-#os.system(command)
-#checkVCF(vcfName)
