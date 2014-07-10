@@ -12,9 +12,6 @@ PYTHONSRC := src/python/Platypus.py src/python/platypusexceptions.py src/python/
 src/python/window.py ../coreutils/filez.py src/python/extendedoptparse.py
 
 VERSION := 0.7.3
-TRUNK := /home/andy/Platypus/
-SOURCE := ${TRUNK}/Platypus
-TARGETDIR := /home/andy/PlatypusReleases
 TARGET := Platypus_${VERSION}
 
 # C source files needed for building release (these are not compiled, only distributed)
@@ -53,34 +50,34 @@ clean:
 releasedir: platypus
 	echo ''
 	echo 'Building new Platypus release'
-	rm -rf ${TARGETDIR}/${TARGET}
-	mkdir ${TARGETDIR}/${TARGET}
-	mkdir ${TARGETDIR}/${TARGET}/src
-	mkdir ${TARGETDIR}/${TARGET}/src/pysam
+	rm -rf ${TARGET}
+	mkdir ${TARGET}
+	mkdir ${TARGET}/src
+	mkdir ${TARGET}/src/pysam
 	echo 'Copying Platypus C source files to ' ${TARGET}
-	cp -f ${CSRC} ${TARGETDIR}/${TARGET}
+	cp -f ${CSRC} ${TARGET}
 	echo 'Copying Platypus Python source files to ' ${TARGET}
-	cp -f ${PYTHONSRC} ${TARGETDIR}/${TARGET}
+	cp -f ${PYTHONSRC} ${TARGET}
 	echo 'Copying Platypus Cython source files to ' ${TARGET}/src
-	cp -f ${CYTHONSRC} ${TARGETDIR}/${TARGET}/src
+	cp -f ${CYTHONSRC} ${TARGET}/src
 	echo 'Copying Platypus README, LICENCE etc files to ' ${TARGET}
-	cp -f ${OTHER} ${TARGETDIR}/${TARGET}
+	cp -f ${OTHER} ${TARGET}
 	echo 'Copying Samtools files'
-	rsync -a --exclude='.svn' ${TRUNK}/coreutils/samtools ${TARGETDIR}/${TARGET}/
+	rsync -a --exclude='.svn' ../coreutils/samtools ${TARGET}/
 	echo 'Copying pyvcf files'
-	rsync -a --exclude='.svn' ${TRUNK}/pyvcf ${TARGETDIR}/${TARGET}/
+	rsync -a --exclude='.svn' ../pyvcf ${TARGET}/
 	echo 'Copying pysam *.c files'
-	cp -f ${SOURCE}/src/pysam/*.c ${TARGETDIR}/${TARGET}/src/pysam/
-	cp -f ${SOURCE}/src/pysam/COPYING ${TARGETDIR}/${TARGET}/src/pysam/
+	cp -f src/pysam/*.c ${TARGET}/src/pysam/
+	cp -f src/pysam/COPYING ${TARGET}/src/pysam/
 	echo 'Copying tabix files'
-	rsync -a --exclude='.svn' ${SOURCE}/src/tabix ${TARGETDIR}/${TARGET}/
+	rsync -a --exclude='.svn' src/tabix ${TARGET}/
 	echo 'Cleaning up other unwanted files'
-	rm -rf ${TARGETDIR}/${TARGET}/pyvcf/Polarize
+	rm -rf ${TARGET}/pyvcf/Polarize
 
 .PHONY:
 tarball: releasedir
-	cd ${TARGETDIR}; tar cvzf ${TARGET}.tgz ${TARGET}
-	cd ${TARGETDIR}; rm -rf ${TARGET}
+	tar cvzf ${TARGET}.tgz ${TARGET}
+	rm -rf ${TARGET}
 
 .PHONY:
 release: tarball
