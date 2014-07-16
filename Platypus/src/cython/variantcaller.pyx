@@ -726,23 +726,13 @@ class PlatypusSingleProcess(object):
             logger.info("Searching for variants in the following regions: %s" %(self.regions))
 
         # Need to load data etc.
-        if options.nCPU == 1:
+        self.bamFileNames = options.bamFiles
 
-            self.bamFileNames = options.bamFiles
+        if len(self.bamFileNames) == 1 and not self.bamFileNames[0].lower().endswith(".bam"):
+            logger.debug("Treating --bamFiles argument, %s as a text file containing a list of BAM file names" %(self.bamFileNames))
+            self.bamFileNames = platypusutils.getBAMFileNamesFromTextFile(self.bamFileNames[0])
 
-            if len(self.bamFileNames) == 1 and not self.bamFileNames[0].lower().endswith(".bam"):
-                logger.debug("Treating --bamFiles argument, %s as a text file containing a list of BAM file names" %(self.bamFileNames))
-                self.bamFileNames = platypusutils.getBAMFileNamesFromTextFile(self.bamFileNames[0])
-
-            self.samples,self.samplesByID,self.samplesByBAM,self.bamFiles = platypusutils.getSampleNamesAndLoadIterators(self.bamFileNames, self.regions, options)
-
-        # Sample names, bam files etc will have been passed in from the parent process.
-        else:
-            self.samples = samples
-            self.bamFileNames = bamFileNames
-            self.samplesByID = samplesByID
-            self.samplesByBAM = samplesByBAM
-            self.bamFiles = bamFiles
+        self.samples,self.samplesByID,self.samplesByBAM,self.bamFiles = platypusutils.getSampleNamesAndLoadIterators(self.bamFileNames, self.regions, options)
 
         if options.refFile.endswith(".gz") or options.refFile.endswith(".bz2") or options.refFile.endswith(".bgz"):
             logger.error("Reference file-name (%s) looks like a compressed file-name. Please un-compress the reference FASTA file before running Platypus" %(options.refFile))
