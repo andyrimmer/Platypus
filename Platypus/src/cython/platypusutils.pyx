@@ -34,7 +34,7 @@ from fastafile cimport FastaFile
 
 ###################################################################################################
 
-PLATYPUS_VERSION = "0.7.3"
+PLATYPUS_VERSION = "0.7.4"
 
 ###################################################################################################
 
@@ -508,7 +508,12 @@ cdef list loadBAMData(list bamFiles, bytes chrom, int start, int end, dict indel
                     logger.debug("Loaded %s reads in region %s:%s-%s" %(totalReads, chrom, start, end))
 
                 if totalReads >= maxReads:
-                    raise StandardError, "Too many reads (%s) in region %s:%s-%s. Quitting now. Either reduce --bufferSize or increase --maxReads." %(totalReads, chrom, start, end)
+                    # Explicitly clear up memory, as Cython doesn't seem to do this
+                    #del(theReadBuffer)
+                    #for theReadBuffer in readBuffers:
+                    #    del(theReadBuffer)
+                    logger.warning("Too many reads (%s) in region %s:%s-%s. Quitting now. Either reduce --bufferSize or increase --maxReads." %(totalReads, chrom, start, end))
+                    return None
 
             if fetchBrokenMates:
                 logger.info("There are %s broken pairs in BAM %s in region %s:%s-%s" %(len(brokenMateCoords), reader.filename, chrom, start, end))
@@ -581,7 +586,8 @@ cdef list loadBAMData(list bamFiles, bytes chrom, int start, int end, dict indel
                                 brokenMateCoords.append( (reader.getrname(theRead.mateChromID), theRead.mateChromID, theRead.matePos) )
 
                 if totalReads >= maxReads:
-                    raise StandardError, "Too many reads (%s) in region %s:%s-%s. Quitting now. Either reduce --bufferSize or increase --maxReads." %(totalReads, chrom, start, end)
+                    logger.warning("Too many reads (%s) in region %s:%s-%s. Quitting now. Either reduce --bufferSize or increase --maxReads." %(totalReads, chrom, start, end))
+                    return None
 
             if fetchBrokenMates:
                 brokenMateCoords.sort()
