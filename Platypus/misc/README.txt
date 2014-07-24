@@ -327,3 +327,10 @@ Released on 25 Jan 2013.
 - Released on 4 March 2014
 - Includes per-sample variant-frequency filtering to reduce candidate list and run-time
 - Fixed minor bug in MMLQ calculation
+
+
+0.7.4
+=====
+
+- Released on 23 July 2014
+- Major memory leak fixed when skipping regions due to high coverage.
