@@ -12,16 +12,16 @@
 //_________________________________________________________________________________________________
 
 
-inline short extract0(__m128i x) {return _mm_extract_epi16(x, 0);}
-inline short extract1(__m128i x) {return _mm_extract_epi16(x, 1);}
-inline short extract2(__m128i x) {return _mm_extract_epi16(x, 2);}
-inline short extract3(__m128i x) {return _mm_extract_epi16(x, 3);}
-inline short extract4(__m128i x) {return _mm_extract_epi16(x, 4);}
-inline short extract5(__m128i x) {return _mm_extract_epi16(x, 5);}
-inline short extract6(__m128i x) {return _mm_extract_epi16(x, 6);}
-inline short extract7(__m128i x) {return _mm_extract_epi16(x, 7);}
-
-short (*extractors[8]) (__m128i x) = {extract0,extract1,extract2,extract3,extract4,extract5,extract6,extract7};
+//inline short extract0(__m128i x) {return _mm_extract_epi16(x, 0);}
+//inline short extract1(__m128i x) {return _mm_extract_epi16(x, 1);}
+//inline short extract2(__m128i x) {return _mm_extract_epi16(x, 2);}
+//inline short extract3(__m128i x) {return _mm_extract_epi16(x, 3);}
+//inline short extract4(__m128i x) {return _mm_extract_epi16(x, 4);}
+//inline short extract5(__m128i x) {return _mm_extract_epi16(x, 5);}
+//inline short extract6(__m128i x) {return _mm_extract_epi16(x, 6);}
+//inline short extract7(__m128i x) {return _mm_extract_epi16(x, 7);}
+//
+//short (*extractors[8]) (__m128i x) = {extract0,extract1,extract2,extract3,extract4,extract5,extract6,extract7};
 
 
 //_________________________________________________________________________________________________
