@@ -5,7 +5,6 @@ algorithm and initial implementation.
 
 from __future__ import division
 
-import pyvcf
 import multiprocessing
 import variantcaller
 import extendedoptparse

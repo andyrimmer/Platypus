@@ -7,7 +7,7 @@ from __future__ import division
 import logging
 import multiprocessing
 import window
-import pyvcf
+import vcf
 import variantutils
 import time
 import datetime
@@ -763,7 +763,7 @@ class PlatypusSingleProcess(object):
         """
         # Cache reference sequence for this region. This should result in a substantial speed-up for
         # the fastafile.getSequence function.
-        self.vcf = pyvcf.VCF()
+        self.vcf = vcf.VCF()
         self.vcf.setheader(vcfHeader + [('platypusOptions', str(self.options))])
         self.vcf.setsamples(sorted(set(self.samples)))
         self.vcf.setinfo(vcfutils.vcfInfoSignature)

@@ -9,7 +9,7 @@ PLATYPUS_SO := $(PLATYPUS_C:.c=.so)
 
 # Python source files needed for building release
 PYTHONSRC := src/python/Platypus.py src/python/platypusexceptions.py src/python/runner.py src/python/variantutils.py\
-src/python/window.py ../coreutils/filez.py src/python/extendedoptparse.py
+src/python/window.py src/python/vcf.py ../coreutils/filez.py src/python/extendedoptparse.py
 
 VERSION := 0.7.5
 TARGET := Platypus_${VERSION}
@@ -39,7 +39,6 @@ platypus: ${HEADERS} ${SOURCES}
 	cp ../coreutils/build/*/*.py bin/
 	cp src/build/*/*.so bin/
 	cp src/build/*/python/*.py bin/
-	rsync -a --exclude='.svn' ../pyvcf bin/
 
 clean:
 	rm -rf bin
@@ -64,15 +63,12 @@ releasedir: platypus
 	cp -f ${OTHER} ${TARGET}
 	echo 'Copying Samtools files'
 	rsync -a --exclude='.svn' ../coreutils/samtools ${TARGET}/
-	echo 'Copying pyvcf files'
-	rsync -a --exclude='.svn' ../pyvcf ${TARGET}/
 	echo 'Copying pysam *.c files'
 	cp -f src/pysam/*.c ${TARGET}/src/pysam/
 	cp -f src/pysam/COPYING ${TARGET}/src/pysam/
 	echo 'Copying tabix files'
 	rsync -a --exclude='.svn' src/tabix ${TARGET}/
 	echo 'Cleaning up other unwanted files'
-	rm -rf ${TARGET}/pyvcf/Polarize
 
 .PHONY:
 tarball: releasedir

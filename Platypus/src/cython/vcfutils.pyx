@@ -4,7 +4,7 @@ VCF output from the various data structures used by Platypus.
 """
 
 import logging
-import pyvcf
+import vcf
 
 cimport fastafile
 cimport samtoolsWrapper
@@ -66,56 +66,56 @@ cdef int CIGAR_P = 6 # Padding. Used for padded alignment
 
 # Definititons for the individual and filter fields included in the header
 vcfInfoSignature = {
-    "FR":pyvcf.FORMAT('FR',1,".",'Float','Estimated population frequency of variant',-1),
-    "PP":pyvcf.FORMAT('PP',1,".",'Float','Posterior probability (phred scaled) that this variant segregates',-1),
-    "TC":pyvcf.FORMAT('TC',1,1,'Integer','Total coverage at this locus',-1),
-    "WS":pyvcf.FORMAT('WS',1,1,'Integer','Starting position of calling window',-1),
-    "WE":pyvcf.FORMAT('WE',1,1,'Integer','End position of calling window',-1),
-    "TCR":pyvcf.FORMAT('TCR',1,1,'Integer','Total reverse strand coverage at this locus',-1),
-    "TCF":pyvcf.FORMAT('TCF',1,1,'Integer','Total forward strand coverage at this locus',-1),
-    "TR":pyvcf.FORMAT('TR',1,".",'Integer','Total number of reads containing this variant',-1),
-    "NF":pyvcf.FORMAT('NF',1,".",'Integer','Total number of forward reads containing this variant',-1),
-    "NR":pyvcf.FORMAT('NR',1,".",'Integer','Total number of reverse reads containing this variant',-1),
-    "MGOF":pyvcf.FORMAT('MGOF',1,".",'Integer','Worst goodness-of-fit value reported across all samples',-1),
-    "SC":pyvcf.FORMAT('SC',1,1,'String','Genomic sequence 10 bases either side of variant position',-1),
-    "HP":pyvcf.FORMAT('HP',1,1,'Integer','Homopolymer run length around variant locus',-1),
-    "BRF":pyvcf.FORMAT('BRF',1,1,'Float','Fraction of reads around this variant that failed filters',-1),
-    "MMLQ":pyvcf.FORMAT('MMLQ',1,1,'Float','Median minimum base quality for bases around variant',-1),
-    "QD":pyvcf.FORMAT('QD',1,1,'Float','Variant-quality/read-depth for this variant',-1),
-    "Source":pyvcf.FORMAT('Source',1,".",'String','Was this variant suggested by Playtypus, Assembler, or from a VCF?',-1),
-    "START":pyvcf.FORMAT('START',1,".",'Integer','Start position of reference call block', -1),
-    "END":pyvcf.FORMAT('END',1,".",'Integer','End position of reference call block', -1),
-    "Size":pyvcf.FORMAT('Size',1,".",'Integer','Size of reference call block', -1),
-    "HapScore":pyvcf.FORMAT('HapScore',1,".",'Integer','Haplotype score measuring the number of haplotypes the variant is segregating into in a window', -1),
-    "MQ":pyvcf.FORMAT('MQ',1,".",'Float','Root mean square of mapping qualities of reads at the variant position',-1),
-    "FS":pyvcf.FORMAT('FS',1,".",'Float','Fisher\'s exact test for strand bias (Phred scale)',-1),
-    "SbPval":pyvcf.FORMAT('SbPval',1,".",'Float','Binomial P-value for strand bias test',-1),
-#   "MQRankSum":pyvcf.FORMAT('MQRankSum',1,".",'Float','Mann-Whitney Rank sum test for mapping quality difference between ref and alt (Phred scale)',-1),
-    "ReadPosRankSum":pyvcf.FORMAT('ReadPosRankSum',1,".",'Float','Mann-Whitney Rank sum test for difference between in positions of variants in reads from ref and alt',-1),
+    "FR":vcf.FORMAT('FR',1,".",'Float','Estimated population frequency of variant',-1),
+    "PP":vcf.FORMAT('PP',1,".",'Float','Posterior probability (phred scaled) that this variant segregates',-1),
+    "TC":vcf.FORMAT('TC',1,1,'Integer','Total coverage at this locus',-1),
+    "WS":vcf.FORMAT('WS',1,1,'Integer','Starting position of calling window',-1),
+    "WE":vcf.FORMAT('WE',1,1,'Integer','End position of calling window',-1),
+    "TCR":vcf.FORMAT('TCR',1,1,'Integer','Total reverse strand coverage at this locus',-1),
+    "TCF":vcf.FORMAT('TCF',1,1,'Integer','Total forward strand coverage at this locus',-1),
+    "TR":vcf.FORMAT('TR',1,".",'Integer','Total number of reads containing this variant',-1),
+    "NF":vcf.FORMAT('NF',1,".",'Integer','Total number of forward reads containing this variant',-1),
+    "NR":vcf.FORMAT('NR',1,".",'Integer','Total number of reverse reads containing this variant',-1),
+    "MGOF":vcf.FORMAT('MGOF',1,".",'Integer','Worst goodness-of-fit value reported across all samples',-1),
+    "SC":vcf.FORMAT('SC',1,1,'String','Genomic sequence 10 bases either side of variant position',-1),
+    "HP":vcf.FORMAT('HP',1,1,'Integer','Homopolymer run length around variant locus',-1),
+    "BRF":vcf.FORMAT('BRF',1,1,'Float','Fraction of reads around this variant that failed filters',-1),
+    "MMLQ":vcf.FORMAT('MMLQ',1,1,'Float','Median minimum base quality for bases around variant',-1),
+    "QD":vcf.FORMAT('QD',1,1,'Float','Variant-quality/read-depth for this variant',-1),
+    "Source":vcf.FORMAT('Source',1,".",'String','Was this variant suggested by Playtypus, Assembler, or from a VCF?',-1),
+    "START":vcf.FORMAT('START',1,".",'Integer','Start position of reference call block', -1),
+    "END":vcf.FORMAT('END',1,".",'Integer','End position of reference call block', -1),
+    "Size":vcf.FORMAT('Size',1,".",'Integer','Size of reference call block', -1),
+    "HapScore":vcf.FORMAT('HapScore',1,".",'Integer','Haplotype score measuring the number of haplotypes the variant is segregating into in a window', -1),
+    "MQ":vcf.FORMAT('MQ',1,".",'Float','Root mean square of mapping qualities of reads at the variant position',-1),
+    "FS":vcf.FORMAT('FS',1,".",'Float','Fisher\'s exact test for strand bias (Phred scale)',-1),
+    "SbPval":vcf.FORMAT('SbPval',1,".",'Float','Binomial P-value for strand bias test',-1),
+#   "MQRankSum":vcf.FORMAT('MQRankSum',1,".",'Float','Mann-Whitney Rank sum test for mapping quality difference between ref and alt (Phred scale)',-1),
+    "ReadPosRankSum":vcf.FORMAT('ReadPosRankSum',1,".",'Float','Mann-Whitney Rank sum test for difference between in positions of variants in reads from ref and alt',-1),
 }
 
 vcfFilterSignature = {
-    "alleleBias":pyvcf.FORMAT('alleleBias',1,0,'Flag','Variant frequency is lower than expected for het','.'),
-    "strandBias":pyvcf.FORMAT('strandBias',1,0,'Flag','Variant fails strand-bias filter','.'),
-    "badReads":pyvcf.FORMAT('badReads',1,0,'Flag','Variant supported only by reads with low quality bases close to variant position, and not present on both strands.','.'),
-    "MQ":pyvcf.FORMAT('MQ',1,0,'Flag','Root-mean-square mapping quality across calling region is low.','.'),
-    "Q20":pyvcf.FORMAT('Q20',1,0,'Flag','Variant quality is below 20.','.'),
-    "QualDepth":pyvcf.FORMAT('HapScore',1,0,'Flag','Too many haplotypes are supported by the data in this region.','.'),
-    "HapScore":pyvcf.FORMAT('QualDepth',1,0,'Flag','Variant quality/Read depth ratio is low.','.'),
-    "GOF":pyvcf.FORMAT('GOF',1,0,'Flag','Variant fails goodness-of-fit test.','.'),
-    "hp10":pyvcf.FORMAT('hp10',1,0,'Flag','Flanking sequence contains homopolymer of length 10 or greater','.'),
-    "REFCALL":pyvcf.FORMAT('REFCALL',1,0,'Flag','This line represents a homozygous reference call','.'),
-    "QD":pyvcf.FORMAT('QD',1,0,'Flag','Variants fail quality/depth filter.','.'),
-    "SC":pyvcf.FORMAT('SC',1,0,'Flag','Variants fail sequence-context filter. Surrounding sequence is low-complexity','.'),
+    "alleleBias":vcf.FORMAT('alleleBias',1,0,'Flag','Variant frequency is lower than expected for het','.'),
+    "strandBias":vcf.FORMAT('strandBias',1,0,'Flag','Variant fails strand-bias filter','.'),
+    "badReads":vcf.FORMAT('badReads',1,0,'Flag','Variant supported only by reads with low quality bases close to variant position, and not present on both strands.','.'),
+    "MQ":vcf.FORMAT('MQ',1,0,'Flag','Root-mean-square mapping quality across calling region is low.','.'),
+    "Q20":vcf.FORMAT('Q20',1,0,'Flag','Variant quality is below 20.','.'),
+    "QualDepth":vcf.FORMAT('HapScore',1,0,'Flag','Too many haplotypes are supported by the data in this region.','.'),
+    "HapScore":vcf.FORMAT('QualDepth',1,0,'Flag','Variant quality/Read depth ratio is low.','.'),
+    "GOF":vcf.FORMAT('GOF',1,0,'Flag','Variant fails goodness-of-fit test.','.'),
+    "hp10":vcf.FORMAT('hp10',1,0,'Flag','Flanking sequence contains homopolymer of length 10 or greater','.'),
+    "REFCALL":vcf.FORMAT('REFCALL',1,0,'Flag','This line represents a homozygous reference call','.'),
+    "QD":vcf.FORMAT('QD',1,0,'Flag','Variants fail quality/depth filter.','.'),
+    "SC":vcf.FORMAT('SC',1,0,'Flag','Variants fail sequence-context filter. Surrounding sequence is low-complexity','.'),
 }
 
 vcfFormatSignature = {
-    "GT":pyvcf.FORMAT('GT',1,1,'String','Unphased genotypes','.'),
-    "GL":pyvcf.FORMAT('GL',1,'.','Float','Genotype log10-likelihoods for AA,AB and BB genotypes, where A = ref and B = variant. Only applicable for bi-allelic sites','.'),
-    "GQ":pyvcf.FORMAT('GQ',1,'.','Integer','Genotype quality as phred score','.'),
-    "GOF":pyvcf.FORMAT('GOF',1,'.','Float','Goodness of fit value','.'),
-    "NR":pyvcf.FORMAT('NR',1,'.','Integer','Number of reads covering variant location in this sample','.'),
-    "NV":pyvcf.FORMAT('NV',1,'.','Integer','Number of reads containing variant in this sample','.'),
+    "GT":vcf.FORMAT('GT',1,1,'String','Unphased genotypes','.'),
+    "GL":vcf.FORMAT('GL',1,'.','Float','Genotype log10-likelihoods for AA,AB and BB genotypes, where A = ref and B = variant. Only applicable for bi-allelic sites','.'),
+    "GQ":vcf.FORMAT('GQ',1,'.','Integer','Genotype quality as phred score','.'),
+    "GOF":vcf.FORMAT('GOF',1,'.','Float','Goodness of fit value','.'),
+    "NR":vcf.FORMAT('NR',1,'.','Integer','Number of reads covering variant location in this sample','.'),
+    "NV":vcf.FORMAT('NV',1,'.','Integer','Number of reads containing variant in this sample','.'),
 }
 
 ###################################################################################################

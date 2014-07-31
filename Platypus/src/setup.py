@@ -12,6 +12,7 @@ setup(name="window", py_modules=['python/window'])
 setup(name="variantutils", py_modules=['python/variantutils'])
 setup(name="platypusexceptions", py_modules=['python/platypusexceptions'])
 setup(name="extendedoptparse", py_modules=['python/extendedoptparse'])
+setup(name="vcf", py_modules=['python/vcf'])
 setup(name="runner", py_modules=['python/runner'])
 setup(name="Platypus", py_modules=['python/Platypus'])
 
