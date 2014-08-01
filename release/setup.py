@@ -27,7 +27,7 @@ extModules.append(Extension(name='vcfutils', sources=['vcfutils.c'], include_dir
 extModules.append(Extension(name='variantFilter', sources=['variantFilter.c'], include_dirs=["samtools"],  extra_compile_args=cFlags))
 extModules.append(Extension(name='variantcaller', sources=['variantcaller.c'], include_dirs=["samtools"], extra_compile_args=cFlags))
 
-setup(name="pyvcf", packages=['pyvcf'])
+setup(name="vcf", py_modules=['vcf'])
 setup(name="extendedoptparse", py_modules=['extendedoptparse'])
 setup(name="window", py_modules=['window'])
 setup(name="variantutils", py_modules=['variantutils'])

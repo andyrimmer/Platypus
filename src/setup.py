@@ -9,6 +9,7 @@ from Cython.Distutils import build_ext as build_pyx
 #
 
 setup(name="window", py_modules=['python/window'])
+setup(name="filez", py_modules=['python/filez'])
 setup(name="variantutils", py_modules=['python/variantutils'])
 setup(name="platypusexceptions", py_modules=['python/platypusexceptions'])
 setup(name="extendedoptparse", py_modules=['python/extendedoptparse'])
@@ -22,14 +23,24 @@ setup(name="Platypus", py_modules=['python/Platypus'])
 #
 
 extModules = []
-corMods = ['../../coreutils/chaplotype.pxd', '../../coreutils/variant.pxd', '../../coreutils/fastafile.pxd', '../../coreutils/calign.pxd', '../../coreutils/samtoolsWrapper.pxd']
-incDirs = ["../../coreutils/samtools", "../../coreutils", "./"]
+corMods = ['cython/chaplotype.pxd', 'cython/variant.pxd', 'cython/fastafile.pxd', 'cython/calign.pxd', 'cython/samtoolsWrapper.pxd']
+incDirs = ["samtools", "./", "c"]
 
 # Debug for Valgrind
-cFlags = ["-msse2", "-msse3", "-funroll-loops", "-D_LARGEFILE64_SOURCE", "-D_FILE_OFFSET_BITS=64", "-g"]
+cFlags = ["-msse2", "-msse3", "-funroll-loops", "-D_LARGEFILE64_SOURCE", "-D_FILE_OFFSET_BITS=64" ,"-g"]
 
 # No debug. I don't think this affects performance?
 #cFlags = ["-msse2", "-msse3", "-funroll-loops", "-D_LARGEFILE64_SOURCE", "-D_FILE_OFFSET_BITS=64"]
+
+extModules.append(Extension(name='samtoolsWrapper', sources=['cython/samtoolsWrapper.pyx', 'c/pysam_util.c'] + glob.glob(os.path.join("samtools", "*.c")), include_dirs=incDirs,libraries=['z'], language='c', extra_compile_args=cFlags))
+extModules.append(Extension(name='arrays', sources=['cython/arrays.pyx'], include_dirs=incDirs, language='c', extra_compile_args=cFlags))
+extModules.append(Extension(name='fastafile', sources=['cython/fastafile.pyx'], include_dirs=incDirs,  extra_compile_args=cFlags))
+extModules.append(Extension(name='bamfileutils', sources=['cython/bamfileutils.pyx', 'cython/samtoolsWrapper.pxd'], include_dirs=incDirs, extra_compile_args=cFlags))
+extModules.append(Extension(name='variant', sources=['cython/variant.pyx', 'cython/samtoolsWrapper.pxd'], include_dirs=incDirs, extra_compile_args=cFlags))
+extModules.append(Extension(name='histogram', sources=['cython/histogram.pyx'], include_dirs=incDirs, extra_compile_args=cFlags))
+extModules.append(Extension(name='cerrormodel', sources=['cython/cerrormodel.pyx', 'c/tandem.c'], include_dirs=incDirs, language='c', extra_compile_args=cFlags))
+extModules.append(Extension(name='calign', sources=['cython/calign.pyx', 'c/align.c', 'cython/samtoolsWrapper.pxd', 'cython/cerrormodel.pxd'], include_dirs=incDirs, extra_compile_args=cFlags))
+extModules.append(Extension(name='chaplotype', sources=['cython/chaplotype.pyx', 'cython/variant.pxd','cython/samtoolsWrapper.pxd', 'cython/calign.pxd', 'c/align.c'], include_dirs=incDirs, language='c', extra_compile_args=cFlags))
 
 extModules.append(Extension(name="ctabix", sources=["pysam/ctabix.pyx"] + ["pysam/tabix_util.c"] + glob.glob("tabix/*.pysam.c"), include_dirs=["tabix", "pysam"], libraries=["z"], language="c"))
 extModules.append(Extension(name="TabProxies", sources=[ "pysam/TabProxies.pyx", ], libraries=[ "z", ], language="c"))

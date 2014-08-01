@@ -1,7 +1,6 @@
 
-The Platypus variant caller. To build do the following:
+The Platypus variant caller. To build Platypus, do the following:
 
-cd Platypus
 make
 
 Then to run do
