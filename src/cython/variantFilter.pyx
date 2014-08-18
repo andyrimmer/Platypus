@@ -270,6 +270,9 @@ cdef double computeBestScoreForGenotype(list readBuffers, DiploidGenotype gt, in
         brokenReadsBegin = readBuff.brokenMates.windowStart
         brokenReadsEnd = readBuff.brokenMates.windowEnd
 
+        if readBegin == readEnd:
+            continue
+
         meanCoverage = readBegin[0].rlen * (readEnd - readBegin) // windowSize
         sampleRate = max(1, meanCoverage // targetCoverage)
         #logger.info("nReads = %s. Mean coverage for sample %s in window is %s. Window size = %s. Target cov = %s. Sampling one read per %s" %(readEnd - readBegin, individualIndex, meanCoverage, windowSize, targetCoverage, sampleRate))

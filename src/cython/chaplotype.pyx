@@ -332,8 +332,8 @@ cdef class Haplotype:
         self.cHaplotypeSequence = self.haplotypeSequence
         self.hapLen = len(self.cHaplotypeSequence)
 
-        if self.referenceSequence == self.haplotypeSequence and len(self.variants) != 0:
-            logger.error("Haplotype is broken. Var seq and ref seq are the same, and variants are %s" %(self.variants))
+        #if self.referenceSequence == self.haplotypeSequence and len(self.variants) != 0:
+        #    logger.error("Haplotype is broken. Var seq and ref seq are the same, and variants are %s" %(list(self.variants)))
 
         if self.hapLen > hash_size:
             logger.error("Haplotype with vars %s has len %s. Start is %s. End is %s. maxReadLen = %s" %(self.variants, self.hapLen, self.startPos, self.endPos, maxReadLength))

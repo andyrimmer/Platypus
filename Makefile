@@ -28,7 +28,7 @@ src/cython/assembler.c src/c/align.c src/cython/calign.c src/cython/chaplotype.c
 src/c/pysam_util.c src/cython/samtoolsWrapper.c src/cython/variant.c src/c/pysam_util.h src/c/align.h\
 src/cython/cerrormodel.c src/c/tandem.h src/c/tandem.c src/pysam/ctabix.c src/pysam/TabProxies.c src/pysam/tabix_util.c
 
-OTHER := misc/README.txt misc/LICENSE release/setup.py release/buildPlatypus.sh
+OTHER := misc/README.txt LICENSE release/setup.py release/buildPlatypus.sh
 
 platypus: ${HEADERS} ${SOURCES}
 	echo 'Building Platypus'

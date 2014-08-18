@@ -70,7 +70,7 @@ cdef extern from "string.h":
 
 ###################################################################################################
 
-cdef void callVariantsInWindow(dict window, options, FastaFile refFile, list readBuffers, Population pop, int start, int end, char* refSeq):
+cdef void callVariantsInWindow(dict window, options, FastaFile refFile, list readBuffers, Population pop, int start, int end, char* refSeq) except *:
     """
     """
     cdef Haplotype hap
