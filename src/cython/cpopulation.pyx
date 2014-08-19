@@ -92,7 +92,6 @@ cdef class Population:
         """
         self.options = options
         self.verbosity = options.verbosity
-        self.printAlignments = options.printAlignments
         self.nIndividuals = options.nInd
         self.maxHaplotypes = options.maxHaplotypes
         self.maxGenotypes = options.maxGenotypes
@@ -294,7 +293,7 @@ cdef class Population:
                 if nReadsThisInd == 0:
                     self.genotypeLikelihoods[individualIndex][genotypeIndex] = 1.0
                 else:
-                    logLikelihood = genotype.calculateDataLikelihood(theBuffer.reads.windowStart, theBuffer.reads.windowEnd, theBuffer.badReads.windowStart, theBuffer.badReads.windowEnd, theBuffer.brokenMates.windowStart, theBuffer.brokenMates.windowEnd, individualIndex, self.nIndividuals, self.goodnessOfFitValues[genotypeIndex], self.printAlignments)
+                    logLikelihood = genotype.calculateDataLikelihood(theBuffer.reads.windowStart, theBuffer.reads.windowEnd, theBuffer.badReads.windowStart, theBuffer.badReads.windowEnd, theBuffer.brokenMates.windowStart, theBuffer.brokenMates.windowEnd, individualIndex, self.nIndividuals, self.goodnessOfFitValues[genotypeIndex])
 
                     if logLikelihood > self.maxLogLikelihoods[individualIndex]:
                         self.maxLogLikelihoods[individualIndex] = logLikelihood
@@ -356,8 +355,8 @@ cdef class Population:
 
                         debugHap1 = genotype.hap1
                         debugHap2 = genotype.hap2
-                        debugArr1 = debugHap1.alignReads(individualIndex, theBuffer.reads.windowStart, theBuffer.reads.windowEnd, theBuffer.badReads.windowStart, theBuffer.badReads.windowEnd, theBuffer.brokenMates.windowStart, theBuffer.brokenMates.windowEnd, False, verbosity)
-                        debugArr2 = debugHap2.alignReads(individualIndex, theBuffer.reads.windowStart, theBuffer.reads.windowEnd, theBuffer.badReads.windowStart, theBuffer.badReads.windowEnd, theBuffer.brokenMates.windowStart, theBuffer.brokenMates.windowEnd, False, verbosity)
+                        debugArr1 = debugHap1.alignReads(individualIndex, theBuffer.reads.windowStart, theBuffer.reads.windowEnd, theBuffer.badReads.windowStart, theBuffer.badReads.windowEnd, theBuffer.brokenMates.windowStart, theBuffer.brokenMates.windowEnd, False)
+                        debugArr2 = debugHap2.alignReads(individualIndex, theBuffer.reads.windowStart, theBuffer.reads.windowEnd, theBuffer.badReads.windowStart, theBuffer.badReads.windowEnd, theBuffer.brokenMates.windowStart, theBuffer.brokenMates.windowEnd, False)
 
                         logger.debug("Verbose output: logging likelihoods for each read...")
                         logger.debug("")

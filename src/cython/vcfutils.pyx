@@ -34,6 +34,8 @@ from samtoolsWrapper cimport Read_SetQCFail
 
 logger = logging.getLogger("Log")
 
+canonicalBases = set(["A", "C", "T", "G"])
+
 ###################################################################################################
 
 cdef extern from "math.h":
@@ -573,7 +575,19 @@ cdef void outputCallToVCF(dict varsByPos, dict vcfInfo, dict vcfFilter, list hap
             # left should be un-padded.
             #logger.info("Variants = %s" %(variants))
             trimLeftPadding(vcfDataLine)
-            outputSingleLineOfVCF(vcfDataLine, outputFile, vcfFile, options)
+
+            # Don't output if the reference bases are non-canonical
+            for c in vcfDataLine['ref']:
+
+                if c not in canonicalBases:
+                    theChrom = vcfDataLine['chrom']
+                    thePos = vcfDataLine['pos']
+                    theRef = vcfDataLine['ref']
+                    theAlt = vcfDataLine['alt']
+                    logger.warning("Skipping output for call %s:%s %s --> %s, as the reference sequence contains non-canonical bases (i.e. not A,C,T,G)" %(theChrom,thePos,theRef,theAlt))
+                    break
+            else:
+                outputSingleLineOfVCF(vcfDataLine, outputFile, vcfFile, options)
 
     # Free memory. (TODO: move this somewhere else).
     for hapIndex in range(len(haplotypes)):

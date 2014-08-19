@@ -67,168 +67,6 @@ cdef list per_base_indel_errors = [2.9e-5, 2.9e-5, 2.9e-5, 2.9e-5, 4.3e-5, 1.1e-
 # homopolymer indel error model
 cdef bytes homopolq = bytes(''.join([chr(int(33.5 + 10*log( (idx+1)*q )/log(0.1) )) for idx,q in enumerate(per_base_indel_errors)]))
 
-# same model, represented in a more general way.  Commented out for now
-#cdef dict indel_error_model = {'nonrepetitive':'X',
-#                               1:'NKJHFA=854210/.-,,+**))(((\'\'\'&&&%%%$$$$#####"""""'}
-
-# model obtained from 10M reads from AW_SC_4654.bam, using an early version of indelerrormodel.py (updated the default extrapolation exponents)
-
-default_indel_error_model = {'AAGG': 'WWWWWWWKJHFEC<<;98665320/-,*)(&%#"!', 1: 'WWWKIFB<83/+(%"!!!!!!!!!!!!!!', 2: "WWWKKKJJFB=:86531/.,*('%#!!!!!!!!!!!!!!!!!!!!!!", 3: 'WWWWWLLKIGEDB@====;;53220.,+)\'%#"!!!', 4: "WWWWWWWKJHHFFBBBB>>=<<;764310.-+*)'&$#!!!!!!!!!!!!!!!!!!!!!!!!", 5: 'WWWWWWWWWIIIFEA@???><<<;9865320/-,+)(&%#"!', 6: 'WWWWWWWWWWIIIIFDCA@>=;:87754210.-+*(\'%$"!', 7: 'WWWWWWWWWWWIHHEEA?>>=;:875421/.,+*(\'%$"!', 8: 'WWWWWWWWWWWWIFEECB@?;99865320/-,*)\'&%#"!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!', 9: 'WWWWWWWWWWWWWHFFFDB=;:875421/.-+*(\'%$"!', 10: "WWWWWWWWWWWWWWHFFCB??><;99764310.-+*)'&$#!!", 11: "WWWWWWWWWWWWWWWGGEEBB?=:9764310.-,*)'&$#!!", 'AGC': 'WWWWWMMKKKGFDB@?=;986420/-+)(&$"!', 'AAG': 'WWWWWMMLJHGECA@><:975320.,+)\'%#"!', 'ACCC': 'WWWWWWWHHHGEDBA?><;:875421/.,+)(\'%$"!', 'AAAAT': 'WWWWWWWWWIHFEDBA?><;9865321/.,+)(&%#"!', 'AAT': 'WWWWWKJIHGEC@><;;9775420.-+)\'%$"!!!!!!!!!!!', 'AAAC': "WWWWWWWJJHGFDCA@>==;:888754310.-+*('%$#!!", 'AAGT': "WWWWWWWLGFDCA@>=;:9764310.-+*('&$#!!", 'AAAG': 'WWWWWWWJJFEEA@?=<:9765320/-,*)\'&$#"!', 'ACT': 'WWWWWMJJIGEDB@><;975420.-+)\'&$"!', 'ACCT': "WWWWWWWJIGFDCA@?=<:9764310.-,*)'&$#!!", 'CCG': 'WWWWWIGECA@><:975320.,+)\'%$"!', 'AAAT': 'WWWWWWWJIHFEECCBA@@>=;;:875421/.,+*(\'%$"!', 'AAGC': 'WWWWWWWKFEDBA?><;9865421/.,+)(&%#"!', 'AAAAAATAC': "WWWWWWWWWWWWWA>>=;:9764310.-+*('&$#!!", 'AAAAATAT': "WWWWWWWWWWWWVTA@>=<:9764310.-+*)'&$#!!", 'AGGC': 'WWWWWWWJIHFEDBA?><;9865321/.,+)(&%#"!', 'AACC': "WWWWWWWKJIGFECB@?=<:9764320/-,*)'&$#!!", 'AGCC': "WWWWWWWJIHDCA@>=;:9764310.-+*('&$#!!", 'AAAAAAATAC': 'WWWWWWWWWWWWWW>>><;9865321/.,+)(&%#"!', 'AAAAAAT': 'WWWWWWWWWWWD@@?=<:9765320/-,*)\'&$#"!', 'AAAAATAC': "WWWWWWWWWWWWBA@?=;:9764310.-+*('&$#!!", 'ACG': 'WWWWWKIGEDB@>=;975420.-+)\'&$"!', 'ACCTCC': 'WWWWWWWWWWVHHFECBA?><;9865320/.,+)(&%#"!', 'AACT': 'WWWWWWWHGEDBA?><;9865421/.,+)(&%#"!', 'ACAG': 'WWWWWWWMKJHGEDCA@>=;:8754210.-+*(\'%$"!', 'AATG': "WWWWWWWMKJIGFDCA@>=;:8764310.-+*('%$#!!", 'AAAAAGAAAAG': 'WWWWWWWWWWWWWWWVT<;9865321/.,+)(&%#"!', 'AC': 'WWWNMLIGGC=987631/-,*(&$#!!!!!!!!!!!!!!!!!!!!!!', 'AAAAAG': 'WWWWWWWWWWFBA?><;9865321/.,+)(&%#"!', 'AG': 'WWWIIIIIDD?=9774420-,*(&%#!!!!!!!!!', 'AGGG': 'WWWWWWWHHEECB@?=<:9765320/-,*)\'&%#"!', 'AAACAGAC': 'WWWWWWWWWWWWVA?><;9865421/.,+)(&%$"!', 'CG': 'WWWMJHGECA@><:975320.,+)\'%#"!', 'AAAAAAG': 'WWWWWWWWWWWBA?><;9865320/.,+)(&%#"!', 'CCCG': "WWWWWWWHGFDCB@?=<:9764310/-,*)'&$#!!", 'AT': "WWWMMMKKE?<:7420/-+('%#!!", 'ACCCC': "WWWWWWWWWECB@?=<:9764320/-,*)'&$#!!", 'ACATATATAT': "WWWWWWWWWWWWWWV>=;:8764310.-+*('%$#!!", 'ACC': "WWWWWKKIHEDCA?=<:86531/.,*('%#!!", 'AATAT': 'WWWWWWWWWVCA@>=;:8754310.-+*(\'%$"!!', 'AGCCTC': "WWWWWWWWWWJIGFECB@?=<:9764320/-,*)'&$#!!", 'AGGCGG': "WWWWWWWWWWIIGFDCA@>=;:8764310.-+*('%$#!!", 'AAAAAT': 'WWWWWWWWWWHFEDBA?><;9865321/.,+)(&%#"!', 'AATT': 'WWWWWWWKIIHFECB@?=<;9865320/-,*)(&%#"!', 'C': "WWWJHD<74-*'$!", 'ACACACATAT': 'WWWWWWWWWWWWWW;:8754210.-+*(\'%$"!', 'AGGCCG': 'WWWWWWWWWWHGFDCA@>=;:8754310.-+*(\'%$"!', 'AAAATAC': "WWWWWWWWWWW@?=<:9764320/-,*)'&$#!!", 'AAAAGAAAG': 'WWWWWWWWWWWWWVT?><;9865320/.,+)(&%#"!', 'AAAAAC': 'WWWWWWWWWWEDBA?>=;:875421/.,+*(\'%$"!', 'ACAT': 'WWWWWWWLKKIHFECB@?=<:9865320/-,*)\'&%#"!', 'ATC': 'WWWWWMMKHFDCA?=<:86431/-,*(&%#!!', 'ATCCC': 'WWWWWWWWWECB@?=<:9765320/-,*)\'&$#"!', 'AGG': 'WWWWWKKJHFDB@?=;986421/-+*(&$#!', 'AAAAAAAATAC': 'WWWWWWWWWWWWWWW9765320/-,*)\'&$#"!', 'AAAAAAAG': 'WWWWWWWWWWWWV=<:9765320/-,*)\'&$#"!', 'AAAAC': 'WWWWWWWWWFECCB@?==<:::9765320/-,*)\'&$#"!', 'ACTG': 'WWWWWWWMKJHGEDBA?>=;:875421/.,+*(\'%$"!', 'AAAAG': 'WWWWWWWWWGFDCB>;:875421/.,+*(\'%$"!', 'ATCC': 'WWWWWWWLKIHFECB@?=<:9865320/-,*)\'&%#"!'}
-
-# oth.errormodel.20111011.txt, in Research/1000GIndels/2011_09_27-error-rates/
-
-#default_indel_error_model = { 1: 'DDDDDC?:620//.--,' ,
-#                                2: 'DDDDDDDC?>:86442210///..-,,,,++++****)))))))))))(((%' ,
-#                                3: 'DDDDDDDDDB>>=:::8876554331100///--------***)' ,
-#                                4: 'DDDDDDDDDC===<888866665533222110//.------,,++++++*****)' ,
-#                                5: 'DDDDDDDDDCBA=9999766666555333322........,,,,,,,,,)' ,
-#                                6: "DDDDDDDDDDDB@?;:7777765555553322222211....---,,**(('''&" ,
-#                                7: 'DDDDDDDDDDDDD?>=:8755555553333321' ,
-#                                8: 'DDDDDDDDDDDDDDD==<:766444432221' ,
-#                                9: 'DDDDDDDDDDDDDDDDD;;:7665422222222222110' ,
-#                                10: 'DDDDDDDDDDDDDDDDDDD988764443222220/' ,
-#                                11: 'DDDDDDDDDDDDDDDDDDDDD66644333000.' ,
-#                                12: 'DDDDDDDDDDDDDDDDDDDDDDD6655554331111110..,' ,
-#                                13: 'DDDDDDDDDDDDDDDDDDDDDDDDD55555432220' ,
-#                                14: 'DDDDDDDDDDDDDDDDDDDDDDDDDDD6555432000000/' ,
-#                                15: 'DDDDDDDDDDDDDDDDDDDDDDDDDDDDD66654' ,
-#                                16: 'DDDDDDDDDDDDDDDDDDDDDDDDDDDDDDD7665220' ,
-#                                17: 'DDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDD888842' ,
-#                                18: 'DDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDD55555543' ,
-#                                19: 'DDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDD7776' ,
-#                                20: 'DDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDD887441111110/-+*)' ,
-#                                21: 'DDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDD7742' ,
-#                                22: 'DDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDD755443' ,
-#                                23: 'DDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDD4' ,
-#                                24: 'DDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDD652' ,
-#                                'A': 'DDDDDC@:620//.--,' ,
-#                                'AAAAAAAC': 'DDDDDDDDDDDDDDD5555554111111/' ,
-#                                'AAAAAAAG': 'DDDDDDDDDDDDDDD5554222111110' ,
-#                                'AAAAAAAT': 'DDDDDDDDDDDDDDD;;;;:876' ,
-#                                'AAAAAAATT': 'DDDDDDDDDDDDDDDDD97' ,
-#                                'AAAAAAC': 'DDDDDDDDDDDDD777776444444443321' ,
-#                                'AAAAAACC': 'DDDDDDDDDDDDDDD766521' ,
-#                                'AAAAAAG': 'DDDDDDDDDDDDD87743321111110' ,
-#                                'AAAAAAGAAAAG': 'DDDDDDDDDDDDDDDDDDDDDDD2' ,
-#                                'AAAAAAGAAAG': 'DDDDDDDDDDDDDDDDDDDDD320' ,
-#                                'AAAAAAGG': 'DDDDDDDDDDDDDDD87521' ,
-#                                'AAAAAAT': 'DDDDDDDDDDDDD>>>==;9999875' ,
-#                                'AAAAAATAC': 'DDDDDDDDDDDDDDDDD88654' ,
-#                                'AAAAAATT': 'DDDDDDDDDDDDDDD<<<:87' ,
-#                                'AAAAAC': 'DDDDDDDDDDD<<<::77777777777763333310//-' ,
-#                                'AAAAACC': 'DDDDDDDDDDDDD;;9865' ,
-#                                'AAAAAG': 'DDDDDDDDDDD;:8643333211111110' ,
-#                                'AAAAAGAAAAG': 'DDDDDDDDDDDDDDDDDDDDD430' ,
-#                                'AAAAAGAAAG': 'DDDDDDDDDDDDDDDDDDD5522/' ,
-#                                'AAAAAGAAAGAAAG': 'DDDDDDDDDDDDDDDDDDDDDDDDDDD4421' ,
-#                                'AAAAAGAG': 'DDDDDDDDDDDDDDD;8' ,
-#                                'AAAAAGG': 'DDDDDDDDDDDDD;;886' ,
-#                                'AAAAAT': 'DDDDDDDDDDD???==;;;;;::752' ,
-#                                'AAAAATAC': 'DDDDDDDDDDDDDDD<<7665' ,
-#                                'AAAAATT': 'DDDDDDDDDDDDD=99997' ,
-#                                'AAAAC': 'DDDDDDDDD?>>=:::::99999866444411/////...,,,,,,,+*&' ,
-#                                'AAAACC': 'DDDDDDDDDDD@@>;:7' ,
-#                                'AAAAG': 'DDDDDDDDD>><7444431111111110000.,' ,
-#                                'AAAAGAAAG': 'DDDDDDDDDDDDDDDDD7652221' ,
-#                                'AAAAGAAAGAAAG': 'DDDDDDDDDDDDDDDDDDDDDDDDD2' ,
-#                                'AAAAGAAG': 'DDDDDDDDDDDDDDD<75' ,
-#                                'AAAAGAG': 'DDDDDDDDDDDDD=:8' ,
-#                                'AAAAGC': 'DDDDDDDDDDD@??:7' ,
-#                                'AAAAGG': 'DDDDDDDDDDD??>:6' ,
-#                                'AAAAT': 'DDDDDDDDDCCA@===<<<;;;885543331/.' ,
-#                                'AAAATT': 'DDDDDDDDDDD@@@?:' ,
-#                                'AAAC': 'DDDDDDDCBA<<<<::::8877664433211///..,' ,
-#                                'AAACAC': 'DDDDDDDDDDDC==;64' ,
-#                                'AAACACAC': 'DDDDDDDDDDDDDDD8853/.' ,
-#                                'AAACACACAC': 'DDDDDDDDDDDDDDDDDDD540/-+' ,
-#                                'AAAG': "DDDDDDDAA@88883333111111000000....----,,,,,+++***))))))((('" ,
-#                                'AAAGAAAGAAAGAG': 'DDDDDDDDDDDDDDDDDDDDDDDDDDD4' ,
-#                                'AAAGAAAGAG': 'DDDDDDDDDDDDDDDDDDD8731' ,
-#                                'AAAGAAG': 'DDDDDDDDDDDDD==9876421' ,
-#                                'AAAGAAGG': 'DDDDDDDDDDDDDDD=:870' ,
-#                                'AAAGAG': 'DDDDDDDDDDDA==;:8887' ,
-#                                'AAAGAGAG': 'DDDDDDDDDDDDDDD;9988654' ,
-#                                'AAAGAGAGAG': 'DDDDDDDDDDDDDDDDDDD9876' ,
-#                                'AAAGAGAGAGAGAG': 'DDDDDDDDDDDDDDDDDDDDDDDDDDD1/,' ,
-#                                'AAAGG': 'DDDDDDDDDCCA=;;;;:87766555432' ,
-#                                'AAAGGAAG': 'DDDDDDDDDDDDDDD<<:9' ,
-#                                'AAAT': "DDDDDDDDDDAA@?====::876633220/-----*'" ,
-#                                'AAATAAT': 'DDDDDDDDDDDDD@=;' ,
-#                                'AAATT': 'DDDDDDDDDBAA>><:7' ,
-#                                'AAC': 'DDDDDDDBA@<<<::988765553211/////,,,,,,,*)' ,
-#                                'AACC': 'DDDDDDDDCB??=<<87633333332100/' ,
-#                                'AACCCT': 'DDDDDDDDDDD>:755543210/.--++)&' ,
-#                                'AAG': 'DDDDDDDBA@998444333221000//-,,++++++++++**)(' ,
-#                                'AAGAG': 'DDDDDDDDDDCCA>;:887544320//.--,+' ,
-#                                'AAGAGG': 'DDDDDDDDDDDCCA=;;8764321/' ,
-#                                'AAGC': 'DDDDDDDDDCCA=:::987654' ,
-#                                'AAGG': 'DDDDDDDDDCA@=<99988776665222000000////.---+++)' ,
-#                                'AAGGAG': 'DDDDDDDDDDDAA@=;97544444332' ,
-#                                'AAGGG': 'DDDDDDDDDCCCAA>=;:98654' ,
-#                                'AAT': 'DDDDDDDDCB@?===<:97553322//..----,' ,
-#                                'AATC': "DDDDDDDDDCCA>;::9999987666651//.-+*'" ,
-#                                'AATG': 'DDDDDDDDDDDDDAAA???=<9777444443100/.....-,+)&' ,
-#                                'AATGG': "DDDDDDDDDCA@<;888875554411100.........-+++++++****(((((('" ,
-#                                'AATT': 'DDDDDDDDCCC@?>>==<;7542' ,
-#                                'AC': "DDDDDDDB@>;87543210//...-,,,+++++****)))))))))))'" ,
-#                                'ACACACACAG': 'DDDDDDDDDDDDDDDDDDD764322110/' ,
-#                                'ACACACACAT': 'DDDDDDDDDDDDDDDDDDD55554' ,
-#                                'ACACACACC': 'DDDDDDDDDDDDDDDDD5' ,
-#                                'ACACACACGC': 'DDDDDDDDDDDDDDDDDDD5' ,
-#                                'ACACACAG': 'DDDDDDDDDDDDDDD9877543' ,
-#                                'ACACACAT': 'DDDDDDDDDDDDDDD98777643' ,
-#                                'ACACACATATATAT': 'DDDDDDDDDDDDDDDDDDDDDDDDDDD420/.' ,
-#                                'ACACACATGC': 'DDDDDDDDDDDDDDDDDDD::76420' ,
-#                                'ACACACGC': 'DDDDDDDDDDDDDDD7742' ,
-#                                'ACACACTC': 'DDDDDDDDDDDDDDD76' ,
-#                                'ACACAG': 'DDDDDDDDDDDA@=<7654332' ,
-#                                'ACACAT': 'DDDDDDDDDDD=;;:7666653222210/' ,
-#                                'ACACATAT': 'DDDDDDDDDDDDDDD:9' ,
-#                                'ACACATATAT': 'DDDDDDDDDDDDDDDDDDD9876' ,
-#                                'ACACATATATAT': 'DDDDDDDDDDDDDDDDDDDDDDD444432' ,
-#                                'ACACATGC': 'DDDDDDDDDDDDDDD<<;9' ,
-#                                'ACACGC': 'DDDDDDDDDDD97731' ,
-#                                'ACAG': "DDDDDDDDDC==;;87743331111110000//..-,,,+++*'&" ,
-#                                'ACAGAG': 'DDDDDDDDDDDB===:998865432' ,
-#                                'ACAGAGAG': 'DDDDDDDDDDDDDDD99976654/' ,
-#                                'ACAGAGAGAG': 'DDDDDDDDDDDDDDDDDDD766543' ,
-#                                'ACAT': 'DDDDDDDDBB>><::::9997775444421000/........-*)' ,
-#                                'ACATAT': 'DDDDDDDDDDDA<<;;;:887775543200/.--,,,,+++++*' ,
-#                                'ACATATAT': 'DDDDDDDDDDDDDDD=9' ,
-#                                'ACATATATAT': 'DDDDDDDDDDDDDDDDDDD76' ,
-#                                'ACC': 'DDDDDDDDDD?>>;:::776666211/' ,
-#                                'ACCACCATC': 'DDDDDDDDDDDDDDDDD821+' ,
-#                                'ACCATC': 'DDDDDDDDDDD@?==:8887554' ,
-#                                'ACCCCC': 'DDDDDDDDDDDAAA=:' ,
-#                                'ACCCCCC': 'DDDDDDDDDDDDD<9862' ,
-#                                'ACCT': 'DDDDDDDDDDC?=<;::9865432110/' ,
-#                                'ACGC': 'DDDDDDDA::6444443' ,
-#                                'ACT': 'DDDDDDDDDAA@==:::8754220000/.---,,++****)' ,
-#                                'ACTC': 'DDDDDDDDDDBB@=<<::876554' ,
-#                                'ACTCC': 'DDDDDDDDDAA@@;855332' ,
-#                                'ACTGCGG': 'DDDDDDDDDDDDD;' ,
-#                                'AG': "DDDDDDCC??:96644211000.....-,++++*****)))))))'''''&%" ,
-#                                'AGAGAGGG': 'DDDDDDDDDDDDDDD<<:8' ,
-#                                'AGAGGG': 'DDDDDDDDDDDCA?<;::86555552' ,
-#                                'AGAT': 'DDDDDDDDDB@?<;;866664320000///-,,,+++++++++**********)(' ,
-#                                'AGATAGATAGATGAT': 'DDDDDDDDDDDDDDDDDDDDDDDDDDDDD00/' ,
-#                                'AGATAGATGAT': 'DDDDDDDDDDDDDDDDDDDDD4310////..-,' ,
-#                                'AGATAT': 'DDDDDDDDDDDB><<<<987666554432110//..--,' ,
-#                                'AGC': "DDDDDDDDDDCA@@>=;;:7665531//------,,,**))'&$" ,
-#                                'AGG': 'DDDDDDDDDCCA??><;9988865' ,
-#                                'AGGC': 'DDDDDDDDDDDD@=<;84' ,
-#                                'AGGG': 'DDDDDDDDDBB@?>;;;87' ,
-#                                'AT': 'DDDDDDDB@=984310//.-,,,,,++++)(' ,
-#                                'ATC': 'DDDDDDDDDDBB>>>=<9777765222111//--------,,,)' ,
-#                                'ATCC': 'DDDDDDDDDDDAA====<;9777554222221//...---,,,,,,,,+*' ,
-#                                'C': 'DDDDDB<62/..--,' ,
-#                                'CCG': 'DDDDDDDDD@@@>><;98653210' ,
-#                                'CG': 'DDDDDD?<7210//....-' ,
-#                                'nonrepetitive': 'D' ,
-#                                }
-
-cdef dict indel_error_model = default_indel_error_model
-
 ###################################################################################################
 
 cdef void my_free(void* thePointer):
@@ -286,7 +124,7 @@ cdef class Haplotype:
     sequence, all supporting reads, and the start and end positions of
     this haplotype in the reference.
     """
-    def __init__(self, bytes refName, int startPos, int endPos, tuple variants, FastaFile refFile, int maxReadLength, int useIndelErrorModel, options):
+    def __init__(self, bytes refName, int startPos, int endPos, tuple variants, FastaFile refFile, int maxReadLength, options):
         """
         Constructor. Takes a tuple of variants and a
         fasta file of the referene sequence.
@@ -296,9 +134,7 @@ cdef class Haplotype:
         self.refFile = refFile
         self.variants = variants
         self.hash = -1
-        self.indelErrorModel = indel_error_model
-        self.useIndelErrorModel = useIndelErrorModel
-        self.cLocalGapOpenQ = NULL
+        self.localGapOpen = NULL
         self.haplotypeSequence = None
         self.startPos = max(0, startPos)
         self.endPos = min(endPos, self.refFile.refs[self.refName].SeqLength-1)
@@ -344,7 +180,6 @@ cdef class Haplotype:
         self.hapSequenceNextArray = NULL
         self.likelihoodCache = NULL
         self.lenCache = 0
-        self.localGapOpen = NULL
 
     def __dealloc__(self):
         """
@@ -451,7 +286,7 @@ cdef class Haplotype:
 
         return self.hash
 
-    cdef double* alignReads(self, int individualIndex, cAlignedRead** start, cAlignedRead** end, cAlignedRead** badReadsStart, cAlignedRead** badReadsEnd, cAlignedRead** brokenReadsStart, cAlignedRead** brokenReadsEnd, int useMapQualCap, int printAlignments):
+    cdef double* alignReads(self, int individualIndex, cAlignedRead** start, cAlignedRead** end, cAlignedRead** badReadsStart, cAlignedRead** badReadsEnd, cAlignedRead** brokenReadsStart, cAlignedRead** brokenReadsEnd, int useMapQualCap):
         """
         """
         cdef int readIndex = 0
@@ -461,7 +296,6 @@ cdef class Haplotype:
         cdef int nBrokenReads = brokenReadsEnd - brokenReadsStart
         cdef int totalReads = nReads + nBadReads + nBrokenReads
         cdef int readOverlap = 0
-        cdef int hapLen = self.endPos - self.startPos
         cdef int readLen = 0
         cdef double* temp = NULL
 
@@ -488,15 +322,6 @@ cdef class Haplotype:
 
             self.lastIndividualIndex = individualIndex
 
-            if printAlignments:
-                logger.debug("")
-                logger.debug("#########################################################################")
-                logger.debug("Logging alignments for haplotype %s and sample %s" %(self, individualIndex))
-                logger.debug("Haplotype sequence is followed by alignments of all reads (good then bad then broken mates)")
-                logger.debug("#########################################################################")
-                logger.debug(self.getMutatedSequence())
-                logger.debug("")
-
             while start != end:
 
                 readOverlap = computeOverlapOfReadAndHaplotype(self.startPos, self.endPos, start[0])
@@ -504,7 +329,7 @@ cdef class Haplotype:
                 if Read_IsQCFail(start[0]) or readOverlap < hash_nucs:
                     self.likelihoodCache[readIndex] = 0
                 else:
-                    score = alignReadToHaplotype(start[0], self, useMapQualCap, printAlignments)
+                    score = alignReadToHaplotype(start[0], self, useMapQualCap)
                     self.likelihoodCache[readIndex] = score
 
                 start += 1
@@ -517,7 +342,7 @@ cdef class Haplotype:
                 if Read_IsQCFail(badReadsStart[0]) or readOverlap < hash_nucs:
                     self.likelihoodCache[readIndex] = 0
                 else:
-                    score = alignReadToHaplotype(badReadsStart[0], self, useMapQualCap, printAlignments)
+                    score = alignReadToHaplotype(badReadsStart[0], self, useMapQualCap)
                     self.likelihoodCache[readIndex] = score
 
                 badReadsStart += 1
@@ -526,7 +351,7 @@ cdef class Haplotype:
             # It doesn't make sense to check overlap for the broken mates, as their mapping positions don't make
             # sense in this context.
             while brokenReadsStart != brokenReadsEnd:
-                score = alignReadToHaplotype(brokenReadsStart[0], self, useMapQualCap, printAlignments)
+                score = alignReadToHaplotype(brokenReadsStart[0], self, useMapQualCap)
                 self.likelihoodCache[readIndex] = score
                 brokenReadsStart += 1
                 readIndex += 1
@@ -535,12 +360,12 @@ cdef class Haplotype:
 
         return self.likelihoodCache
 
-    cdef inline double alignSingleRead(self, cAlignedRead* theRead, int useMapQualCap, int printAlignments):
+    cdef inline double alignSingleRead(self, cAlignedRead* theRead, int useMapQualCap):
         """
         Returns the alignment score for a single read. If 'useMapQualCap' is True, then read likelihood
         is capped using the mapping quality of the read. Otherwise it is capped at 1e-300.
         """
-        return alignReadToHaplotype(theRead, self, useMapQualCap, printAlignments)
+        return alignReadToHaplotype(theRead, self, useMapQualCap)
 
     cdef char* getReferenceSequence(self, prefix = 0):
         """
@@ -710,9 +535,8 @@ cdef class Haplotype:
 
     cdef void annotateWithGapOpen(self):
         """
-        Annotate this haplotype with a context-specific gap open penalty, using either the
-        homopolymer model or the more complex indel model, as specified by the self.useIndelErrorModel
-        flag.
+        Annotate this haplotype with a context-specific gap open penalty, using the
+        homopolymer model
         """
         # Only do this one per haplotype
         if self.localGapOpen != NULL:
@@ -720,50 +544,33 @@ cdef class Haplotype:
 
         cdef int index = self.hapLen
         cdef char* seq = self.cHaplotypeSequence
-        cdef char* errorModel = NULL
+        cdef char* errorModel = self.cHomopolQ
         cdef int homopol = -1
         cdef int homopollen = 0
 
         self.localGapOpen = <short*>malloc(self.hapLen*sizeof(short))
 
-        if self.useIndelErrorModel and self.cLocalGapOpenQ == NULL:
-            hapSeqForAnnotating = "".join([c if c != "N" else random.choice(["A", "C", "T", "G"]) for c in self.haplotypeSequence])
-            self.localGapOpenQ = cerrormodel.annotate_sequence(hapSeqForAnnotating, self.indelErrorModel, 0)
-            self.cLocalGapOpenQ = self.localGapOpenQ
+        homopol = -1
+        homopollen = 0
 
-        if self.useIndelErrorModel:
-            errorModel = self.cLocalGapOpenQ
-        else:
-            errorModel = self.cHomopolQ
+        while index > 0:
 
-        if not self.useIndelErrorModel:
+            index -= 1
 
-            homopol = -1
-            homopollen = 0
+            if seq[index] == homopol:
+                homopollen += <int>(not(not(errorModel[homopollen+1])))
+            else:
+                homopollen = 0
 
-            while index > 0:
+            self.localGapOpen[index] = 4*(<int>(errorModel[homopollen]) - (<int>'!'))
+            homopol = seq[index];
 
-                index -= 1
-
-                if seq[index] == homopol:
-                    homopollen += <int>(not(not(errorModel[homopollen+1])))
-                else:
-                    homopollen = 0
-
-                self.localGapOpen[index] = 4*(<int>(errorModel[homopollen]) - (<int>'!'))
-                homopol = seq[index];
-
-                if homopol == 'N':
-                    homopol = 0
-
-        else:
-            while index > 0:
-                index -= 1
-                self.localGapOpen[index] = (<int>errorModel[index])*4
+            if homopol == 'N':
+                homopol = 0
 
 ###################################################################################################
 
-cdef double alignReadToHaplotype(cAlignedRead* read, Haplotype hap, int useMapQualCap, int printAlignments):
+cdef double alignReadToHaplotype(cAlignedRead* read, Haplotype hap, int useMapQualCap):
     """
     This is the basic, banded-alignment routine that forms the heart of Platypus. This function decides where to anchor the
     read sequence to the specified haplotype, and calls the fastAlignmentRoutine function, which performs a banded alignment.
@@ -779,19 +586,6 @@ cdef double alignReadToHaplotype(cAlignedRead* read, Haplotype hap, int useMapQu
     cdef int gapExtend = 3
     cdef int nucprior = 2
     cdef int hapLen = hap.hapLen
-    cdef int useHomopolQ = True
-
-    if hap.useIndelErrorModel and hap.cLocalGapOpenQ == NULL:
-        hapSeqForAnnotating = "".join([c if c != "N" else random.choice(["A", "C", "T", "G"]) for c in hap.haplotypeSequence])
-        hap.localGapOpenQ = cerrormodel.annotate_sequence(hapSeqForAnnotating, hap.indelErrorModel, 0)
-        hap.cLocalGapOpenQ = hap.localGapOpenQ
-
-    if hap.useIndelErrorModel:
-        errorModel = hap.cLocalGapOpenQ
-        useHomopolQ = False
-    else:
-        errorModel = hap.cHomopolQ
-        useHomopolQ = True
 
     cdef char* readSeq = read.seq
     cdef char* readQuals = read.qual
@@ -801,7 +595,6 @@ cdef double alignReadToHaplotype(cAlignedRead* read, Haplotype hap, int useMapQu
     cdef int mapQual = read.mapq
 
     cdef int lenOfHapSeqToTest = readLen + 15
-    cdef int hapPos = readStart - hapStart
     cdef int alignScore = 0
 
     cdef double probMapWrong = mLTOT*read.mapq  # A log value
@@ -823,22 +616,10 @@ cdef double alignReadToHaplotype(cAlignedRead* read, Haplotype hap, int useMapQu
     if hap.hapSequenceHash == NULL:
         hash_sequence_multihit(hap.cHaplotypeSequence, hap.hapLen, &hap.hapSequenceHash, &hap.hapSequenceNextArray)
 
-    cdef int mapPos = -1
+    if hap.localGapOpen == NULL:
+        hap.annotateWithGapOpen()
 
-    if printAlignments:
-        aln1 = <char*>(calloc(2*(readLen + hapLen), sizeof(char)))
-        aln2 = <char*>(calloc(2*(readLen + hapLen), sizeof(char)))
-
-        for i in range(2*(readLen + hapLen)):
-            aln1[i] = 'N'
-            aln2[i] = 'N'
-
-    alignScore = mapAndAlignReadToHaplotype(readSeq, readQuals, readStart, hapStart, readLen, hapLen, hap.hapSequenceHash, hap.hapSequenceNextArray, read.hash, hapSeq, gapExtend, nucprior, errorModel, useHomopolQ, aln1, aln2, &mapPos)
-
-    if printAlignments:
-        logAlignmentOfReadToHaplotype(hap, readSeq, readQuals, aln1, aln2, mapPos, alignScore, hap.options)
-        free(aln1)
-        free(aln2)
+    alignScore = mapAndAlignReadToHaplotype(readSeq, readQuals, readStart, hapStart, readLen, hapLen, hap.hapSequenceHash, hap.hapSequenceNextArray, read.hash, hapSeq, gapExtend, nucprior, hap.localGapOpen)
 
     return max(mLTOT*alignScore + probMapRight, likelihoodCap)
 

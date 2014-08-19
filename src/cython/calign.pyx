@@ -29,7 +29,7 @@ cdef double mLTOT = -0.23025850929940459    # Minus log ten over ten
 ###################################################################################################
 
 cdef extern from "align.h":
-    int fastAlignmentRoutine(char* seq1, char* seq2, char* qual2, int len1, int len2, int gapextend, int nucprior, char* homopolgapq_or_localgapopen, char usehomopolgapq, char* aln1, char* aln2)
+    int fastAlignmentRoutine(char* seq1, char* seq2, char* qual2, int len1, int len2, int gapextend, int nucprior, short* localgapopen)
 
 ###################################################################################################
 
@@ -145,7 +145,7 @@ cdef void hashReadForMapping(cAlignedRead* read):
 
 ###################################################################################################
 
-cdef int mapAndAlignReadToHaplotype(char* read, char* quals, int readStart, int hapStart, int readLen, int hapLen, short* haplotypeHash, short* haplotypeNextArray, short* readHash, char* haplotype, int gapExtend, int nucprior, char* errorModel, int useHomopolQ, char* aln1, char* aln2, int* bestMappingPosition):
+cdef int mapAndAlignReadToHaplotype(char* read, char* quals, int readStart, int hapStart, int readLen, int hapLen, short* haplotypeHash, short* haplotypeNextArray, short* readHash, char* haplotype, int gapExtend, int nucprior, short* localGapOpen):
     """
     Map a single read to a small-ish (~1kb) sequence. This is used to find the best anchor point
     in a haplotype sequence for the specified read.
@@ -163,6 +163,7 @@ cdef int mapAndAlignReadToHaplotype(char* read, char* quals, int readStart, int 
     cdef int i = -1
     cdef int pos = -1
     cdef int hapIdx = 0
+    cdef int bestMappingPosition = -1
     cdef int count = -1
     cdef int hapLenForAlignment = 0
     cdef int indexOfReadIntoHap = -1
@@ -201,15 +202,20 @@ cdef int mapAndAlignReadToHaplotype(char* read, char* quals, int readStart, int 
             if counts[i] == maxcount:
                 indexOfReadIntoHap = i - readLen
 
-                # Align read around this position
-                if indexOfReadIntoHap >= -1*readLen:
+                # Align read around this position. Make sure we can't go off the end.
+                if indexOfReadIntoHap >= -1*readLen and (indexOfReadIntoHap + readLen + 15 < hapLen):
                     readStartInHap = max(0,indexOfReadIntoHap-8)
-                    hapLenForAlignment = min(readLen + 15, hapLen - readStartInHap)
-                    alignScore = fastAlignmentRoutine(haplotype + readStartInHap, read, quals, hapLenForAlignment, readLen, gapExtend, nucprior, errorModel, useHomopolQ, aln1, aln2)
+                    hapLenForAlignment = readLen + 15 # This is fixed by the alignment algorithm
+                    alignScore = fastAlignmentRoutine(haplotype + readStartInHap, read, quals, hapLenForAlignment, readLen, gapExtend, nucprior, localGapOpen)
 
                     if alignScore < bestScore:
                         bestScore = alignScore
-                        bestMappingPosition[0] = indexOfReadIntoHap
+                        bestMappingPosition = indexOfReadIntoHap
+
+                        # Short-circuit this loop if we find an exact match
+                        if bestScore == 0:
+                            free(counts) # Returning early so need to free memory
+                            return bestScore
 
     # Free memory
     free(counts)
@@ -218,11 +224,17 @@ cdef int mapAndAlignReadToHaplotype(char* read, char* quals, int readStart, int 
     # don't allow the algorithm to align off the end of the haplotype. This will only happen in the case
     # of very large deletions.
     indexOfReadIntoHap = min(readStart - hapStart, hapLen - readLen - 15)
-    alignScore = fastAlignmentRoutine(haplotype + max(0, indexOfReadIntoHap-8), read, quals, readLen+15, readLen, gapExtend, nucprior, errorModel, useHomopolQ, aln1, aln2)
 
-    if alignScore < bestScore:
-        bestScore = alignScore
-        bestMappingPosition[0] = indexOfReadIntoHap
+    # Only try this if the mapper hasn't already found this position
+    if indexOfReadIntoHap != bestMappingPosition:
+        alignScore = fastAlignmentRoutine(haplotype + max(0, indexOfReadIntoHap-8), read, quals, readLen+15, readLen, gapExtend, nucprior, localGapOpen)
+
+        if alignScore < bestScore:
+            bestScore = alignScore
+            bestMappingPosition = indexOfReadIntoHap
+
+    if bestScore < 0:
+        logger.error("Alignment score is %s" %(bestScore))
 
     return bestScore
 

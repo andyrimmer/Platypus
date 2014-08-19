@@ -37,7 +37,6 @@ cdef class Population:
         int maxGenotypes
         int nGenotypes
         int verbosity
-        int printAlignments
         int useEMLikelihoods
         list readBuffers
         FastaFile refFile

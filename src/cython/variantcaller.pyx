@@ -83,7 +83,7 @@ cdef void callVariantsInWindow(dict window, options, FastaFile refFile, list rea
     cdef int nReadsThisWindow = 0
     cdef int qualBinSize = options.qualBinSize
 
-    cdef Haplotype refHaplotype = Haplotype(chrom, windowStart, windowEnd, (), refFile, options.rlen, options.useIndelErrorModel, options)
+    cdef Haplotype refHaplotype = Haplotype(chrom, windowStart, windowEnd, (), refFile, options.rlen, options)
 
     pop.reset()
 
@@ -112,7 +112,7 @@ cdef void callVariantsInWindow(dict window, options, FastaFile refFile, list rea
             #logger.debug("There are %s variants after filtering" %(len(window['variants'])))
 
     # Create haplotype list using all data from all samples. Always consider the reference haplotype.
-    cdef list allVarHaplotypes = variantFilter.getHaplotypesInWindow(window, nReadsThisWindow, refFile, options.maxReads, options.minMapQual, options.minBaseQual, options.maxHaplotypes, options.maxVariants, options.rlen, options.useIndelErrorModel, options.verbosity, readBuffers, options)
+    cdef list allVarHaplotypes = variantFilter.getHaplotypesInWindow(window, nReadsThisWindow, refFile, options.maxReads, options.minMapQual, options.minBaseQual, options.maxHaplotypes, options.maxVariants, options.rlen, options.verbosity, readBuffers, options)
     #cdef list allUniqueHaplotypes = list(set([refHaplotype] + allVarHaplotypes))
     cdef list allUniqueHaplotypes = mergeHaplotypes([refHaplotype] + allVarHaplotypes, refFile)
     cdef list allGenotypes = generateAllGenotypesFromHaplotypeList(allUniqueHaplotypes)
@@ -460,7 +460,7 @@ cdef list generateVariantsInRegion(bytes chrom, int start, int end, bamFiles, Fa
 
 ###################################################################################################
 
-cdef void callVariantsInRegion(bytes chrom, int start, int end, bamFiles, FastaFile refFile, dict indelErrorModel, options, windowGenerator, outputFile, vcf, list samples, dict samplesByID, dict samplesByBAM, Population pop):
+cdef void callVariantsInRegion(bytes chrom, int start, int end, bamFiles, FastaFile refFile, options, windowGenerator, outputFile, vcf, list samples, dict samplesByID, dict samplesByBAM, Population pop):
     """
     Given a set of BAM files, and a sensibly-sized genomic region (typically ~1MB), call variants in the specified region.
     """
@@ -475,7 +475,7 @@ cdef void callVariantsInRegion(bytes chrom, int start, int end, bamFiles, FastaF
     cdef bamReadBuffer readBuffer
 
     try:
-        readBuffers = loadBAMData(bamFiles, chrom, start, end, indelErrorModel, options, samples, samplesByID, samplesByBAM, refSequence)
+        readBuffers = loadBAMData(bamFiles, chrom, start, end, options, samples, samplesByID, samplesByBAM, refSequence)
 
     except Exception, e:
         logger.error('Exception in region %s:%s-%s. Error was %s' %(chrom, start, end, e))
@@ -719,9 +719,6 @@ class PlatypusSingleProcess(object):
             for theBamFile,theLock in zip(bamFiles,theLocks):
                 theBamFile.lock = theLock
 
-        # setting the indel error model.  currently this is hard-coded
-        self.indelErrorModel = chaplotype.default_indel_error_model
-
         if self.options.verbosity >= 3:
             logger.info("Searching for variants in the following regions: %s" %(self.regions))
 
@@ -789,7 +786,7 @@ class PlatypusSingleProcess(object):
             else:
                 pass
 
-            callVariantsInRegion(chrom, start, end, self.bamFiles, self.refFile, self.indelErrorModel, self.options, self.windowGenerator, self.outputFile, self.vcf, self.samples, self.samplesByID, self.samplesByBAM, pop)
+            callVariantsInRegion(chrom, start, end, self.bamFiles, self.refFile, self.options, self.windowGenerator, self.outputFile, self.vcf, self.samples, self.samplesByID, self.samplesByBAM, pop)
 
         self.outputFile.close()
 

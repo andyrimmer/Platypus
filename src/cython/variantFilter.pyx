@@ -200,7 +200,7 @@ cdef void filterVariantsInWindow(dict thisWindow, bytes chrom, int windowStart, 
         nVar = len(variants)
 
     logger.debug("There are %s variants. Filtering variants with EM method" %(nVar))
-    cdef list varHaps = [refHaplotype] + [Haplotype(chrom, windowStart, windowEnd, (v,), refFile, options.rlen, options.useIndelErrorModel, options) for v in variants]
+    cdef list varHaps = [refHaplotype] + [Haplotype(chrom, windowStart, windowEnd, (v,), refFile, options.rlen, options) for v in variants]
     cdef list varGens = generateAllGenotypesFromHaplotypeList(varHaps)
     cdef Population pop = Population(options)
     pop.setup(variants, varHaps, varGens, options.nInd, options.verbosity, readBuffers)
@@ -217,7 +217,7 @@ cdef void filterVariantsInWindow(dict thisWindow, bytes chrom, int windowStart, 
 
 ###################################################################################################
 
-cdef double computeBestScoreForHaplotype(list readBuffers, Haplotype hap, int printAlignments):
+cdef double computeBestScoreForHaplotype(list readBuffers, Haplotype hap):
     """
     """
     cdef bamReadBuffer readBuff
@@ -232,7 +232,7 @@ cdef double computeBestScoreForHaplotype(list readBuffers, Haplotype hap, int pr
         readEnd = readBuff.reads.windowEnd
 
         while readBegin != readEnd:
-            scoreThisHapAndSample += hap.alignSingleRead(readBegin[0], False, printAlignments)
+            scoreThisHapAndSample += hap.alignSingleRead(readBegin[0], False)
             readBegin += 1
 
         bestScoreThisHap = max(bestScoreThisHap, scoreThisHapAndSample)
@@ -241,7 +241,7 @@ cdef double computeBestScoreForHaplotype(list readBuffers, Haplotype hap, int pr
 
 ###################################################################################################
 
-cdef double computeBestScoreForGenotype(list readBuffers, DiploidGenotype gt, int windowSize, int targetCoverage, int printAlignments):
+cdef double computeBestScoreForGenotype(list readBuffers, DiploidGenotype gt, int windowSize, int targetCoverage):
     """
     """
     cdef bamReadBuffer readBuff
@@ -278,20 +278,20 @@ cdef double computeBestScoreForGenotype(list readBuffers, DiploidGenotype gt, in
         #logger.info("nReads = %s. Mean coverage for sample %s in window is %s. Window size = %s. Target cov = %s. Sampling one read per %s" %(readEnd - readBegin, individualIndex, meanCoverage, windowSize, targetCoverage, sampleRate))
 
         while readBegin < readEnd:
-            score1 = gt.hap1.alignSingleRead(readBegin[0], False, printAlignments)
-            score2 = gt.hap2.alignSingleRead(readBegin[0], False, printAlignments)
+            score1 = gt.hap1.alignSingleRead(readBegin[0], False)
+            score2 = gt.hap2.alignSingleRead(readBegin[0], False)
             scoreThisHapAndSample += log(0.5*(exp(score1) + exp(score2)))
             #readBegin += 1
             readBegin += sampleRate
 
-        #scoreThisHapAndSample = gt.calculateDataLikelihood(readBegin, readEnd, badReadsBegin, badReadsEnd, brokenReadsBegin, brokenReadsEnd, individualIndex, nIndividuals, NULL, printAlignments)
+        #scoreThisHapAndSample = gt.calculateDataLikelihood(readBegin, readEnd, badReadsBegin, badReadsEnd, brokenReadsBegin, brokenReadsEnd, individualIndex, nIndividuals, NULL)
         bestScoreThisHap = max(bestScoreThisHap, scoreThisHapAndSample)
 
     return bestScoreThisHap
 
 ###################################################################################################
 
-cdef int doesAtLeastOneReadSupportHaplotype(list readBuffers, Haplotype hap, int printAlignments):
+cdef int doesAtLeastOneReadSupportHaplotype(list readBuffers, Haplotype hap):
     """
     Return True if at least one read out of the lot gives an alignment score of 0.
     """
@@ -316,7 +316,7 @@ cdef int doesAtLeastOneReadSupportHaplotype(list readBuffers, Haplotype hap, int
             if Read_IsQCFail(readBegin[0]) or readOverlap < min(readLen//2, hapVarLen):
                 pass
             else:
-                scoreThisHapAndSample = hap.alignSingleRead(readBegin[0], False, printAlignments)
+                scoreThisHapAndSample = hap.alignSingleRead(readBegin[0], False)
 
                 if scoreThisHapAndSample > -1e-2:
                     return True
@@ -327,7 +327,7 @@ cdef int doesAtLeastOneReadSupportHaplotype(list readBuffers, Haplotype hap, int
 
 ###################################################################################################
 
-cdef int countReadsSupportingHaplotype(list readBuffers, Haplotype hap, int printAlignments):
+cdef int countReadsSupportingHaplotype(list readBuffers, Haplotype hap):
     """
     Return the number of reads supporting a given haplotype
     """
@@ -352,7 +352,7 @@ cdef int countReadsSupportingHaplotype(list readBuffers, Haplotype hap, int prin
             if Read_IsQCFail(readBegin[0]) or readOverlap < min(readLen//2, hapVarLen):
                 pass
             else:
-                scoreThisHapAndSample = hap.alignSingleRead(readBegin[0], False, printAlignments)
+                scoreThisHapAndSample = hap.alignSingleRead(readBegin[0], False)
 
                 if scoreThisHapAndSample > -1e-2:
                     nSupporting += 1
@@ -398,7 +398,6 @@ cdef list getFilteredHaplotypes(dict thisWindow, bytes chrom, int windowStart, i
     cdef int maxHaplotypes = options.maxHaplotypes - 1 # Ref will be added later
     cdef int nVarsInHap = 0
     cdef int maxReadLength = options.rlen
-    cdef int useIndelErrorModel = options.useIndelErrorModel
     cdef int nVarsProcessed = 0
     cdef int nVars = len(variants)
     cdef int varChunkSize = 1 # How many vars to process in one go?
@@ -407,7 +406,6 @@ cdef list getFilteredHaplotypes(dict thisWindow, bytes chrom, int windowStart, i
     cdef int nHapsDone = 0
     cdef int nValidHaps = 0
     cdef int verbosity = options.verbosity
-    cdef int printAlignments = options.printAlignments
     cdef int windowSize = windowEnd - windowStart
     cdef int targetCoverage = options.coverageSamplingLevel
     cdef DiploidGenotype gt = DiploidGenotype(refHaplotype, refHaplotype)
@@ -419,14 +417,14 @@ cdef list getFilteredHaplotypes(dict thisWindow, bytes chrom, int windowStart, i
             for varsThisHap in combinations(variants, nVarsInHap):
                 if isHaplotypeValid(varsThisHap):
                     nValidHaps += 1
-                    hap = Haplotype(chrom, windowStart, windowEnd, varsThisHap, refFile, maxReadLength, useIndelErrorModel, options)
+                    hap = Haplotype(chrom, windowStart, windowEnd, varsThisHap, refFile, maxReadLength, options)
                     allHaps.append(hap)
 
                     ## Check for complex haps
                     #if nVars > 3:
 
                     #    # Accept
-                    #    if doesAtLeastOneReadSupportHaplotype(readBuffers, hap, printAlignments):
+                    #    if doesAtLeastOneReadSupportHaplotype(readBuffers, hap):
                     #        allHaps.append(hap)
 
                     #    # Reject
@@ -461,8 +459,8 @@ cdef list getFilteredHaplotypes(dict thisWindow, bytes chrom, int windowStart, i
 
             #logger.info("temp var = %s. n old haps = %s. nHaps tried = %s. nHaps done = %s." %(tempVar, nTempOldHaps, nHapsTried, nHapsDone))
 
-            gt.hap2 = Haplotype(chrom, windowStart, windowEnd, varThisHap, refFile, maxReadLength, useIndelErrorModel, options)
-            bestScoreThisHap = computeBestScoreForGenotype(readBuffers, gt, windowSize, targetCoverage, printAlignments)
+            gt.hap2 = Haplotype(chrom, windowStart, windowEnd, varThisHap, refFile, maxReadLength, options)
+            bestScoreThisHap = computeBestScoreForGenotype(readBuffers, gt, windowSize, targetCoverage)
             nHapsDone += 1
 
             if len(hapsByBestScore) < originalMaxHaplotypes:
@@ -478,8 +476,8 @@ cdef list getFilteredHaplotypes(dict thisWindow, bytes chrom, int windowStart, i
 
                 if isHaplotypeValid(varsFromBothSets):
 
-                    gt.hap2 = Haplotype(chrom, windowStart, windowEnd, varsFromBothSets, refFile, maxReadLength, useIndelErrorModel, options)
-                    bestScoreThisHap = computeBestScoreForGenotype(readBuffers, gt, windowSize, targetCoverage, printAlignments)
+                    gt.hap2 = Haplotype(chrom, windowStart, windowEnd, varsFromBothSets, refFile, maxReadLength, options)
+                    bestScoreThisHap = computeBestScoreForGenotype(readBuffers, gt, windowSize, targetCoverage)
 
                     if len(hapsByBestScore) < originalMaxHaplotypes:
                         heappush(hapsByBestScore, (bestScoreThisHap, varsFromBothSets))
@@ -502,7 +500,7 @@ cdef list getFilteredHaplotypes(dict thisWindow, bytes chrom, int windowStart, i
 
     for index,(score,varsThisHap) in enumerate(sorted(hapsByBestScore, reverse=True)):
         if index < maxHaplotypes:
-            hap = Haplotype(chrom, windowStart, windowEnd, varsThisHap, refFile, maxReadLength, useIndelErrorModel, options)
+            hap = Haplotype(chrom, windowStart, windowEnd, varsThisHap, refFile, maxReadLength, options)
             allHaps.append(hap)
         else:
             break
@@ -600,7 +598,7 @@ cdef void filterVariantsByCoverage(dict thisWindow, bytes chrom, int windowStart
     cdef double score = 0.0
 
     for thisVar in variants:
-        #oneVarHap = Haplotype(thisWindow['chromosome'], thisWindow['startPos'], thisWindow['endPos'], (thisVar,), refFile, options.rlen, options.useIndelErrorModel, options)
+        #oneVarHap = Haplotype(thisWindow['chromosome'], thisWindow['startPos'], thisWindow['endPos'], (thisVar,), refFile, options.rlen, options)
         #score = computeBestScoreForGenotype(readBuffers, refHaplotype, oneVarHap)
         #temp.append( (score, thisVar) )
 
@@ -628,7 +626,7 @@ cdef void filterVariantsByCoverage(dict thisWindow, bytes chrom, int windowStart
 
 ###################################################################################################
 
-cdef list getHaplotypesInWindow(dict window, int nReads, FastaFile refFile, int maxCoverage, int minMapQual, int minBaseQual, int maxHaplotypes, int maxVariants, int maxReadLength, int useIndelErrorModel, int verbosity, list readBuffers, options):
+cdef list getHaplotypesInWindow(dict window, int nReads, FastaFile refFile, int maxCoverage, int minMapQual, int minBaseQual, int maxHaplotypes, int maxVariants, int maxReadLength, int verbosity, list readBuffers, options):
     """
     Takes a window with some potential variants. Using all data in this region, calculate what the best possible
     haplotyes are and return them. If there are zero reads covering this window, then simply return the reference
@@ -644,7 +642,7 @@ cdef list getHaplotypesInWindow(dict window, int nReads, FastaFile refFile, int 
     cdef list variants = window['variants']
     cdef int nVar = len(variants)
     cdef int readLength = 0
-    cdef Haplotype refHaplotype = Haplotype(windowChr, windowStart, windowEnd, (), refFile, maxReadLength, useIndelErrorModel, options)
+    cdef Haplotype refHaplotype = Haplotype(windowChr, windowStart, windowEnd, (), refFile, maxReadLength, options)
 
     # Make sure that we log regions of zero coverage. This should not really happen.
     if nReads == 0:

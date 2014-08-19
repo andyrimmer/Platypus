@@ -428,7 +428,7 @@ cpdef tuple pruned_ref_start_end(read, int minq, int minAnchor):
 
 ###################################################################################################
 
-cdef list loadBAMData(list bamFiles, bytes chrom, int start, int end, dict indelErrorModel, options, list samples, dict samplesByID, dict samplesByBAM, char* refSeq):
+cdef list loadBAMData(list bamFiles, bytes chrom, int start, int end, options, list samples, dict samplesByID, dict samplesByBAM, char* refSeq):
     """
     Take a list of BAM files, and a genomic region, and reuturn a list of buffers, containing the
     reads for each BAM file in that region.
