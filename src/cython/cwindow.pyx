@@ -334,7 +334,6 @@ cdef int checkAndTrimRead(cAlignedRead* theRead, cAlignedRead* theLastRead, int 
     true if read is ok, and false otherwise.
     """
     if Read_IsSecondaryAlignment(theRead):
-        #logger.warning("Argh. Found secondary alignment")
         Read_SetQCFail(theRead)
         return False
 
@@ -408,37 +407,23 @@ cdef int checkAndTrimRead(cAlignedRead* theRead, cAlignedRead* theLastRead, int 
     ## Any read that gets passed here will be used, but low quality tails will be trimmed, and
     ## any overlapping pairs, from small fragments, will have the overlapping bits trimmed.
 
-    # Trim low-quality tails
-    for index from 1 <= index <= theRead.rlen:
+    # Trim low-quality tails for forward reads
+    if not Read_IsReverse(theRead):
 
-        # Always trim up to 'minFlank' bases
-        if index <= trimReadFlank:
-            theRead.qual[theRead.rlen - index] = 0
+        for index from 1 <= index <= theRead.rlen:
+            if index <= trimReadFlank or theRead.qual[theRead.rlen - index] < 5:
+                theRead.qual[theRead.rlen - index] = 0
+            else:
+                break
 
-        # Otherwise, trim if qual is below 'minBaseQual'
-        #elif theRead.qual[theRead.rlen - index] < minBaseQual:
-        if theRead.qual[theRead.rlen - index] < 5:
-            theRead.qual[theRead.rlen - index] = 0
+    # Trim low-quality tails for reverse reads
+    else:
+        for index from 0 <= index < theRead.rlen:
 
-        else:
-            #continue
-            break
-
-    # Trim low-quality heads
-    for index from 0 <= index < theRead.rlen:
-
-        # Always trim up to 'minFlank' bases
-        #if index < minFlank:
-        #    theRead.qual[index] = 0
-
-        # Otherwise, trim if qual is below 'minBaseQual'
-        #elif theRead.qual[index] < minBaseQual:
-        if theRead.qual[index] < 5:
-            theRead.qual[index] = 0
-
-        else:
-            #continue
-            break
+            if index <= trimReadFlank or theRead.qual[index] < 5:
+                theRead.qual[index] = 0
+            else:
+                break
 
     cdef int absIns = abs(theRead.insertSize)
 
