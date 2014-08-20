@@ -433,9 +433,7 @@ cdef int checkAndTrimRead(cAlignedRead* theRead, cAlignedRead* theLastRead, int 
 
     if trimOverlapping == 1 and (Read_IsPaired(theRead) and absIns > 0 and (not Read_IsReverse(theRead)) and Read_MateIsReverse(theRead) and absIns < 2*theRead.rlen):
         for index from 1 <= index < min(theRead.rlen, (2*theRead.rlen - theRead.insertSize) + 1):
-
-            if theRead.qual[theRead.rlen - index] != 0:
-                theRead.qual[theRead.rlen - index] = 0
+            theRead.qual[theRead.rlen - index] = 0
 
     # Trim the end of any read where the insert size is < read length. If these have not been
     # already filtered out then they need trimming, as adapter contamination will cause a
@@ -444,14 +442,10 @@ cdef int checkAndTrimRead(cAlignedRead* theRead, cAlignedRead* theLastRead, int 
 
         if Read_IsReverse(theRead):
             for index from 1 <= index < theRead.rlen - absIns + 1:
-
-                if theRead.qual[theRead.rlen - index] != 0:
-                    theRead.qual[theRead.rlen - index] = 0
+                theRead.qual[theRead.rlen - index] = 0
         else:
             for index from absIns <= index < theRead.rlen:
-
-                if theRead.qual[index] != 0:
-                    theRead.qual[index] = 0
+                theRead.qual[index] = 0
 
 
     # Check for soft-clipping (present in BWA reads, for example, but not Stampy). Soft-clipped
