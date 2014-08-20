@@ -180,6 +180,8 @@ cdef class Haplotype:
         self.hapSequenceNextArray = NULL
         self.likelihoodCache = NULL
         self.lenCache = 0
+        self.mapCounts = <int*>malloc( (self.hapLen+maxReadLength)*sizeof(int) )
+        self.mapCountsLen = self.hapLen + maxReadLength
 
     def __dealloc__(self):
         """
@@ -196,6 +198,9 @@ cdef class Haplotype:
 
         if self.localGapOpen != NULL:
             my_free(self.localGapOpen)
+
+        if self.mapCounts != NULL:
+            my_free(self.mapCounts)
 
     def __copy__(self):
         """
@@ -619,7 +624,7 @@ cdef double alignReadToHaplotype(cAlignedRead* read, Haplotype hap, int useMapQu
     if hap.localGapOpen == NULL:
         hap.annotateWithGapOpen()
 
-    alignScore = mapAndAlignReadToHaplotype(readSeq, readQuals, readStart, hapStart, readLen, hapLen, hap.hapSequenceHash, hap.hapSequenceNextArray, read.hash, hapSeq, gapExtend, nucprior, hap.localGapOpen)
+    alignScore = mapAndAlignReadToHaplotype(readSeq, readQuals, readStart, hapStart, readLen, hapLen, hap.hapSequenceHash, hap.hapSequenceNextArray, read.hash, hapSeq, gapExtend, nucprior, hap.localGapOpen, hap.mapCounts, hap.mapCountsLen)
 
     return max(mLTOT*alignScore + probMapRight, likelihoodCap)
 

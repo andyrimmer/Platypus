@@ -168,21 +168,22 @@ def checkVCF(vcfName):
 
 ###################################################################################################
 
-if len(sys.argv) < 4:
+if len(sys.argv) < 5:
     print ""
     print "Invalid usage."
     print ""
     print "Correct usage as follows:"
-    print "python sanityChecks.py data.bam ref.fa output.vcf"
+    print "python sanityChecks.py PATH/Platypus.py data.bam ref.fa output.vcf OTHER_ARGS"
     print ""
     print ""
     sys.exit(1)
 
-bams = sys.argv[1]
-ref = sys.argv[2]
-vcfName = sys.argv[3]
-rest = " ".join(sys.argv[4:])
+platypus = sys.argv[1]
+bams = sys.argv[2]
+ref = sys.argv[3]
+vcfName = sys.argv[4]
+rest = " ".join(sys.argv[5:])
 
-command = "time python bin/Platypus.py callVariants --bamFiles=%s --refFile=%s --output=%s --regions=20 %s" %(bams,ref,vcfName,rest)
+command = "time python %s callVariants --bamFiles=%s --refFile=%s --output=%s --regions=20 %s" %(platypus, bams,ref,vcfName,rest)
 os.system(command)
 checkVCF(vcfName)

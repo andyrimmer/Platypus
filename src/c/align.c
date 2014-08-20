@@ -88,31 +88,6 @@ int fastAlignmentRoutine(char* seq1, char* seq2, char* qual2, int len1, int len2
 					     _mm_set1_epi16( n_score - pos_inf ) ), 
 			      _mm_set1_epi16( pos_inf ) );
 
-  // get gap opening scores along sequence 1, using either a homopolymer model, or an explicit per-base score
-  //int idx = len1;
-  //int homopol = -1;
-  //int homopollen = 0;
-
-  // while (idx--)
-  // {
-  //     if (seq1[idx] == homopol)
-  //     {
-  //         homopollen += !!homopolgapq_or_localgapopen[homopollen+1];
-  //     }
-  //     else
-  //     {
-  //         homopollen = 0;
-  //     }
-
-  //     localgapopen[idx] = 4*(homopolgapq_or_localgapopen[homopollen] - '!');
-  //     homopol = seq1[idx];
-
-  //     if (homopol == 'N')
-  //     {
-  //         homopol=0;
-  //     }
-  // }
-
 
   __m128i _gap_open = _mm_set_epi16(localgapopen[7],localgapopen[6],localgapopen[5],localgapopen[4],
 				    localgapopen[3],localgapopen[2],localgapopen[1],localgapopen[0]);

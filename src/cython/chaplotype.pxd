@@ -35,6 +35,8 @@ cdef class Haplotype:
         short* localGapOpen
         short* hapSequenceHash # For local re-mapping of reads to haplotype
         short* hapSequenceNextArray # same
+        int* mapCounts # Store counts when mapping read to this haplotype
+        int mapCountsLen
         double* alignReads(self, int individualIndex, cAlignedRead** start, cAlignedRead** end, cAlignedRead** badReadStart, cAlignedRead** badReadsEnd, cAlignedRead** brokenReadsStart, cAlignedRead** brokenReadsEnd, int useMapQualCap)
         double alignSingleRead(self, cAlignedRead* theRead, int useMapQualCap)
         char* getReferenceSequence(self, prefix=*)

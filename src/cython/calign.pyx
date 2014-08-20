@@ -22,6 +22,7 @@ logger = logging.getLogger("Log")
 cdef int hash_nucs = 7
 cdef int hash_size = 4**hash_nucs
 cdef int max_sequence_length = hash_size
+cdef int mask = (1 << 2*hash_nucs) - 1
 
 ctypedef long long size_t
 cdef double mLTOT = -0.23025850929940459    # Minus log ten over ten
@@ -40,6 +41,9 @@ cdef extern from "stdlib.h":
     void *memset(void *buffer, int ch, size_t count )
 
 ###################################################################################################
+
+cdef extern from "string.h":
+    int strncmp (char*, char*, size_t)
 
 cdef extern from "math.h":
     double exp(double)
@@ -121,7 +125,12 @@ cdef short* hash_sequence(char* sequence, int sequenceLength):
 
     for i in range(sequenceLength - hash_nucs):
 
-        hidx = my_hash(seq+i)
+        #hidx = my_hash(seq+i)
+
+        if i == 0:
+            hidx = my_hash(seq + i)
+        else:
+            hidx = my_hash_update(seq[i+hash_nucs-1], hidx)
 
         if h[hidx] != 0:
             h[hidx] = -1
@@ -141,11 +150,29 @@ cdef void hashReadForMapping(cAlignedRead* read):
     read.hash = <short*>(calloc(read.rlen, sizeof(short)))
 
     for i in range(read.rlen - hash_nucs):
-        read.hash[i] = my_hash(read.seq + i)
+
+        if i == 0:
+            read.hash[i] = my_hash(read.seq + i)
+        else:
+            read.hash[i] = my_hash_update(read.seq[i+hash_nucs-1], read.hash[i-1])
 
 ###################################################################################################
 
-cdef int mapAndAlignReadToHaplotype(char* read, char* quals, int readStart, int hapStart, int readLen, int hapLen, short* haplotypeHash, short* haplotypeNextArray, short* readHash, char* haplotype, int gapExtend, int nucprior, short* localGapOpen):
+cdef int my_hash_update(char character, int oldVal):
+    """
+    Incrementally update hash value with one new character
+    """
+    global mask
+    cdef int c = character & 7   # a,A->1  c,C->3  g,G->7  t,T->4
+
+    if c == 7:
+        c = 2
+
+    return ( (oldVal << 2) & mask) + <unsigned int>(c & 3)
+
+###################################################################################################
+
+cdef int mapAndAlignReadToHaplotype(char* read, char* quals, int readStart, int hapStart, int readLen, int hapLen, short* haplotypeHash, short* haplotypeNextArray, short* readHash, char* haplotype, int gapExtend, int nucprior, short* localGapOpen, int* mapCounts, int mapCountsLen):
     """
     Map a single read to a small-ish (~1kb) sequence. This is used to find the best anchor point
     in a haplotype sequence for the specified read.
@@ -170,7 +197,16 @@ cdef int mapAndAlignReadToHaplotype(char* read, char* quals, int readStart, int 
     cdef int readStartInHap = -1
     cdef int bestScore = 1000000
     cdef int alignScore = 1000000
-    cdef int* counts = <int*>(calloc(hapLen + readLen, sizeof(int)))
+
+    # If we have an exact match in the original position then simply return 0 now, as we can never
+    # have a better match than that.
+    indexOfReadIntoHap = readStart - hapStart
+
+    if strncmp(read, haplotype + indexOfReadIntoHap, readLen) == 0:
+        return 0
+
+    # Reset counts
+    memset(mapCounts, 0, sizeof(int)*mapCountsLen)
 
     # Do the mapping.
     for i in range(readLen - hash_nucs):
@@ -184,9 +220,8 @@ cdef int mapAndAlignReadToHaplotype(char* read, char* quals, int readStart, int 
             if pos >= hapLen:
                 logger.warning("pos = %s. sl = %s. readHash[i] = %s" %(pos, hapLen, readHash[i]))
 
-            assert pos < hapLen
-            count = counts[pos + readLen] + 1
-            counts[pos + readLen] = count
+            count = mapCounts[pos + readLen] + 1
+            mapCounts[pos + readLen] = count
 
             if count > maxcount:
                 maxcount = count
@@ -199,7 +234,7 @@ cdef int mapAndAlignReadToHaplotype(char* read, char* quals, int readStart, int 
         for i in range(hapLen + readLen):
 
             # Found match with best score (there may be many of these).
-            if counts[i] == maxcount:
+            if mapCounts[i] == maxcount:
                 indexOfReadIntoHap = i - readLen
 
                 # Align read around this position. Make sure we can't go off the end.
@@ -214,11 +249,7 @@ cdef int mapAndAlignReadToHaplotype(char* read, char* quals, int readStart, int 
 
                         # Short-circuit this loop if we find an exact match
                         if bestScore == 0:
-                            free(counts) # Returning early so need to free memory
                             return bestScore
-
-    # Free memory
-    free(counts)
 
     # Now try original mapping position. If the read is past the end of the haplotype then
     # don't allow the algorithm to align off the end of the haplotype. This will only happen in the case
