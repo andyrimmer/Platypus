@@ -40,6 +40,7 @@ cdef class bamReadBuffer:
     cdef int minMapQual
     cdef int minBaseQual
     cdef int minFlank
+    cdef int trimReadFlank
     cdef int verbosity
     cdef int minGoodBases
     cdef int trimOverlapping

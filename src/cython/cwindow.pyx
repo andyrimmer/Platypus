@@ -328,7 +328,7 @@ cdef int bisectReadsRight(cAlignedRead** reads, int testPos, int nReads, int tes
 
 ###################################################################################################
 
-cdef int checkAndTrimRead(cAlignedRead* theRead, cAlignedRead* theLastRead, int minGoodQualBases, int* filteredReadCountsByType, int minMapQual, int minBaseQual, int minFlank, int trimOverlapping, int trimAdapter):
+cdef int checkAndTrimRead(cAlignedRead* theRead, cAlignedRead* theLastRead, int minGoodQualBases, int* filteredReadCountsByType, int minMapQual, int minBaseQual, int minFlank, int trimOverlapping, int trimAdapter, int trimReadFlank):
     """
     Performs various quality checks on the read, and trims read (i.e. set q-scores to zero). Returns
     true if read is ok, and false otherwise.
@@ -412,8 +412,8 @@ cdef int checkAndTrimRead(cAlignedRead* theRead, cAlignedRead* theLastRead, int 
     for index from 1 <= index <= theRead.rlen:
 
         # Always trim up to 'minFlank' bases
-        #if index <= minFlank:
-        #    theRead.qual[theRead.rlen - index] = 0
+        if index <= trimReadFlank:
+            theRead.qual[theRead.rlen - index] = 0
 
         # Otherwise, trim if qual is below 'minBaseQual'
         #elif theRead.qual[theRead.rlen - index] < minBaseQual:
@@ -519,6 +519,7 @@ cdef class bamReadBuffer(object):
         self.maxReads = options.maxReads
         self.minBaseQual = options.minBaseQual
         self.minFlank = options.minFlank
+        self.trimReadFlank = options.trimReadFlank
         self.minMapQual = options.minMapQual
         self.minGoodBases = options.minGoodQualBases
         self.verbosity = options.verbosity
@@ -591,12 +592,12 @@ cdef class bamReadBuffer(object):
 
             # TODO: Check that this works for duplicates when first read goes into bad reads pile...
             if self.lastRead != NULL:
-                readOk = checkAndTrimRead(theRead, self.lastRead, self.minGoodBases, self.filteredReadCountsByType, self.minMapQual, self.minBaseQual, self.minFlank, self.trimOverlapping, self.trimAdapter)
+                readOk = checkAndTrimRead(theRead, self.lastRead, self.minGoodBases, self.filteredReadCountsByType, self.minMapQual, self.minBaseQual, self.minFlank, self.trimOverlapping, self.trimAdapter, self.trimReadFlank)
 
                 if self.lastRead.pos > theRead.pos:
                     self.isSorted = False
             else:
-                readOk = checkAndTrimRead(theRead, NULL, self.minGoodBases, self.filteredReadCountsByType, self.minMapQual, self.minBaseQual, self.minFlank, self.trimOverlapping, self.trimAdapter)
+                readOk = checkAndTrimRead(theRead, NULL, self.minGoodBases, self.filteredReadCountsByType, self.minMapQual, self.minBaseQual, self.minFlank, self.trimOverlapping, self.trimAdapter, self.trimReadFlank)
 
             self.lastRead = theRead
 

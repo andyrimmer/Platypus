@@ -491,7 +491,8 @@ def callVariants(args):
     parser.add_option("--genSNPs", dest="genSNPs", help="If set to TRUE (default), SNP candidates will be considered", action='store', type='int', default=1)
     parser.add_option("--genIndels", dest="genIndels", help="If set to TRUE (default), Indel candidates will be considered", action='store', type='int', default=1)
     parser.add_option("--mergeClusteredVariants", dest="mergeClusteredVariants", help="If set to 1, variant-containing windows which are close together will be merged, resulting in slower, more accurate variant calls in diverse regions", action='store', type='int', default=1)
-    parser.add_option("--minFlank", dest="minFlank", help="Flank size for indel candidates", action='store', type = 'int', default=10)
+    parser.add_option("--minFlank", dest="minFlank", help="Ignore base-changes closer than minFlank bases to the end of reads. Also, merge SNPs within this distance into MNPs or complex replacements", action='store', type = 'int', default=10)
+    parser.add_option("--trimReadFlank", dest="trimReadFlank", help="Set base-qualities to 0 within 'trimReadFlank' bases of the end of reads", action='store', type = 'int', default=0)
     parser.add_option("--filterVarsByCoverage", dest="filterVarsByCoverage", help="If 1, Platypus filters variants in difficult regions by the number of times each variant is seen.", action='store', type='int', default=1)
     parser.add_option("--filteredReadsFrac", dest="filteredReadsFrac", help="If > this fraction of reads are filtered in a given window, the 'badReads filter is triggered.", action='store', type='float', default=0.7)
     parser.add_option("--maxVarDist", dest="maxVarDist", help="Max distance between variants to be considered in the same window", action='store', type='int', default=15) # 9 is 1 base longer than the max possible alignment shift
