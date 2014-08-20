@@ -89,7 +89,6 @@ int fastAlignmentRoutine(char* seq1, char* seq2, char* qual2, int len1, int len2
 			      _mm_set1_epi16( pos_inf ) );
 
   // get gap opening scores along sequence 1, using either a homopolymer model, or an explicit per-base score
-  //short localgapopen[len1];
   //int idx = len1;
   //int homopol = -1;
   //int homopollen = 0;

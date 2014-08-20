@@ -206,7 +206,7 @@ cdef int mapAndAlignReadToHaplotype(char* read, char* quals, int readStart, int 
                 if indexOfReadIntoHap >= -1*readLen and (indexOfReadIntoHap + readLen + 15 < hapLen):
                     readStartInHap = max(0,indexOfReadIntoHap-8)
                     hapLenForAlignment = readLen + 15 # This is fixed by the alignment algorithm
-                    alignScore = fastAlignmentRoutine(haplotype + readStartInHap, read, quals, hapLenForAlignment, readLen, gapExtend, nucprior, localGapOpen)
+                    alignScore = fastAlignmentRoutine(haplotype + readStartInHap, read, quals, hapLenForAlignment, readLen, gapExtend, nucprior, localGapOpen + readStartInHap)
 
                     if alignScore < bestScore:
                         bestScore = alignScore
@@ -227,7 +227,8 @@ cdef int mapAndAlignReadToHaplotype(char* read, char* quals, int readStart, int 
 
     # Only try this if the mapper hasn't already found this position
     if indexOfReadIntoHap != bestMappingPosition:
-        alignScore = fastAlignmentRoutine(haplotype + max(0, indexOfReadIntoHap-8), read, quals, readLen+15, readLen, gapExtend, nucprior, localGapOpen)
+        readStartInHap = max(0,indexOfReadIntoHap-8)
+        alignScore = fastAlignmentRoutine(haplotype + readStartInHap, read, quals, readLen+15, readLen, gapExtend, nucprior, localGapOpen + readStartInHap)
 
         if alignScore < bestScore:
             bestScore = alignScore
