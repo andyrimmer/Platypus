@@ -148,8 +148,6 @@ cdef class DiploidGenotype(object):
         self.hap2Like = 0
 
         for readIndex from 0 <= readIndex <= totalReads:
-        #for readIndex from 0 <= readIndex < nReads + nBadReads:
-        #for readIndex from 0 <= readIndex < nReads:
             like1 = arr1[readIndex] # These are log values
             like2 = arr2[readIndex] # These are log values
 
@@ -164,26 +162,20 @@ cdef class DiploidGenotype(object):
 
             # Special-case optimisation for homozygous genotype.
             if arr1 == arr2:
-                #logger.debug("Here1. L1 = %s. L2 = %s" %(like1,like2))
                 likelihood += like1
 
             # Approximation good to 0.1%: take the highest log value
             elif abs(like1 - like2) >= 3:
-                #logger.debug("Here2. L1 = %s. L2 = %s" %(like1,like2))
                 likelihood += (logHalf + max(like1, like2))
 
             # Haplotypes give the same likelihood. This happens when either they are both rubbish fits, and
             # hit the likelihood cap, or are both perfect fits, or the read lies in a position such that it cannot
             # be used to distinguish between the two haplotypes.
             elif abs(like1 - like2) <= 1e-3:
-                #logger.debug("Here3. L1 = %s. L2 = %s" %(like1,like2))
                 likelihood += like1
 
             # Currently does full log and exp computation.
             else:
-                #logger.debug("Here4. L1 = %s. L2 = %s. Mapq = %s. Prob wrong = %s. Read pos = %s." %(like1,like2,start[readIndex].mapq, start[readIndex].pMapWrong, start[readIndex].pos))
-                #logger.debug(self.hap1)
-                #logger.debug(self.hap2)
                 likelihood += log(0.5*(exp(like1) + exp(like2)))
 
         if gof and nReads > 0:

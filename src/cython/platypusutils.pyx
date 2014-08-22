@@ -474,12 +474,9 @@ cdef list loadBAMData(list bamFiles, bytes chrom, int start, int end, options, l
             readIterator = reader.fetch(chrom, start, end)
             brokenMateCoords = []
 
-            counter = 0
-
             while readIterator.cnext():
 
                 theRead = createRead(readIterator.b, 0, NULL)
-                counter += 1
 
                 if chromID == -1:
                     chromID = theRead.chromID
@@ -509,9 +506,6 @@ cdef list loadBAMData(list bamFiles, bytes chrom, int start, int end, options, l
 
                 if totalReads >= maxReads:
                     # Explicitly clear up memory, as Cython doesn't seem to do this
-                    #del(theReadBuffer)
-                    #for theReadBuffer in readBuffers:
-                    #    del(theReadBuffer)
                     logger.warning("Too many reads (%s) in region %s:%s-%s. Quitting now. Either reduce --bufferSize or increase --maxReads." %(totalReads, chrom, start, end))
                     return None
 

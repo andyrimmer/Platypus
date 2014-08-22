@@ -775,6 +775,7 @@ def unpickleIteratorRow(samfile, bamIterPointer, useIndex):
 
 ######################################################################
 
+@cython.profile(False)
 cdef class IteratorRow:
     """
     Iterates over mapped reads in a region.

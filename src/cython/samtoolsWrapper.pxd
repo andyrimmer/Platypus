@@ -1,4 +1,4 @@
-
+import cython
 
 cdef extern from "string.h":
   ctypedef int size_t
@@ -343,52 +343,68 @@ DEF BAM_FCOMPRESSED = 2048 # Is the read compressed
 ###################################################################################################
 
 # And here are accessor functions for the bit-fields
-cdef inline int Read_IsReverse(cAlignedRead* theRead):
+@cython.profile(False)
+cdef inline int Read_IsReverse(cAlignedRead* theRead) nogil:
     return ( (theRead.bitFlag & BAM_FREVERSE) != 0)
 
-cdef inline int Read_IsPaired(cAlignedRead* theRead):
+@cython.profile(False)
+cdef inline int Read_IsPaired(cAlignedRead* theRead) nogil:
     return ( (theRead.bitFlag & BAM_FPAIRED) != 0)
 
-cdef inline int Read_IsProperPair(cAlignedRead* theRead):
+@cython.profile(False)
+cdef inline int Read_IsProperPair(cAlignedRead* theRead) nogil:
     return ( (theRead.bitFlag & BAM_FPROPER_PAIR) != 0)
 
-cdef inline int Read_IsDuplicate(cAlignedRead* theRead):
+@cython.profile(False)
+cdef inline int Read_IsDuplicate(cAlignedRead* theRead) nogil:
     return ( (theRead.bitFlag & BAM_FDUP) != 0)
 
-cdef inline int Read_IsUnmapped(cAlignedRead* theRead):
+@cython.profile(False)
+cdef inline int Read_IsUnmapped(cAlignedRead* theRead) nogil:
     return ( (theRead.bitFlag & BAM_FUNMAP) != 0)
 
-cdef inline int Read_MateIsUnmapped(cAlignedRead* theRead):
+@cython.profile(False)
+cdef inline int Read_MateIsUnmapped(cAlignedRead* theRead) nogil:
     return ( (theRead.bitFlag & BAM_FMUNMAP) != 0)
 
-cdef inline int Read_MateIsReverse(cAlignedRead* theRead):
+@cython.profile(False)
+cdef inline int Read_MateIsReverse(cAlignedRead* theRead) nogil:
     return ( (theRead.bitFlag & BAM_FMREVERSE) != 0)
 
-cdef inline int Read_IsQCFail(cAlignedRead* theRead):
+@cython.profile(False)
+cdef inline int Read_IsQCFail(cAlignedRead* theRead) nogil:
     return ( (theRead.bitFlag & BAM_FQCFAIL) != 0)
 
-cdef inline int Read_IsReadOne(cAlignedRead* theRead):
+@cython.profile(False)
+cdef inline int Read_IsReadOne(cAlignedRead* theRead) nogil:
     return ( (theRead.bitFlag & BAM_FREAD1) != 0)
 
-cdef inline int Read_IsSecondaryAlignment(cAlignedRead* theRead):
+@cython.profile(False)
+cdef inline int Read_IsSecondaryAlignment(cAlignedRead* theRead) nogil:
     return ( (theRead.bitFlag & BAM_FSECONDARY) != 0)
 
-cdef inline int Read_IsCompressed(cAlignedRead* theRead):
+@cython.profile(False)
+cdef inline int Read_IsCompressed(cAlignedRead* theRead) nogil:
     return ( (theRead.bitFlag & BAM_FCOMPRESSED) != 0)
 
-cdef inline int Read_SetIsNotReverse(cAlignedRead* theRead):
+@cython.profile(False)
+cdef inline int Read_SetIsNotReverse(cAlignedRead* theRead) nogil:
     theRead.bitFlag &= (~BAM_FREVERSE)
 
-cdef inline int Read_SetIsReverse(cAlignedRead* theRead):
+@cython.profile(False)
+cdef inline int Read_SetIsReverse(cAlignedRead* theRead) nogil:
     theRead.bitFlag |= BAM_FREVERSE
 
-cdef inline void Read_SetQCFail(cAlignedRead* theRead):
+@cython.profile(False)
+cdef inline void Read_SetQCFail(cAlignedRead* theRead) nogil:
     theRead.bitFlag |= BAM_FQCFAIL
 
-cdef inline void Read_SetCompressed(cAlignedRead* theRead):
+@cython.profile(False)
+cdef inline void Read_SetCompressed(cAlignedRead* theRead) nogil:
     theRead.bitFlag |= BAM_FCOMPRESSED
 
-cdef inline void Read_SetUnCompressed(cAlignedRead* theRead):
+@cython.profile(False)
+cdef inline void Read_SetUnCompressed(cAlignedRead* theRead) nogil:
     theRead.bitFlag &= (~BAM_FCOMPRESSED)
 
 ###################################################################################################

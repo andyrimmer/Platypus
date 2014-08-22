@@ -76,20 +76,23 @@ cdef extern from "string.h":
 
 ###################################################################################################
 
-cdef int readPosComp(void* x, void* y):
+@cython.profile(False)
+cdef inline int readPosComp(void* x, void* y) nogil:
     """
-    Comparison function for use in qsort, to sort reads by their mate positions, as long as
-    the mates are on the same chromosome.
+    Comparison function for use in qsort, to sort reads by their start positions and
+    then end positions.
     """
     cdef cAlignedRead** readOne = <cAlignedRead**>(x)
     cdef cAlignedRead** readTwo = <cAlignedRead**>(y)
 
-    # Sorting is broken for reads with mates on different chromosomes
-    assert readOne[0].chromID == readTwo[0].chromID
-    return  readOne[0].pos - readTwo[0].pos
+    #if readOne[0].pos != readTwo[0].pos
+    return readOne[0].pos - readTwo[0].pos
+    #else:
+    #    return readOne[0].end - readTwo[0].end
 
 ###################################################################################################
 
+@cython.profile(False)
 cdef int readMatePosComp(void* x, void* y):
     """
     Comparison function for use in qsort, to sort reads by their mate positions, as long as

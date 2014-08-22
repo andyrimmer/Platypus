@@ -174,6 +174,7 @@ cdef class Haplotype:
         if self.hapLen > hash_size:
             logger.error("Haplotype with vars %s has len %s. Start is %s. End is %s. maxReadLen = %s" %(self.variants, self.hapLen, self.startPos, self.endPos, maxReadLength))
             logger.debug(self.haplotypeSequence)
+            raise StandardError, "Haplotype is too long. Max allowed length is %s" %(hash_size)
 
         self.cHomopolQ = homopolq
         self.hapSequenceHash = NULL

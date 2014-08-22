@@ -14,8 +14,6 @@ cimport samtoolsWrapper
 
 from samtoolsWrapper cimport cAlignedRead
 
-logger = logging.getLogger("Log")
-
 ###################################################################################################
 
 # set the size of the hash.  Ensure that hash_size == math.pow(4,hash_nucs)
@@ -30,28 +28,28 @@ cdef double mLTOT = -0.23025850929940459    # Minus log ten over ten
 ###################################################################################################
 
 cdef extern from "align.h":
-    int fastAlignmentRoutine(char* seq1, char* seq2, char* qual2, int len1, int len2, int gapextend, int nucprior, short* localgapopen)
+    int fastAlignmentRoutine(char* seq1, char* seq2, char* qual2, int len1, int len2, int gapextend, int nucprior, short* localgapopen) nogil
 
 ###################################################################################################
 
 cdef extern from "stdlib.h":
-    void free(void *)
-    void *malloc(size_t)
-    void *calloc(size_t,size_t)
-    void *memset(void *buffer, int ch, size_t count )
+    void free(void *) nogil
+    void *malloc(size_t) nogil
+    void *calloc(size_t,size_t) nogil
+    void *memset(void *buffer, int ch, size_t count ) nogil
 
 ###################################################################################################
 
 cdef extern from "string.h":
-    int strncmp (char*, char*, size_t)
+    int strncmp (char*, char*, size_t) nogil
 
 cdef extern from "math.h":
-    double exp(double)
-    double log(double)
+    double exp(double) nogil
+    double log(double) nogil
 
 ###################################################################################################
 
-cdef unsigned int my_hash(char* seq):
+cdef inline unsigned int my_hash(char* seq) nogil:
     """
     Encodes first hash_nucs nucleotides (A,C,G,T or a,c,g,t) into an integer
     """
@@ -71,7 +69,21 @@ cdef unsigned int my_hash(char* seq):
 
 ###################################################################################################
 
-cdef void hash_sequence_multihit(char* sequence, int sequenceLength, short** hash_table, short** next_array):
+cdef inline unsigned int my_hash_update(char character, int oldVal) nogil:
+    """
+    Incrementally update hash value with one new character
+    """
+    global mask
+    cdef int c = character & 7   # a,A->1  c,C->3  g,G->7  t,T->4
+
+    if c == 7:
+        c = 2
+
+    return ( (oldVal << 2) & mask) + <unsigned int>(c & 3)
+
+###################################################################################################
+
+cdef void hash_sequence_multihit(char* sequence, int sequenceLength, short** hash_table, short** next_array) nogil:
     """
     Builds a hash table of the byte sequence, allowing multiple hits
     """
@@ -80,9 +92,6 @@ cdef void hash_sequence_multihit(char* sequence, int sequenceLength, short** has
 
     if sequenceLength < hash_nucs:
         return
-
-    if sequenceLength >= max_sequence_length:
-        logger.warning("Trying to hash sequence that is too long. Length = %s. Limit is %s. Something is wrong here." %(sequenceLength, max_sequence_length))
 
     cdef int next_empty = 1
     cdef int hidx
@@ -108,7 +117,7 @@ cdef void hash_sequence_multihit(char* sequence, int sequenceLength, short** has
 
 ###################################################################################################
 
-cdef short* hash_sequence(char* sequence, int sequenceLength):
+cdef short* hash_sequence(char* sequence, int sequenceLength) nogil:
     """
     Returns a hash of the byte sequence
     """
@@ -119,9 +128,6 @@ cdef short* hash_sequence(char* sequence, int sequenceLength):
 
     if sequenceLength < hash_nucs:
         return h
-
-    if sequenceLength >= max_sequence_length:
-        logger.warning("Trying to hash sequence that is too long. Length = %s. Limit is %s. Something is wrong here." %(sequenceLength, max_sequence_length))
 
     for i in range(sequenceLength - hash_nucs):
 
@@ -141,48 +147,29 @@ cdef short* hash_sequence(char* sequence, int sequenceLength):
 
 ###################################################################################################
 
-cdef void hashReadForMapping(cAlignedRead* read):
+cdef void hashReadForMapping(cAlignedRead* read) nogil:
     """
     Hash the read, and store the hash for use in the mapReadToHaplotype
     function.
     """
     cdef int i
-    read.hash = <short*>(calloc(read.rlen, sizeof(short)))
+    read.hash = <short*>(malloc( (read.rlen - hash_nucs)*sizeof(short) ))
+    read.hash[0] = my_hash(read.seq)
 
-    for i in range(read.rlen - hash_nucs):
-
-        if i == 0:
-            read.hash[i] = my_hash(read.seq + i)
-        else:
-            read.hash[i] = my_hash_update(read.seq[i+hash_nucs-1], read.hash[i-1])
+    for i in range(1, read.rlen - hash_nucs):
+        read.hash[i] = my_hash_update(read.seq[i+hash_nucs-1], read.hash[i-1])
 
 ###################################################################################################
 
-cdef int my_hash_update(char character, int oldVal):
-    """
-    Incrementally update hash value with one new character
-    """
-    global mask
-    cdef int c = character & 7   # a,A->1  c,C->3  g,G->7  t,T->4
-
-    if c == 7:
-        c = 2
-
-    return ( (oldVal << 2) & mask) + <unsigned int>(c & 3)
-
-###################################################################################################
-
-cdef int mapAndAlignReadToHaplotype(char* read, char* quals, int readStart, int hapStart, int readLen, int hapLen, short* haplotypeHash, short* haplotypeNextArray, short* readHash, char* haplotype, int gapExtend, int nucprior, short* localGapOpen, int* mapCounts, int mapCountsLen):
+cdef int mapAndAlignReadToHaplotype(char* read, char* quals, int readStart, int hapStart, int readLen, int hapLen, short* haplotypeHash, short* haplotypeNextArray, short* readHash, char* haplotype, int gapExtend, int nucprior, short* localGapOpen, int* mapCounts, int mapCountsLen) nogil:
     """
     Map a single read to a small-ish (~1kb) sequence. This is used to find the best anchor point
     in a haplotype sequence for the specified read.
     Returns the read's index into the sequence.  May be negative.  Assumes a forward read direction
     """
-    assert hapLen < max_sequence_length
-    assert haplotypeHash != NULL
-    assert haplotypeNextArray != NULL
-    assert readHash != NULL
-    assert readLen >= hash_nucs
+    # Don't even bother trying to align really short reads
+    if readLen < hash_nucs:
+        return 0
 
     cdef int lenOfHapSeqToTest = readLen + 15
     cdef int maxcount = 0
@@ -216,10 +203,6 @@ cdef int mapAndAlignReadToHaplotype(char* read, char* quals, int readStart, int 
 
             pos = hapIdx-1
             pos -= i     # account for index into read
-
-            if pos >= hapLen:
-                logger.warning("pos = %s. sl = %s. readHash[i] = %s" %(pos, hapLen, readHash[i]))
-
             count = mapCounts[pos + readLen] + 1
             mapCounts[pos + readLen] = count
 
@@ -264,9 +247,6 @@ cdef int mapAndAlignReadToHaplotype(char* read, char* quals, int readStart, int 
         if alignScore < bestScore:
             bestScore = alignScore
             bestMappingPosition = indexOfReadIntoHap
-
-    if bestScore < 0:
-        logger.error("Alignment score is %s" %(bestScore))
 
     return bestScore
 
