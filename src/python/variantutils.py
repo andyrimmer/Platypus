@@ -142,8 +142,8 @@ class VariantCandidateReader(object):
                             tempPos +=1
 
                         # Skip weird cases for now
-                        if len(removed) != 0 and len(added) != 0:
-                            continue
+                        #if len(removed) != 0 and len(added) != 0:
+                        #    continue
                             #logger.error("Dodgy variant found at %s:%s, with ref=%s, alt = %s" %(chrom,pos,ref,alt))
                             #logger.error("This will probably break something later on...")
 

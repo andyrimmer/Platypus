@@ -181,8 +181,8 @@ cdef class Haplotype:
         self.hapSequenceNextArray = NULL
         self.likelihoodCache = NULL
         self.lenCache = 0
-        self.mapCounts = <int*>malloc( (self.hapLen+maxReadLength)*sizeof(int) )
-        self.mapCountsLen = self.hapLen + maxReadLength
+        self.mapCounts = <int*>malloc( (2*(self.hapLen+maxReadLength))*sizeof(int) )
+        self.mapCountsLen = 2*(self.hapLen + maxReadLength)
 
     def __dealloc__(self):
         """
@@ -554,13 +554,12 @@ cdef class Haplotype:
         cdef int homopol = -1
         cdef int homopollen = 0
 
-        self.localGapOpen = <short*>malloc(self.hapLen*sizeof(short))
+        self.localGapOpen = <short*>(malloc(self.hapLen*sizeof(short)))
 
         homopol = -1
         homopollen = 0
 
         while index > 0:
-
             index -= 1
 
             if seq[index] == homopol:
