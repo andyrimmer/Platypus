@@ -216,28 +216,22 @@ cdef extern from "pysam_util.h":
         int	end
 
     bam_fetch_iterator_t* bam_init_fetch_iterator(bamFile* fp, bam_index_t *idx, int tid, int beg, int end)
-    bam1_t * bam_fetch_iterate(bam_fetch_iterator_t *iter)
+    bam1_t * bam_fetch_iterate(bam_fetch_iterator_t *iter) nogil
     void bam_cleanup_fetch_iterator(bam_fetch_iterator_t *iter)
 
 ###################################################################################################
 cdef class Samfile
 
+@cython.final
 cdef class IteratorRow:
     cdef bam_fetch_iterator_t*  bam_iter # iterator state object
     cdef bam1_t* b
     cdef int useIndex
-    cdef int cnext(self)
+    cdef int cnext(self) nogil
 
 ###################################################################################################
 
-cdef class IteratorRowAll:
-    cdef bam1_t* b
-    cdef samfile_t* fp
-    cdef bam1_t* getCurrent(self)
-    cdef int cnext(self)
-
-###################################################################################################
-
+@cython.final
 cdef class Samfile:
     cdef char* filename
     cdef samfile_t* samfile
@@ -255,56 +249,10 @@ cdef class Samfile:
     cdef char* getrname(self, int tid)
     cdef _parseRegion(self, reference=*, start=*, end=*, region=*)
     cpdef IteratorRow fetch(self, char* reference, int start, int end)
-    cpdef IteratorRowAll fetchAllReads(self)
     cpdef close(self)
     cdef void loadOffsetsForRegions(self, list regions)
     #cdef void cleanUpOffsetsForRegions(self)
     cdef void openBAMFile(self, mode)
-
-###################################################################################################
-
-cdef class AlignedRead:
-    cdef bam1_t* _delegate
-    cdef int hashValue
-    cdef int readEnd
-    cdef char* _seq
-    cdef char* _qual
-    cpdef object qname(AlignedRead self)
-    cdef char* fastQName(AlignedRead self)
-    cdef char* seq(AlignedRead self)
-    cdef char* qual(AlignedRead self)
-    cdef dict tags(AlignedRead self)
-    cdef int flag(AlignedRead self)
-    cdef int rname(AlignedRead self)
-    cdef int getCigarLength(AlignedRead self)
-    cdef int pos(AlignedRead self)
-    cdef int end(AlignedRead self)
-    cdef bin(AlignedRead self)
-    cdef int getCigarOpCode(AlignedRead self, int index)
-    cdef int getCigarOpLength(AlignedRead self, int index)
-    cdef int rlen(AlignedRead self)
-    cpdef int mapq(AlignedRead self)
-    cdef int mrnm(AlignedRead self)
-    cdef int mpos(AlignedRead self)
-    cdef int isize(AlignedRead self)
-    cdef int is_paired(AlignedRead self)
-    cdef int is_proper_pair(AlignedRead self)
-    cdef int is_unmapped(AlignedRead self)
-    cdef int mate_is_unmapped(AlignedRead self)
-    cdef int is_reverse(AlignedRead self)
-    cdef int mate_is_reverse(AlignedRead self)
-    cdef int is_read1(AlignedRead self)
-    cdef int is_read2(AlignedRead self)
-    cdef int is_secondary(AlignedRead self)
-    cdef int is_qcfail(AlignedRead self)
-    cdef int is_duplicate(AlignedRead self)
-    cdef opt(AlignedRead self, tag)
-
-###################################################################################################
-
-cdef AlignedRead makeAlignedRead(bam1_t* src)
-cdef cAlignedRead* createRead(bam1_t * src, int storeRgID, char** rgID)
-cdef void destroyRead(cAlignedRead* theRead)
 
 ###################################################################################################
 
@@ -323,6 +271,11 @@ ctypedef struct cAlignedRead:
     int matePos
     int bitFlag
     char mapq
+
+###################################################################################################
+
+cdef cAlignedRead* createRead(bam1_t * src, int storeRgID, char** rgID)
+cdef void destroyRead(cAlignedRead* theRead)
 
 ###################################################################################################
 

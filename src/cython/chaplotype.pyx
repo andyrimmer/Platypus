@@ -20,7 +20,6 @@ cimport cerrormodel
 from calign cimport hash_sequence, hash_sequence_multihit, hashReadForMapping
 from calign cimport mapAndAlignReadToHaplotype
 from fastafile cimport FastaFile
-from samtoolsWrapper cimport AlignedRead
 from samtoolsWrapper cimport cAlignedRead
 from samtoolsWrapper cimport Read_IsReverse
 from samtoolsWrapper cimport Read_IsPaired
@@ -117,6 +116,8 @@ cdef int computeOverlapOfReadAndHaplotype(int hapStart, int hapEnd, cAlignedRead
 
 ###################################################################################################
 
+@cython.final
+@cython.freelist(500)
 cdef class Haplotype:
     """
     Class to encapsulate a single haplotype. This will store all the

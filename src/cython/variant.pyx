@@ -15,7 +15,6 @@ cimport fastafile
 cimport samtoolsWrapper
 cimport cerrormodel
 
-from samtoolsWrapper cimport AlignedRead
 from samtoolsWrapper cimport cAlignedRead
 from samtoolsWrapper cimport Read_IsReverse
 from samtoolsWrapper cimport Read_IsPaired
@@ -97,6 +96,8 @@ cdef double complex_insertion_prior = 5e-6
 
 ###################################################################################################
 
+@cython.final
+@cython.freelist(1000)
 cdef class Variant(object):
     """
     Class to encapsulate information for all common variant types. The basic
@@ -468,6 +469,7 @@ cdef class Variant(object):
 
 ###################################################################################################
 
+@cython.final
 cdef class VariantCandidateGenerator(object):
     """
     A class to generate variant candidates from a bunch of reads.
@@ -734,130 +736,6 @@ cdef class VariantCandidateGenerator(object):
             # Other kinds of flag.
             else:
                 continue
-
-    cdef list getListOfSnpPositions(self, AlignedRead read):
-        """
-        Return a list of positions at which the read has SNP candidates.
-        """
-        cdef int readStart = read.pos()
-        cdef int flag = 0
-        cdef int length = 0
-        cdef int refOffset = 0
-        cdef int readOffset = 0
-        cdef int cigarIndex = 0
-        cdef int cigarLength = read.getCigarLength()
-        cdef int index = 0
-        cdef int baseQual = 0
-        cdef int readIndex = 0
-        cdef int refIndex = 0
-        cdef int readLength = read.rlen()
-        cdef int isReverse = read.is_reverse()
-        cdef char* readQual = read.qual()
-        cdef char* readSeq = read.seq()
-        cdef char readChar
-        cdef char refChar
-        cdef list snpPos = []
-
-        for cigarIndex from 0 <= cigarIndex < cigarLength:
-
-            flag = read.getCigarOpCode(cigarIndex)
-            length = read.getCigarOpLength(cigarIndex)
-
-            # An insertion take us further along the read, but not the reference
-            if flag == self.CIGAR_I:
-                readOffset += length
-
-            # A deletion take us further along the reference, but not the read
-            elif flag == self.CIGAR_D:
-                refOffset += length
-
-            # A match take us further along the reference and the read
-            elif flag == self.CIGAR_M:
-
-                for index from 0 <= index < length:
-
-                    readIndex = index + readOffset
-                    refIndex = (index + refOffset + readStart) - self.refSeqStart
-                    readChar = readSeq[readIndex]
-                    refChar = self.refSeq[refIndex]
-                    baseQual = readQual[readIndex]
-
-                    if readChar != refChar and readChar != 'N' and refChar != 'N' and baseQual >= self.minBaseQual:
-                        if isReverse:
-                            snpPos.append(readLength - readIndex - 1)
-                        else:
-                            snpPos.append(readIndex)
-
-                readOffset += length
-                refOffset += length
-
-            # Other kinds of CIGAR flag. Most likely padding information (MAQ uses this).
-            else:
-                continue
-
-        if isReverse:
-            snpPos.reverse()
-        return snpPos
-
-    cdef list getListOfIndelPositions(self, AlignedRead read):
-        """
-        Return a list of positions at which the read has indel candidates.
-        """
-        cdef int readStart = read.pos()
-        cdef int flag = 0
-        cdef int length = 0
-        cdef int refOffset = 0
-        cdef int readOffset = 0
-        cdef int cigarIndex = 0
-        cdef int cigarLength = read.getCigarLength()
-        cdef int index = 0
-        cdef int baseQual = 0
-        cdef int readIndex = 0
-        cdef int refIndex = 0
-        cdef int readLength = read.rlen()
-        cdef int isReverse = read.is_reverse()
-        cdef char* readQual = read.qual()
-        cdef char* readSeq = read.seq()
-        cdef char readChar
-        cdef char refChar
-        cdef list indelPos = []
-
-        for cigarIndex from 0 <= cigarIndex < cigarLength:
-
-            flag = read.getCigarOpCode(cigarIndex)
-            length = read.getCigarOpLength(cigarIndex)
-
-            # An insertion take us further along the read, but not the reference
-            if flag == self.CIGAR_I:
-
-                if isReverse:
-                    indelPos.append(readLength - (readOffset + length))
-                else:
-                    indelPos.append(readOffset)
-
-                readOffset += length
-
-            # A deletion take us further along the reference, but not the read
-            elif flag == self.CIGAR_D:
-
-                if isReverse:
-                    indelPos.append(readLength - (readOffset + length))
-                else:
-                    indelPos.append(readOffset)
-
-                refOffset += length
-
-
-            # A match take us further along the reference and the read
-            elif flag == self.CIGAR_M:
-                readOffset += length
-                refOffset += length
-
-            # Other kinds of CIGAR flag. Most likely padding information (MAQ uses this).
-            else:
-                continue
-
-        return indelPos
 
     cdef void addCandidatesFromReads(self, cAlignedRead** readStart, cAlignedRead** readEnd):
         """

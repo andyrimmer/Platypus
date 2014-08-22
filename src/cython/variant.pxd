@@ -1,8 +1,8 @@
 
 ###################################################################################################
 
+import cython
 from fastafile cimport FastaFile
-from samtoolsWrapper cimport AlignedRead
 from samtoolsWrapper cimport cAlignedRead
 
 ###################################################################################################
@@ -13,6 +13,8 @@ cdef public int ASSEMBLER_VAR
 
 ###################################################################################################
 
+@cython.final
+@cython.freelist(1000)
 cdef class Variant:
     cdef:
         public bytes refName
@@ -39,6 +41,7 @@ cdef class Variant:
 ###################################################################################################
 ###################################################################################################
 
+@cython.final
 cdef class VariantCandidateGenerator:
     cdef int CIGAR_M
     cdef int CIGAR_I
@@ -73,8 +76,5 @@ cdef class VariantCandidateGenerator:
     cdef void getVariantCandidatesFromSingleRead(self, cAlignedRead* read)
     cdef void addCandidatesFromReads(self, cAlignedRead** readStart, cAlignedRead** readEnd)
     cdef list getCandidates(self, int minReads)
-
-    cdef list getListOfSnpPositions(self, AlignedRead read)
-    cdef list getListOfIndelPositions(self, AlignedRead read)
 
 ###################################################################################################

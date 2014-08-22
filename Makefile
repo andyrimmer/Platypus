@@ -3,7 +3,7 @@ HEADERS := src/cython/cgenotype.pxd
 SOURCES := src/cython/cpopulation.pyx src/cython/cgenotype.pyx src/cython/cwindow.pyx
 
 PLATYPUS_C := cpopulation.c cgenotype.c cwindow.c vcfutils.c platypusutils.c variantcaller.c variantFilter.c assembler.c\
-calign.c cerrormodel.c chaplotype.c histogram.c samtoolsWrapper.c variant.c fastafile.c
+calign.c cerrormodel.c chaplotype.c samtoolsWrapper.c variant.c fastafile.c
 
 PLATYPUS_SO := $(PLATYPUS_C:.c=.so)
 
@@ -11,7 +11,7 @@ PLATYPUS_SO := $(PLATYPUS_C:.c=.so)
 PYTHONSRC := src/python/Platypus.py src/python/platypusexceptions.py src/python/runner.py src/python/variantutils.py\
 src/python/window.py src/python/vcf.py src/python/filez.py src/python/extendedoptparse.py
 
-VERSION := 0.7.7
+VERSION := 0.7.8
 TARGET := Platypus_${VERSION}
 
 # Cython source files needed for building release (these are not compiled, only distributed)

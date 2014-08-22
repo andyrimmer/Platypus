@@ -5,7 +5,6 @@ cimport fastafile
 
 from samtoolsWrapper cimport Samfile
 from samtoolsWrapper cimport IteratorRow
-from samtoolsWrapper cimport AlignedRead
 from samtoolsWrapper cimport cAlignedRead
 from fastafile cimport FastaFile
 
