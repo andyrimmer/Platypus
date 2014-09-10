@@ -70,7 +70,11 @@ class VariantCandidateReader(object):
                 continue
 
             for line in vcfLines:
-
+                
+                if not isValidVcfLine(line):
+                    continue
+                
+                # Get the components of the VCF line
                 chrom = line.contig
                 pos = line.pos
                 ref = line.ref
@@ -153,5 +157,36 @@ class VariantCandidateReader(object):
         varList = sorted(list(set(varList)))
         logger.debug("Found %s variants in region %s in source file" %(len(varList), "%s:%s-%s" %(chromosome,start,end)))
         return varList
+    
+    # Performs basic validation checks on a single VCF file line.
+    def isValidVcfLine(vcfLine):
+        
+        chromosome = line.contig # TODO any possible checks on chromosome?
+        position   = line.pos
+        reference  = line.ref
+        variants   = line.alt.split(",")
+        
+        try:
+            if int(position) < 0:
+                return False
+        except ValueError:
+            logger.warning("Non inetgral position at chromosome " + chromosome)
+            return False
+        
+        validBases = set(['A', 'C', 'G', 'T', 'N'])
+        
+        invalidBasesInReference = set(reference) - validBases
+        if len(invalidBasesInReference) > 0:
+            logger.warning("Invalid reference sequence at chromosome " + chromosome)
+            return False
+        
+        for variant in variants:
+            invalidBasesInVariant = set(variant) - validBases
+            if len(invalidBasesInVariant) > 0:
+                logger.warning("Invalid alternative at chromosome " + chromosome)
+                return False
+        
+        return True
+        
 
 ###################################################################################################
