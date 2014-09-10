@@ -414,8 +414,19 @@ cdef list generateVariantsInRegion(bytes chrom, int start, int end, bamFiles, Fa
         # Add candidates from all samples to list
         rawBamVariants.extend(allSampleVarCandGen.getCandidates(0))
 
+        # options.rlen over-rides the data, if set, otherwise we use the longest read
+        # in the data
         if longestRead > 0:
-            options.rlen = longestRead
+            if longestRead >= options.maxSize:
+                logger.warning("Found very long read (%s bases). Capping max read length at --maxSize (%s)." %(longestRead, options.maxSize))
+                logger.warning("Longer reads will be used for alignments but not to determine window boundaries")
+                logger.warning("Increase --maxSize if you want longer reads to be used for determining widow boundaries")
+                logger.warning("But keep --maxSize below 5000 otherwise problems will occur downstream and may lead to crashes")
+                options.rlen = options.maxSize
+            else:
+                options.rlen = longestRead
+
+    maxReadLength = options.rlen
 
     # Get variants from external VCF source file
     if options.sourceFile:

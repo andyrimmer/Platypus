@@ -472,7 +472,7 @@ def callVariants(args):
     parser.add_option("--minReads", dest="minReads", help="Minimum number of supporting reads required before a variant candidate will be considered.", action='store', type='int', default=2)
     parser.add_option("--maxReads", dest="maxReads", help="Maximium coverage in window", action='store', type='float', default=5000000)
     parser.add_option("--verbosity", dest="verbosity", help="Level of logging", action='store', type='int', default=2)
-    parser.add_option("--maxReadLength", dest="rlen", help="Maximum read length", action='store', type = 'int', default=100)
+    parser.add_option("--maxReadLength", dest="rlen", help="Maximum read length", action='store', type = 'int', default=150)
     parser.add_option("--logFileName", dest="logFileName", help="Name of log file", action='store', type='string', default="log.txt")
     parser.add_option("--source", dest="sourceFile", help="vcf file(s) to get candidates from", action='store', type='list', default=None)
     parser.add_option("--nCPU", dest="nCPU", help="Number of processors to use", action='store', type='int', default=1)
