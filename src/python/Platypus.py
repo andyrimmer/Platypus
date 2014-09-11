@@ -1,3 +1,5 @@
+#!/usr/bin/python
+
 """
 Top-level interface to the Platypus tool-set
 """
