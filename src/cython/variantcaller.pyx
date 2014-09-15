@@ -14,6 +14,7 @@ import datetime
 import platypusutils
 import vcfutils
 import chaplotype
+import sys
 
 cimport platypusutils
 cimport vcfutils
@@ -783,7 +784,10 @@ class PlatypusSingleProcess(object):
             logger.info("Opening file %s for appending" %(self.fileName))
             self.outputFile = open(self.fileName, 'a')
         else:
-            self.outputFile = open(self.fileName, 'w')
+            if self.fileName == "-":
+                self.outputFile = sys.stdout
+            else:
+                self.outputFile = open(self.fileName, 'w')
             self.vcf.writeheader(self.outputFile)
 
         cdef Population pop = Population(self.options)
@@ -799,7 +803,8 @@ class PlatypusSingleProcess(object):
 
             callVariantsInRegion(chrom, start, end, self.bamFiles, self.refFile, self.options, self.windowGenerator, self.outputFile, self.vcf, self.samples, self.samplesByID, self.samplesByBAM, pop)
 
-        self.outputFile.close()
+        if self.fileName != "-":
+            self.outputFile.close()
 
 ###################################################################################################
 

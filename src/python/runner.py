@@ -373,13 +373,13 @@ def runVariantCaller(options, continuing=False):
     fh.setFormatter(formatter)
 
     if options.verbosity == 0:
-        log.setLevel(logging.ERROR)
+        log.setLevel(logging.DEBUG)
         ch.setLevel(logging.ERROR)
-        fh.setLevel(logging.ERROR)
+        fh.setLevel(logging.DEBUG)
     elif options.verbosity == 1:
-        log.setLevel(logging.WARNING)
+        log.setLevel(logging.DEBUG)
         ch.setLevel(logging.WARNING)
-        fh.setLevel(logging.WARNING)
+        fh.setLevel(logging.DEBUG)
     elif options.verbosity == 2:
         log.setLevel(logging.DEBUG)
         ch.setLevel(logging.INFO)
@@ -410,7 +410,13 @@ def runVariantCaller(options, continuing=False):
         regions = sorted(platypusutils.getRegions(options), cmp=regionSort)
 
     if options.nCPU == 1:
-        fileName = options.output + "_temp_1.gz"
+        fileName = None
+
+        if options.output == "-":
+            fileName = options.output
+        else:
+            fileName = options.output + "_temp_1.gz"
+
         p1 = PlatypusSingleProcess(fileName, options, regions, continuing)
         p1.run()
         mergeVCFFiles([fileName], options.output, log)

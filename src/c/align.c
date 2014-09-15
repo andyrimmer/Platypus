@@ -5,7 +5,7 @@
  It may not be distributed, made public, or used in other software without the permission of the copyright holder
 ******************************************************************************************************************/
 
-#include <emmintrin.h>
+//#include <emmintrin.h>
 #include <stdio.h>
 #include <assert.h>
 
