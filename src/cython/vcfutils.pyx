@@ -210,11 +210,6 @@ cdef tuple computeGenotypeCallAndLikelihoods(int variantPosition, list haplotype
 
             marginalGenotypeLikelihood = 0.0
 
-            if index1 != index2:
-                factor = 2.0
-            else:
-                factor = 1.0
-
             for genotypeIndex in range(nGenotypes):
 
                 # Use pre-cached haplotype indices
@@ -222,6 +217,11 @@ cdef tuple computeGenotypeCallAndLikelihoods(int variantPosition, list haplotype
                 hap2Index = haplotypeIndexes[genotypeIndex][1]
                 hap1IsRefAtVarPos = haplotypeIsRefAtThisPos[hap1Index]
                 hap2IsRefAtVarPos = haplotypeIsRefAtThisPos[hap2Index]
+
+                if hap1Index != hap2Index:
+                    factor = 2.0
+                else:
+                    factor = 1.0
 
                 # Use EM frequencies
                 haplotypeFrequency1 = haplotypeFrequencies[hap1Index]
