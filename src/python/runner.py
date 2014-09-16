@@ -419,7 +419,8 @@ def runVariantCaller(options, continuing=False):
 
         p1 = PlatypusSingleProcess(fileName, options, regions, continuing)
         p1.run()
-        mergeVCFFiles([fileName], options.output, log)
+        if options.output != "-":
+            mergeVCFFiles([fileName], options.output, log)
     else:
         # Create process manager
         fileNames = set()

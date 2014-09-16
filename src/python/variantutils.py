@@ -158,35 +158,35 @@ class VariantCandidateReader(object):
         logger.debug("Found %s variants in region %s in source file" %(len(varList), "%s:%s-%s" %(chromosome,start,end)))
         return varList
     
-    # Performs basic validation checks on a single VCF file line.
-    def isValidVcfLine(vcfLine):
-        
-        chromosome = line.contig # TODO any possible checks on chromosome?
-        position   = line.pos
-        reference  = line.ref
-        variants   = line.alt.split(",")
-        
-        try:
-            if int(position) < 0:
-                return False
-        except ValueError:
-            logger.warning("Non inetgral position at chromosome " + chromosome)
+# Performs basic validation checks on a single VCF file line.
+def isValidVcfLine(line):
+
+    chromosome = line.contig # TODO any possible checks on chromosome?
+    position   = line.pos
+    reference  = line.ref
+    variants   = line.alt.split(",")
+
+    try:
+        if int(position) < 0:
             return False
-        
-        validBases = set(['A', 'C', 'G', 'T', 'N'])
-        
-        invalidBasesInReference = set(reference) - validBases
-        if len(invalidBasesInReference) > 0:
-            logger.warning("Invalid reference sequence at chromosome " + chromosome)
+    except ValueError:
+        logger.warning("Non inetgral position at chromosome " + chromosome)
+        return False
+
+    validBases = set(['A', 'C', 'G', 'T', 'N'])
+
+    invalidBasesInReference = set(reference) - validBases
+    if len(invalidBasesInReference) > 0:
+        logger.warning("Invalid reference sequence at chromosome " + chromosome)
+        return False
+
+    for variant in variants:
+        invalidBasesInVariant = set(variant) - validBases
+        if len(invalidBasesInVariant) > 0:
+            logger.warning("Invalid alternative at chromosome " + chromosome)
             return False
-        
-        for variant in variants:
-            invalidBasesInVariant = set(variant) - validBases
-            if len(invalidBasesInVariant) > 0:
-                logger.warning("Invalid alternative at chromosome " + chromosome)
-                return False
-        
-        return True
+
+    return True
         
 
 ###################################################################################################
