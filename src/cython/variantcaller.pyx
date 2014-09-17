@@ -765,6 +765,14 @@ class PlatypusSingleProcess(object):
         logger.debug("Max genotypes = %s" %(self.options.maxGenotypes))
 
         options.nInd = len(set(self.samples))
+        
+        if options.alignScoreFile != "":
+            logger.info("Alignment scores of reads with haplotypes are written to %s" %(options.alignScoreFile))
+            fo = open(options.alignScoreFile, "w")
+            fo.write("#Alignment scores of reads against haplotypes within a each window for each sample\n")
+            fo.close()
+
+
 
     def run(self):
         """
