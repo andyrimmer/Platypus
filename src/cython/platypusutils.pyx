@@ -930,16 +930,36 @@ def getRegions(options):
 
     if options.regions is not None and os.path.exists(options.regions[0]):
 
-        theFile = open(options.regions[0], 'r')
+        # Text file with regions in format chr:start-end
+        if options.regions[0].endswith(".txt"):
 
-        for line in theFile:
-            chr,region = line.split(":")
-            start = int(region.split("-")[0])
-            end = int(region.split("-")[1])
+            logger.info("Interpreting --regions argument (%s) as a text file with regions in the format chr:start-end" %(options.regions[0]))
 
-            regions.append( (chr,start,end) )
+            with open(options.regions[0], 'r') as theFile:
+                for line in theFile:
+                    chrom,region = line.split(":")
+                    start = int(region.split("-")[0])
+                    end = int(region.split("-")[1])
 
-        return regions
+                    regions.append( (chrom,start,end) )
+
+        # BED file with regions in format chr\start\tend
+        elif options.regions[0].endswith(".bed"):
+
+            logger.info("Interpreting --regions argument (%s) as a BED file with regions in the format chr\tstart\tend" %(options.regions[0]))
+
+            with open(options.regions[0], 'r') as theFile:
+                for line in theFile:
+                    try:
+                        cols = line.split("\t")
+                        chrom = cols[0]
+                        start = int(cols[1])
+                        end = int(cols[2])
+                        regions.append( (chrom,start,end) )
+                    except:
+                        logger.debug("Could not parse line in regions file (%s). Skipping..." %(options.regions[0]))
+                        logger.debug("Line was %s" %(line))
+                        continue
 
     elif options.regions == None:
 
@@ -951,37 +971,33 @@ def getRegions(options):
             for region,regionTuple in refFile.refs.iteritems():
                 regions.append((region, 1, regionTuple.SeqLength))
 
-    elif os.path.isfile(options.regions[0]): # Could be a file...
-        regionFile = open( options.regions[0] )
-        regions = regionFile.readlines()
-        regionFile.close()
     else:
         for region in options.regions:
 
             split = region.split(":")
-            chr = bytes(split[0])
+            chrom = bytes(split[0])
 
             if len( split ) == 2 :
                 [ start, end ] = split[1].split("-")
-                regions.append((chr,int(start),int(end)))
+                regions.append((chrom,int(start),int(end)))
             elif len(split) == 1:
                 start = 1
                 try:
                     header = file.header
                     pivot = dict(zip([d['SN'] for d in header['SQ']], [d['LN'] for d in header['SQ']]))
-                    end = pivot[chr]
-                    regions.append((chr,int(start),int(end)))
+                    end = pivot[chrom]
+                    regions.append((chrom,int(start),int(end)))
                 except:
                     regions = []
                     for region,regionTuple in refFile.refs.iteritems():
-                        if region == chr:
+                        if region == chrom:
                             regions.append((region, 1, regionTuple.SeqLength))
             else:
-                regions.append((chr,None,None))
+                regions.append((chrom,None,None))
 
     if len(regions) == 0:
         logger.error("Platypus found no regions to search. Check that you are using the correct reference FASTA file or have specified the 'regions' argument correctly")
-    elif len(regions) < 1000:
+    elif len(regions) < 100:
         logger.debug("The following regions will be searched: %s" %(regions))
     else:
         logger.debug("%s regions will be searched" % len(regions))
