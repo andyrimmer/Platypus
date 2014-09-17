@@ -484,6 +484,7 @@ def callVariants(args):
     parser.add_option("--source", dest="sourceFile", help="vcf file(s) to get candidates from", action='store', type='list', default=None)
     parser.add_option("--nCPU", dest="nCPU", help="Number of processors to use", action='store', type='int', default=1)
     parser.add_option("--parseNCBI", dest="parseNCBI", help="", type=int, action='store', default=0)
+    parser.add_option("--alignScoreFile", dest="alignScoreFile", help="If this is set to a string, then alignment scores of reads to haplotypes will be writen to this file." type='string', action='store', default="")
     parser.add_option("--compressReads", dest="compressReads", help="If this is set to 1, then all reads will be compressed, and decompressd on demand. This will slow things down, but reduce memory usage.", type='int', action='store', default=0)
     parser.add_option("--qualBinSize", dest="qualBinSize", help="This sets the granularity used when compressing quality scores. If > 1 then quality compression is lossy", type='int', action='store', default=1)
 
