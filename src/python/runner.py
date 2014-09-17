@@ -8,6 +8,7 @@ from __future__ import division
 import multiprocessing
 import variantcaller
 import extendedoptparse
+import sys
 import os
 import random
 import heapq
@@ -302,7 +303,10 @@ def mergeVCFFiles(tempFileNames, finalFileName, log):
     log.info("Merging output VCF file(s) into final file %s" %(finalFileName))
 
     # Final output file
-    outputVCF = open(finalFileName, 'wb')
+    if finalFileName == "-":
+        outputVCF = sys.stdout
+    else:
+        outputVCF = open(finalFileName, 'wb')
     theHeap = []
 
     # Initialise queue
@@ -342,7 +346,8 @@ def mergeVCFFiles(tempFileNames, finalFileName, log):
             continue
 
     # Close final output file
-    outputVCF.close()
+    if finalFileName != "-":
+        outputVCF.close()
     log.info("Finished merging VCF file(s)")
 
 ###################################################################################################
