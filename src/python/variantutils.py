@@ -128,7 +128,12 @@ class VariantCandidateReader(object):
 
                     # Anything else
                     else:
-
+                        if self.options.longHaps ==1:
+                            var = Variant(chromosome, pos, ref, alt, 0, FILE_VAR)
+                            varList.append(var)
+                            continue
+                        
+                        
                         # VCF4 is -1 indexed for indels, so trim off first base
                         tempRef = ref[1:]
                         tempAlt = alt[1:]
