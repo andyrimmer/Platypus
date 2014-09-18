@@ -11,7 +11,7 @@ PLATYPUS_SO := $(PLATYPUS_C:.c=.so)
 PYTHONSRC := src/python/Platypus.py src/python/platypusexceptions.py src/python/runner.py src/python/variantutils.py\
 src/python/window.py src/python/vcf.py src/python/filez.py src/python/extendedoptparse.py
 
-VERSION := 0.7.9.2
+VERSION := 0.7.9.3
 TARGET := Platypus_${VERSION}
 
 # Cython source files needed for building release (these are not compiled, only distributed)

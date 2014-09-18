@@ -70,10 +70,10 @@ class VariantCandidateReader(object):
                 continue
 
             for line in vcfLines:
-                
+
                 if not isValidVcfLine(line):
                     continue
-                
+
                 # Get the components of the VCF line
                 chrom = line.contig
                 pos = line.pos
@@ -132,8 +132,7 @@ class VariantCandidateReader(object):
                             var = Variant(chromosome, pos, ref, alt, 0, FILE_VAR)
                             varList.append(var)
                             continue
-                        
-                        
+
                         # VCF4 is -1 indexed for indels, so trim off first base
                         tempRef = ref[1:]
                         tempAlt = alt[1:]
