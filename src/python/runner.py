@@ -549,6 +549,7 @@ def callVariants(args):
 
     # Genome VCF parameters
     parser.add_option("--outputRefCalls", dest="outputRefCalls", help="If 1, output block reference calls.", action='store', type='int', default=0)
+    parser.add_option("--refCallBlockSize", dest="refCallBlockSize", help="Max size of reference call block.", action='store', type='int', default=1000)
 
     (options, args) = parser.parse_args(args)
     runVariantCaller(options)

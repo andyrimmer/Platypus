@@ -186,8 +186,8 @@ class WindowGenerator(object):
 
                     if firstVarPos - start >= 1:
 
-                        for refBlockStart in xrange(start, firstVarPos, 1000):
-                            refBlockEnd = min(refBlockStart + 1000, firstVarPos-1)
+                        for refBlockStart in xrange(start, firstVarPos, options.refCallBlockSize):
+                            refBlockEnd = min(refBlockStart + options.refCallBlockSize, firstVarPos-1)
 
                             if refBlockStart == refBlockEnd:
                                 continue
@@ -205,8 +205,8 @@ class WindowGenerator(object):
 
                     if nextVarPos - lastVarPos > 1:
 
-                        for refBlockStart in xrange(lastVarPos+1, nextVarPos, 1000):
-                            refBlockEnd = min(refBlockStart + 1000, nextVarPos-1)
+                        for refBlockStart in xrange(lastVarPos+1, nextVarPos, options.refCallBlockSize):
+                            refBlockEnd = min(refBlockStart + options.refCallBlockSize, nextVarPos-1)
 
                             if refBlockStart == refBlockEnd:
                                 continue
