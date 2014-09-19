@@ -3,6 +3,7 @@ Simple program to find somatic mutations in tumour samples.
 """
 
 import sys
+import optparse
 from math import log,exp,log10
 
 ###################################################################################################
@@ -57,48 +58,74 @@ def computeSomaticPosterior(callQuality, normGLs, tumourGLs):
 
 ###################################################################################################
 
-vcfFile = sys.stdin
-order = sys.argv[1]
-threshold = int(sys.argv[2])
-normalCol = None
-tumourCol = None
+def parseOpts(args):
+    """
+    Run the Platypus variant-caller, with the specified arguments
+    """
+    parser = optparse.OptionParser()
 
-if order == "TN":
-    tumourCol = 9
-    normalCol = 10
-elif order == "NT":
-    tumourCol = 10
-    normalCol = 9
-else:
-    raise StandardError, "order argument must be 'TN' or 'NT' Input was %s" %(order)
+    parser.add_option("--inputVCF", dest="inputVCF", help="Name of input VCF file", action='store', type='string', default=None)
+    parser.add_option("--outputVCF", dest="outputVCF", help="Name of output VCF file", action='store', type='string', default=None)
+    parser.add_option("--tumourSample", dest="tumourSample", help="Name of tumour sample", action='store', type='string', default=None)
+    parser.add_option("--normalSample", dest="normalSample", help="Name of normal sample", action='store', type='string', default=None)
+    parser.add_option("--minPosterior", dest="minPosterior", help="Minimum allowed value for somatic variant posterior", action='store', type='int', default=5)
 
-for line in vcfFile:
+    (options, args) = parser.parse_args(args)
+    return options
 
-    if line[0] == "#":
-        print line.strip()
-        continue
+###################################################################################################
 
-    cols = line.strip().split('\t')
-    chrom,pos = cols[0],cols[1]
-    alt = cols[4]
-    tumour = cols[tumourCol].split(":")[0].split("/")
-    normal = cols[normalCol].split(":")[0].split("/")
-    callQuality = int(cols[5])
+options = parseOpts(sys.argv)
 
-    # Exclude multi-allelic sites for now
-    if "," in alt:
-        continue
+with open(options.inputVCF, 'r') as vcfFile:
+    with open(options.outputVCF, 'w') as outputFile:
+        threshold = options.minPosterior
+        normalCol = None
+        tumourCol = None
 
-    # Skip sites with missing genotypes
-    if "." in tumour or "." in normal:
-        continue
+        for line in vcfFile:
 
-    tumourGLs = [float(x) for x in cols[tumourCol].split(":")[1].split(",")]
-    normalGLs = [float(x) for x in cols[normalCol].split(":")[1].split(",")]
-    somaticPosterior = computeSomaticPosterior(callQuality, normalGLs, tumourGLs)
+            if line.startswith("##"):
+                outputFile.write(line)
+                continue
 
-    if somaticPosterior >= threshold:
-        cols[5] = str(somaticPosterior)
-        print "\t".join(cols)
+            elif line.startswith("#CHROM"):
+                outputFile.write(line)
+                cols = line.strip().split("\t")
 
-vcfFile.close()
+                try:
+                    normalCol = cols.index(options.normalSample)
+                except ValueError:
+                    print "\n\nCould not find normal sample %s in input VCF header\n\n" %(options.normalSample)
+                    raise
+
+                try:
+                    tumourCol = cols.index(options.tumourSample)
+                except ValueError:
+                    print "\n\nCould not find tumour sample %s in input VCF header\n\n" %(options.tumourSample)
+                    raise
+
+            else:
+
+                cols = line.strip().split("\t")
+                chrom,pos = cols[0],cols[1]
+                alt = cols[4]
+                tumour = cols[tumourCol].split(":")[0].split("/")
+                normal = cols[normalCol].split(":")[0].split("/")
+                callQuality = int(cols[5])
+
+                # Exclude multi-allelic sites for now
+                if "," in alt:
+                    continue
+
+                # Skip sites with missing genotypes
+                if "." in tumour or "." in normal:
+                    continue
+
+                tumourGLs = [float(x) for x in cols[tumourCol].split(":")[1].split(",")]
+                normalGLs = [float(x) for x in cols[normalCol].split(":")[1].split(",")]
+                somaticPosterior = computeSomaticPosterior(callQuality, normalGLs, tumourGLs)
+
+                if somaticPosterior >= threshold:
+                    cols[5] = str(somaticPosterior)
+                    outputFile.write("\t".join(cols) + "\n")
