@@ -161,7 +161,9 @@ class VariantCandidateReader(object):
         varList = sorted(list(set(varList)))
         logger.debug("Found %s variants in region %s in source file" %(len(varList), "%s:%s-%s" %(chromosome,start,end)))
         return varList
-    
+
+###################################################################################################
+
 # Performs basic validation checks on a single VCF file line.
 def isValidVcfLine(line):
 
@@ -191,6 +193,5 @@ def isValidVcfLine(line):
             return False
 
     return True
-        
 
 ###################################################################################################

@@ -142,19 +142,19 @@ cdef void callVariantsInWindow(dict window, options, FastaFile refFile, list rea
 
 ###################################################################################################
 
-cdef int countTotalReadsInRegion(list readBuffers, int* totalBufferSize, int* totalSeqQualSize):
+def countTotalReadsInRegion(list readBuffers):
     """
     Count and return the total number of reads (good, bad, broken)
     loaded into the read buffers.
     """
-    cdef int totalReads = 0
     cdef bamReadBuffer theReadBuffer
-    cdef int thisBufferSize = 0
-    cdef int i = 0
-    cdef int cigarSize = 0
-    cdef int seqQualSize = 0
-    cdef int readSize = 0
-    cdef int pointerSize = 0
+    totalReads = 0
+    cigarSize = 0
+    seqQualSize = 0
+    readSize = 0
+    pointerSize = 0
+    totalBufferSize = 0
+    totalSeqQualSize = 0
 
     for theReadBuffer in readBuffers:
         thisBufferSize = theReadBuffer.reads.getSize()
@@ -162,15 +162,15 @@ cdef int countTotalReadsInRegion(list readBuffers, int* totalBufferSize, int* to
         totalReads += (theReadBuffer.reads.getSize())
         totalReads += (theReadBuffer.badReads.getSize())
         totalReads += (theReadBuffer.brokenMates.getSize())
-        totalBufferSize[0] += (theReadBuffer.reads.__capacity)
-        totalBufferSize[0] += (theReadBuffer.badReads.__capacity)
-        totalBufferSize[0] += (theReadBuffer.brokenMates.__capacity)
+        totalBufferSize += (theReadBuffer.reads.__capacity)
+        totalBufferSize += (theReadBuffer.badReads.__capacity)
+        totalBufferSize += (theReadBuffer.brokenMates.__capacity)
 
         for i in range(thisBufferSize):
-            totalSeqQualSize[0] += (strlen(theReadBuffer.reads.array[i].seq) + 1)
-            totalSeqQualSize[0] += (strlen(theReadBuffer.reads.array[i].qual) + 1)
+            totalSeqQualSize += (strlen(theReadBuffer.reads.array[i].seq) + 1)
+            totalSeqQualSize += (strlen(theReadBuffer.reads.array[i].qual) + 1)
 
-            totalSeqQualSize[0] += 2*theReadBuffer.reads.array[i].cigarLen
+            totalSeqQualSize += 2*theReadBuffer.reads.array[i].cigarLen
 
             seqQualSize += (strlen(theReadBuffer.reads.array[i].seq) + 1)
             seqQualSize += (strlen(theReadBuffer.reads.array[i].qual) + 1)
@@ -178,10 +178,10 @@ cdef int countTotalReadsInRegion(list readBuffers, int* totalBufferSize, int* to
             cigarSize += 2*theReadBuffer.reads.array[i].cigarLen*sizeof(theReadBuffer.reads.array[0].cigarOps[0])
 
         for i in range(thisBadBufferSize):
-            totalSeqQualSize[0] += (strlen(theReadBuffer.badReads.array[i].seq) + 1)
-            totalSeqQualSize[0] += (strlen(theReadBuffer.badReads.array[i].qual) + 1)
+            totalSeqQualSize += (strlen(theReadBuffer.badReads.array[i].seq) + 1)
+            totalSeqQualSize += (strlen(theReadBuffer.badReads.array[i].qual) + 1)
 
-            totalSeqQualSize[0] += 2*theReadBuffer.badReads.array[i].cigarLen
+            totalSeqQualSize += 2*theReadBuffer.badReads.array[i].cigarLen
 
             seqQualSize += (strlen(theReadBuffer.badReads.array[i].seq) + 1)
             seqQualSize += (strlen(theReadBuffer.badReads.array[i].qual) + 1)
@@ -189,23 +189,23 @@ cdef int countTotalReadsInRegion(list readBuffers, int* totalBufferSize, int* to
             cigarSize += 2*theReadBuffer.badReads.array[i].cigarLen*sizeof(theReadBuffer.reads.array[0].cigarOps[0])
 
         # Size of reads
-        totalSeqQualSize[0] += sizeof(theReadBuffer.reads.array[0][0])*thisBufferSize
-        totalSeqQualSize[0] += sizeof(theReadBuffer.badReads.array[0][0])*thisBadBufferSize
+        totalSeqQualSize += sizeof(theReadBuffer.reads.array[0][0])*thisBufferSize
+        totalSeqQualSize += sizeof(theReadBuffer.badReads.array[0][0])*thisBadBufferSize
 
         readSize += sizeof(theReadBuffer.reads.array[0][0])*thisBufferSize
         readSize += sizeof(theReadBuffer.badReads.array[0][0])*thisBadBufferSize
 
         # Size of pointers to reads
-        totalSeqQualSize[0] += sizeof(theReadBuffer.reads.array[0])*theReadBuffer.reads.__capacity
-        totalSeqQualSize[0] += sizeof(theReadBuffer.reads.array[0])*theReadBuffer.badReads.__capacity
+        totalSeqQualSize += sizeof(theReadBuffer.reads.array[0])*theReadBuffer.reads.__capacity
+        totalSeqQualSize += sizeof(theReadBuffer.reads.array[0])*theReadBuffer.badReads.__capacity
 
         pointerSize += sizeof(theReadBuffer.reads.array[0])*theReadBuffer.reads.__capacity
         pointerSize += sizeof(theReadBuffer.reads.array[0])*theReadBuffer.badReads.__capacity
 
-    cdef int totalSize = seqQualSize + cigarSize + readSize + pointerSize
+    totalSize = seqQualSize + cigarSize + readSize + pointerSize
     logger.debug("Sizes: SeqQual = %s. cigar = %s. read = %s. pointers = %s. Total = %s" %(seqQualSize, cigarSize, readSize, pointerSize, totalSize))
 
-    return totalReads
+    return totalReads,totalBufferSize,totalSeqQualSize
 
 ###################################################################################################
 
@@ -363,13 +363,10 @@ cdef list generateVariantsInRegion(bytes chrom, int start, int end, bamFiles, Fa
     cdef int maxReadLength = options.rlen
     cdef int longestRead = 0
     cdef int minSampleCoverage = -1
-    cdef int totalBufferSizeInRegion = 0
-    cdef int totalSeqQualSize = 0
-    cdef int totalReadsInRegion = 0
     cdef double minVarFreq = options.minVarFreq
 
     if options.verbosity >= 3:
-        totalReadsInRegion = countTotalReadsInRegion(readBuffers, &totalBufferSizeInRegion, &totalSeqQualSize)
+        totalReadsInRegion,totalBufferSizeInRegion,totalSeqQualSize = countTotalReadsInRegion(readBuffers)
         logger.debug("There are %s reads (buffer size = %s. Total reads size = %s bytes) in the region %s:%s-%s" %(totalReadsInRegion, totalBufferSizeInRegion, totalSeqQualSize, chrom, start, end))
 
 
