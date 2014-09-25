@@ -980,6 +980,11 @@ def getRegions(options):
             if len( split ) == 2 :
                 [ start, end ] = split[1].split("-")
                 regions.append((chrom,int(start),int(end)))
+
+                if regions[-1][2] - regions[-1][1] > 1e9:
+                    logger.error("Input region (%s) is too long. Try again" %(region))
+                    raise StandardError, "Invalid input region: %s" (region)
+
             elif len(split) == 1:
                 start = 1
                 try:
