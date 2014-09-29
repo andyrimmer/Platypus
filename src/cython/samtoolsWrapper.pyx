@@ -586,7 +586,7 @@ cdef class Samfile:
         # translate to a region
         if reference:
             if start != None and end != None:
-                region = "%s:%i-%i" % (reference, start+1, end)
+                region = "%s:%i-%i" % (reference, max(1, start), end)
             else:
                 region = reference
 

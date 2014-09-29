@@ -471,7 +471,16 @@ cdef list loadBAMData(list bamFiles, bytes chrom, int start, int end, options, l
 
             theReadBuffer = bamReadBuffer(chrom, start, end, options)
             theReadBuffer.sample = bytes(sample)
-            readIterator = reader.fetch(chrom, start, end)
+
+            try:
+                readIterator = reader.fetch(chrom, start, end)
+            except Exception, e:
+                logger.warning(e.message)
+                logger.debug("No data could be retrieved for sample %s in file %s in region %s" %(sample, reader.filename, "%s:%s-%s" %(chrom, start, end)))
+                readBuffers.append(theReadBuffer)
+                reader.close()
+                continue
+
             brokenMateCoords = []
 
             while readIterator.cnext():
@@ -547,7 +556,14 @@ cdef list loadBAMData(list bamFiles, bytes chrom, int start, int end, options, l
             if reader.lock is not None:
                 reader.lock.acquire()
 
-            readIterator = reader.fetch(chrom, start, end)
+            try:
+                readIterator = reader.fetch(chrom, start, end)
+            except Exception, e:
+                logger.warning(e.message)
+                logger.debug("No data could be retrieved for sample %s in file %s in region %s" %(sample, reader.filename, "%s:%s-%s" %(chrom, start, end)))
+                reader.close()
+                continue
+
             brokenMateCoords = []
 
             while readIterator.cnext():
@@ -937,7 +953,7 @@ def getRegions(options):
 
             with open(options.regions[0], 'r') as theFile:
                 for line in theFile:
-                    chrom,region = line.split(":")
+                    chrom,region = line.rsplit(":", 1)
                     start = int(region.split("-")[0])
                     end = int(region.split("-")[1])
 
@@ -966,7 +982,9 @@ def getRegions(options):
         try:
             header = file.header
             regions = [ (d['SN'], 1, d['LN']) for d in header['SQ'] ]
+            logger.debug("Loaded regions from BAM header, SQ tags")
         except:
+            logger.debug("Loading regions from FASTA index datas")
 
             for region,regionTuple in refFile.refs.iteritems():
                 regions.append((region, 1, regionTuple.SeqLength))
@@ -974,7 +992,7 @@ def getRegions(options):
     else:
         for region in options.regions:
 
-            split = region.split(":")
+            split = region.rsplit(":", 1)
             chrom = bytes(split[0])
 
             if len( split ) == 2 :
