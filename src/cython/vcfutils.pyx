@@ -63,6 +63,8 @@ cdef int CIGAR_N = 3 # Skipped region from reference
 cdef int CIGAR_S = 4 # Soft clipping. Sequence is present in read
 cdef int CIGAR_H = 5 # Hard clipping. Sequence is not present in read
 cdef int CIGAR_P = 6 # Padding. Used for padded alignment
+cdef int CIGAR_EQ = 7 # Alignment match; sequence match
+cdef int CIGAR_X = 8 # Alignment match; sequence mismatch
 
 ###################################################################################################
 
@@ -833,7 +835,7 @@ cdef int variantSupportedByRead(cAlignedRead* pRead, int varBAMMinPos, int varBA
             refOffset += length
 
         # A match take us further along the reference and the read
-        elif flag == CIGAR_M:
+        elif flag == CIGAR_M or flag == CIGAR_EQ or flag == CIGAR_X:
 
             # Check if read base matches variant
 

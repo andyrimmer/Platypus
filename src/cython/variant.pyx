@@ -487,6 +487,8 @@ cdef class VariantCandidateGenerator(object):
         self.CIGAR_S = 4 # Soft clipping. Sequence is present in read
         self.CIGAR_H = 5 # Hard clipping. Sequence is not present in read
         self.CIGAR_P = 6 # Padding. Used for padded alignment
+        self.CIGAR_EQ = 7 # Alignment match; sequence match
+        self.CIGAR_X = 8 # Alignment match; sequence mismatch
 
         self.minMapQual = minMapQual
         self.minBaseQual = minBaseQual
@@ -697,10 +699,10 @@ cdef class VariantCandidateGenerator(object):
                 refOffset += length
 
             # A match take us further along the reference and the read
-            elif flag == self.CIGAR_M:
+            elif flag == self.CIGAR_M or flag == self.CIGAR_EQ or flag == self.CIGAR_X:
 
                 # Don't generate SNP candidates from matching sequences < minFlank
-                if length < self.minFlank:
+                if flag == self.CIGAR_EQ or (length < self.minFlank and flag == self.CIGAR_M):
                     readOffset += length
                     refOffset += length
                     continue
@@ -763,6 +765,8 @@ cdef class VariantCandidateGenerator(object):
 
             nReads += 1
             readStart += 1
+
+        #logger.debug("Checked %s reads. Found %s variant candidates" %(nReads, len(self.variantHeap.values())))
 
     cdef list getCandidates(self, int minReads):
         """

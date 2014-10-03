@@ -959,8 +959,8 @@ cdef cAlignedRead* createRead(bam1_t* src, int storeRgID, char** rgID):
         cigarOps[2*index] = cigarFlag
         cigarOps[ (2*index) + 1] = cigarFlagLen
 
-        # 0 is match. 2 is deletion. 3 is reference skipping
-        if cigarFlag == 0 or cigarFlag == 2 or cigarFlag == 3:
+        # 0,7,8 are alignment matches. 2 is deletion. 3 is reference skipping
+        if cigarFlag == 0 or cigarFlag == 2 or cigarFlag == 3 or cigarFlag == 7 or cigarFlag == 8:
             end += cigarFlagLen
 
         # Soft-clipping of sequence at start of read changes the mapping
