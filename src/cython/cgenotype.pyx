@@ -37,7 +37,6 @@ cdef extern from "math.h":
 ###################################################################################################
 
 @cython.final
-@cython.freelist(2000)
 cdef class HaploidGenotype(object):
     """
     This class represents a haploid genotype. It stores one
@@ -84,7 +83,6 @@ cdef class HaploidGenotype(object):
 ###################################################################################################
 
 @cython.final
-@cython.freelist(2000)
 cdef class DiploidGenotype(object):
     """
     This class represents a diploid genotype. It stores two

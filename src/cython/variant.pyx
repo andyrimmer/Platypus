@@ -97,7 +97,6 @@ cdef double complex_insertion_prior = 5e-6
 ###################################################################################################
 
 @cython.final
-@cython.freelist(1000)
 cdef class Variant(object):
     """
     Class to encapsulate information for all common variant types. The basic

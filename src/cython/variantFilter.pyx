@@ -371,6 +371,10 @@ cdef double computeVariantReadSupportFrac(Variant variant, bamReadBuffer readBuf
     cdef int varReadPos = variant.refPos
     cdef int nVarReads = variant.nSupportingReads
     cdef int nTotalReads = readBuffer.countReadsCoveringRegion(varReadPos, varReadPos+1)
+
+    if nTotalReads == 0:
+        return 0.0
+        #logger.error("Variant %s supported by %s reads, but nTotalReads = %s" %(variant, nVarReads, nTotalReads))
     cdef double varFrac = <double>(nVarReads)/nTotalReads
     #logger.info("Var read frac for var %s is %s (%s/%s)" %(variant, varFrac, nVarReads, nTotalReads))
     return varFrac

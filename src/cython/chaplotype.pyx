@@ -117,7 +117,6 @@ cdef int computeOverlapOfReadAndHaplotype(int hapStart, int hapEnd, cAlignedRead
 ###################################################################################################
 
 @cython.final
-@cython.freelist(500)
 cdef class Haplotype:
     """
     Class to encapsulate a single haplotype. This will store all the

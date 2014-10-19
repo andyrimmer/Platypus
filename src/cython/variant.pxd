@@ -14,7 +14,6 @@ cdef public int ASSEMBLER_VAR
 ###################################################################################################
 
 @cython.final
-@cython.freelist(1000)
 cdef class Variant:
     cdef:
         public bytes refName

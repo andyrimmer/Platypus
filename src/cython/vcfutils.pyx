@@ -992,6 +992,9 @@ cdef double computeStrandBiasPValue(int nFwdReads, int nRevReads, int nFwdVarRea
     cdef double freq = 0.0
     cdef int useForward = True
 
+    if nFwdReads == 0 or nRevReads == 0:
+        return 1.0
+
     if nFwdReads < nRevReads:
         useForward = False
 
@@ -1001,6 +1004,8 @@ cdef double computeStrandBiasPValue(int nFwdReads, int nRevReads, int nFwdVarRea
             freq = <double>(nFwdReads) / <double>(nFwdReads + nRevReads)
         else:
             freq = <double>(nRevReads) / <double>(nFwdReads + nRevReads)
+
+        #print "Freq = %s. nFwd = %s. nRev = %s. nVarFwd = %s. nVarRev = %s" %(freq, nFwdReads, nRevReads, nFwdVarReads, nRevVarReads)
 
         if freq < 0.5:
             alpha = 20

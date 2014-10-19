@@ -11,7 +11,6 @@ from variant cimport Variant
 cdef int computeOverlapOfReadAndHaplotype(int hapStart, int hapEnd, cAlignedRead* theRead)
 
 @cython.final
-@cython.freelist(500)
 cdef class Haplotype:
     cdef:
         bytes refName
