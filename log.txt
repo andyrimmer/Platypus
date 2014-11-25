@@ -1,0 +1,70 @@
+2014-11-24 15:50:15,975 - INFO - Beginning variant calling
+2014-11-24 15:50:15,975 - INFO - Output will go to /Users/dcooke/variants.vcf
+2014-11-24 15:50:15,989 - DEBUG - Loaded regions from BAM header, SQ tags
+2014-11-24 15:50:15,989 - DEBUG - The following regions will be searched: [('R00000042', 1, 5231428)]
+2014-11-24 15:50:15,993 - DEBUG - Adding sample name c02492_1, using BAM RG:SM tag in file /Users/dcooke/Genomics/Illumina/WTCHG_119208_201103.bam
+2014-11-24 15:50:15,994 - DEBUG - Max haplotypes used for initial haplotype filtering = 50
+2014-11-24 15:50:15,994 - DEBUG - Max haplotypes used for genotype generation = 50
+2014-11-24 15:50:15,994 - DEBUG - Max genotypes = 1275
+2014-11-24 15:50:15,996 - INFO - Processing region R00000042:1-100001. (Only printing this message every 10 regions of size 100000)
+2014-11-24 15:50:16,043 - DEBUG - There are 0 filtered variant candidates in reads which overlap the region R00000042:1-100001
+2014-11-24 15:50:16,077 - DEBUG - There are 0 filtered variant candidates in reads which overlap the region R00000042:100001-200001
+2014-11-24 15:50:16,099 - DEBUG - There are 0 filtered variant candidates in reads which overlap the region R00000042:200001-300001
+2014-11-24 15:50:16,116 - DEBUG - There are 0 filtered variant candidates in reads which overlap the region R00000042:300001-400001
+2014-11-24 15:50:16,140 - DEBUG - There are 0 filtered variant candidates in reads which overlap the region R00000042:400001-500001
+2014-11-24 15:50:16,177 - DEBUG - There are 0 filtered variant candidates in reads which overlap the region R00000042:500001-600001
+2014-11-24 15:50:16,231 - DEBUG - There are 0 filtered variant candidates in reads which overlap the region R00000042:600001-700001
+2014-11-24 15:50:16,274 - DEBUG - There are 0 filtered variant candidates in reads which overlap the region R00000042:700001-800001
+2014-11-24 15:50:16,310 - DEBUG - There are 0 filtered variant candidates in reads which overlap the region R00000042:800001-900001
+2014-11-24 15:50:16,341 - DEBUG - There are 0 filtered variant candidates in reads which overlap the region R00000042:900001-1000001
+2014-11-24 15:50:16,344 - INFO - Processing region R00000042:1000001-1100001. (Only printing this message every 10 regions of size 100000)
+2014-11-24 15:50:16,376 - DEBUG - There are 0 filtered variant candidates in reads which overlap the region R00000042:1000001-1100001
+2014-11-24 15:50:16,394 - DEBUG - There are 0 filtered variant candidates in reads which overlap the region R00000042:1100001-1200001
+2014-11-24 15:50:16,415 - DEBUG - There are 0 filtered variant candidates in reads which overlap the region R00000042:1200001-1300001
+2014-11-24 15:50:16,437 - DEBUG - There are 0 filtered variant candidates in reads which overlap the region R00000042:1300001-1400001
+2014-11-24 15:50:16,456 - DEBUG - There are 0 filtered variant candidates in reads which overlap the region R00000042:1400001-1500001
+2014-11-24 15:50:16,499 - DEBUG - There are 0 filtered variant candidates in reads which overlap the region R00000042:1500001-1600001
+2014-11-24 15:50:16,531 - DEBUG - There are 0 filtered variant candidates in reads which overlap the region R00000042:1600001-1700001
+2014-11-24 15:50:16,561 - DEBUG - There are 0 filtered variant candidates in reads which overlap the region R00000042:1700001-1800001
+2014-11-24 15:50:16,594 - DEBUG - There are 0 filtered variant candidates in reads which overlap the region R00000042:1800001-1900001
+2014-11-24 15:50:16,630 - DEBUG - There are 0 filtered variant candidates in reads which overlap the region R00000042:1900001-2000001
+2014-11-24 15:50:16,634 - INFO - Processing region R00000042:2000001-2100001. (Only printing this message every 10 regions of size 100000)
+2014-11-24 15:50:16,662 - DEBUG - There are 0 filtered variant candidates in reads which overlap the region R00000042:2000001-2100001
+2014-11-24 15:50:16,697 - DEBUG - There are 0 filtered variant candidates in reads which overlap the region R00000042:2100001-2200001
+2014-11-24 15:50:16,710 - DEBUG - There are 0 filtered variant candidates in reads which overlap the region R00000042:2200001-2300001
+2014-11-24 15:50:16,724 - DEBUG - There are 0 filtered variant candidates in reads which overlap the region R00000042:2300001-2400001
+2014-11-24 15:50:16,759 - DEBUG - There are 0 filtered variant candidates in reads which overlap the region R00000042:2400001-2500001
+2014-11-24 15:50:16,798 - DEBUG - There are 0 filtered variant candidates in reads which overlap the region R00000042:2500001-2600001
+2014-11-24 15:50:16,835 - DEBUG - There are 0 filtered variant candidates in reads which overlap the region R00000042:2600001-2700001
+2014-11-24 15:50:16,868 - DEBUG - There are 0 filtered variant candidates in reads which overlap the region R00000042:2700001-2800001
+2014-11-24 15:50:16,901 - DEBUG - There are 0 filtered variant candidates in reads which overlap the region R00000042:2800001-2900001
+2014-11-24 15:50:16,934 - DEBUG - There are 0 filtered variant candidates in reads which overlap the region R00000042:2900001-3000001
+2014-11-24 15:50:16,940 - INFO - Processing region R00000042:3000001-3100001. (Only printing this message every 10 regions of size 100000)
+2014-11-24 15:50:16,962 - DEBUG - There are 0 filtered variant candidates in reads which overlap the region R00000042:3000001-3100001
+2014-11-24 15:50:16,996 - DEBUG - There are 0 filtered variant candidates in reads which overlap the region R00000042:3100001-3200001
+2014-11-24 15:50:17,025 - DEBUG - There are 0 filtered variant candidates in reads which overlap the region R00000042:3200001-3300001
+2014-11-24 15:50:17,060 - DEBUG - There are 0 filtered variant candidates in reads which overlap the region R00000042:3300001-3400001
+2014-11-24 15:50:17,077 - DEBUG - There are 0 filtered variant candidates in reads which overlap the region R00000042:3400001-3500001
+2014-11-24 15:50:17,097 - DEBUG - There are 0 filtered variant candidates in reads which overlap the region R00000042:3500001-3600001
+2014-11-24 15:50:17,132 - DEBUG - There are 0 filtered variant candidates in reads which overlap the region R00000042:3600001-3700001
+2014-11-24 15:50:17,169 - DEBUG - There are 0 filtered variant candidates in reads which overlap the region R00000042:3700001-3800001
+2014-11-24 15:50:17,214 - DEBUG - There are 0 filtered variant candidates in reads which overlap the region R00000042:3800001-3900001
+2014-11-24 15:50:17,250 - DEBUG - There are 0 filtered variant candidates in reads which overlap the region R00000042:3900001-4000001
+2014-11-24 15:50:17,256 - INFO - Processing region R00000042:4000001-4100001. (Only printing this message every 10 regions of size 100000)
+2014-11-24 15:50:17,283 - DEBUG - There are 0 filtered variant candidates in reads which overlap the region R00000042:4000001-4100001
+2014-11-24 15:50:17,321 - DEBUG - There are 0 filtered variant candidates in reads which overlap the region R00000042:4100001-4200001
+2014-11-24 15:50:17,352 - DEBUG - There are 0 filtered variant candidates in reads which overlap the region R00000042:4200001-4300001
+2014-11-24 15:50:17,378 - DEBUG - There are 0 filtered variant candidates in reads which overlap the region R00000042:4300001-4400001
+2014-11-24 15:50:17,415 - DEBUG - There are 0 filtered variant candidates in reads which overlap the region R00000042:4400001-4500001
+2014-11-24 15:50:17,444 - DEBUG - There are 0 filtered variant candidates in reads which overlap the region R00000042:4500001-4600001
+2014-11-24 15:50:17,477 - DEBUG - There are 0 filtered variant candidates in reads which overlap the region R00000042:4600001-4700001
+2014-11-24 15:50:17,514 - DEBUG - There are 0 filtered variant candidates in reads which overlap the region R00000042:4700001-4800001
+2014-11-24 15:50:17,599 - DEBUG - There are 0 filtered variant candidates in reads which overlap the region R00000042:4800001-4900001
+2014-11-24 15:50:17,622 - DEBUG - There are 0 filtered variant candidates in reads which overlap the region R00000042:4900001-5000001
+2014-11-24 15:50:17,625 - INFO - Processing region R00000042:5000001-5100001. (Only printing this message every 10 regions of size 100000)
+2014-11-24 15:50:17,655 - DEBUG - There are 0 filtered variant candidates in reads which overlap the region R00000042:5000001-5100001
+2014-11-24 15:50:17,687 - DEBUG - There are 0 filtered variant candidates in reads which overlap the region R00000042:5100001-5200001
+2014-11-24 15:50:17,702 - DEBUG - There are 0 filtered variant candidates in reads which overlap the region R00000042:5200001-5231428
+2014-11-24 15:50:17,704 - INFO - Merging output VCF file(s) into final file /Users/dcooke/variants.vcf
+2014-11-24 15:50:17,705 - INFO - Finished merging VCF file(s)
+2014-11-24 15:50:17,705 - INFO - Finished variant calling
