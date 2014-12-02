@@ -457,175 +457,175 @@ cdef list loadBAMData(list bamFiles, bytes chrom, int start, int end, options, l
     cdef int qualBinSize = options.qualBinSize
     cdef char* rgID = NULL
 
-    # if len(set(samples)) == len(set(bamFiles)):
-    #     logger.debug("There is one sample in each BAM file. No merging is required")
-    #
-    #     for sample in uniqueSamples:
-    #         bamsThisSample = sorted([x for x in uniqueBAMs if sample in samplesByBAM[x]])
-    #         assert len(bamsThisSample) == 1, "Something is screwy here"
-    #         reader = bamsThisSample[0]
-    #
-    #         # Need to lock here when sharing BAM files
-    #         if reader.lock is not None:
-    #             reader.lock.acquire()
-    #
-    #         theReadBuffer = bamReadBuffer(chrom, start, end, options)
-    #         theReadBuffer.sample = bytes(sample)
-    #
-    #         try:
-    #             readIterator = reader.fetch(chrom, start, end)
-    #         except Exception, e:
-    #             logger.warning(e.message)
-    #             logger.debug("No data could be retrieved for sample %s in file %s in region %s" %(sample, reader.filename, "%s:%s-%s" %(chrom, start, end)))
-    #             readBuffers.append(theReadBuffer)
-    #             reader.close()
-    #             continue
-    #
-    #         brokenMateCoords = []
-    #
-    #         while readIterator.cnext():
-    #
-    #             theRead = createRead(readIterator.b, 0, NULL)
-    #
-    #             if chromID == -1:
-    #                 chromID = theRead.chromID
-    #
-    #             theReadBuffer.addReadToBuffer(theRead)
-    #
-    #             if compressReads:
-    #                 compressRead(theRead, refSeq, start, end, qualBinSize, 0)
-    #
-    #             totalReads += 1
-    #
-    #             if fetchBrokenMates:
-    #                 if (not Read_IsProperPair(theRead)) or Read_IsUnmapped(theRead) or Read_MateIsUnmapped(theRead):
-    #
-    #                     if theRead.mateChromID == theRead.chromID:
-    #                         brokenMateCoords.append( (reader.getrname(theRead.mateChromID), theRead.mateChromID, theRead.matePos) )
-    #                     else:
-    #                         # Can't get these, as we don't know where they map. This happens if BAM is split and unmapped
-    #                         # reads or broken mates are in another file.
-    #                         if theRead.mateChromID == -1:
-    #                             pass
-    #                         else:
-    #                             brokenMateCoords.append( (reader.getrname(theRead.mateChromID), theRead.mateChromID, theRead.matePos) )
-    #
-    #             if totalReads % 250000 == 0:
-    #                 logger.debug("Loaded %s reads in region %s:%s-%s" %(totalReads, chrom, start, end))
-    #
-    #             if totalReads >= maxReads:
-    #                 # Explicitly clear up memory, as Cython doesn't seem to do this
-    #                 logger.warning("Too many reads (%s) in region %s:%s-%s. Quitting now. Either reduce --bufferSize or increase --maxReads." %(totalReads, chrom, start, end))
-    #                 return None
-    #
-    #         if fetchBrokenMates:
-    #             logger.info("There are %s broken pairs in BAM %s in region %s:%s-%s" %(len(brokenMateCoords), reader.filename, chrom, start, end))
-    #             brokenMateCoords.sort()
-    #             queries = mergeQueries(brokenMateCoords)
-    #
-    #             for qChrom,qStart,qEnd in queries:
-    #                 if verbosity >= 3:
-    #                     logger.debug("Querying broken mates %s:%s-%s" %(qChrom, qStart, qEnd))
-    #                 readIterator = reader.fetch(qChrom, qStart, qEnd)
-    #                 theRead = NULL
-    #
-    #                 while readIterator.cnext():
-    #                     if readIterator.b.core.mtid == chromID and start <= readIterator.b.core.mpos <= end:
-    #                         theRead = createRead(readIterator.b, 0, NULL)
-    #                         assert theRead != NULL
-    #                         theReadBuffer.brokenMates.append(theRead)
-    #
-    #         readBuffers.append(theReadBuffer)
-    #         reader.close()
-    #
-    #         # Need to release lock here when sharing BAM files
-    #         if reader.lock is not None:
-    #             reader.lock.release()
-    #
-    # # We need to merge data from multiple BAM files, or split BAM files by sample. Either way, we check the sample for each read and
-    # # add it to the relevant buffer.
-    # else:
-    for sample in uniqueSamples:
-        theReadBuffer = bamReadBuffer(chrom, start, end, options)
-        theReadBuffer.sample = bytes(sample)
-        buffersBySample[sample] = theReadBuffer
+    if len(set(samples)) == len(set(bamFiles)):
+        logger.debug("There is one sample in each BAM file. No merging is required")
 
-    for reader in uniqueBAMs:
+        for sample in uniqueSamples:
+            bamsThisSample = sorted([x for x in uniqueBAMs if sample in samplesByBAM[x]])
+            assert len(bamsThisSample) == 1, "Something is screwy here"
+            reader = bamsThisSample[0]
 
-        # Need to lock here when sharing BAM files
-        if reader.lock is not None:
-            reader.lock.acquire()
+            # Need to lock here when sharing BAM files
+            if reader.lock is not None:
+                reader.lock.acquire()
 
-        try:
-            readIterator = reader.fetch(chrom, start, end)
-        except Exception, e:
-            logger.warning(e.message)
-            logger.debug("No data could be retrieved for sample %s in file %s in region %s" %(sample, reader.filename, "%s:%s-%s" %(chrom, start, end)))
-            reader.close()
-            continue
+            theReadBuffer = bamReadBuffer(chrom, start, end, options)
+            theReadBuffer.sample = bytes(sample)
 
-        brokenMateCoords = []
+            try:
+                readIterator = reader.fetch(chrom, start, end)
+            except Exception, e:
+                logger.warning(e.message)
+                logger.debug("No data could be retrieved for sample %s in file %s in region %s" %(sample, reader.filename, "%s:%s-%s" %(chrom, start, end)))
+                readBuffers.append(theReadBuffer)
+                reader.close()
+                continue
 
-        while readIterator.cnext():
-            theRead = createRead(readIterator.b, 1, &rgID)
+            brokenMateCoords = []
 
-            if chromID == -1:
-                chromID = theRead.chromID
+            while readIterator.cnext():
 
-            sampleThisRead = samplesByID[rgID]
-            theReadBuffer = buffersBySample[sampleThisRead]
-            theReadBuffer.addReadToBuffer(theRead)
-            free(rgID)
-            rgID = NULL
+                theRead = createRead(readIterator.b, 0, NULL)
 
-            if compressReads:
-                compressRead(theRead, refSeq, start, end, qualBinSize, 0)
+                if chromID == -1:
+                    chromID = theRead.chromID
 
-            totalReads += 1
+                theReadBuffer.addReadToBuffer(theRead)
+
+                if compressReads:
+                    compressRead(theRead, refSeq, start, end, qualBinSize, 0)
+
+                totalReads += 1
+
+                if fetchBrokenMates:
+                    if (not Read_IsProperPair(theRead)) or Read_IsUnmapped(theRead) or Read_MateIsUnmapped(theRead):
+
+                        if theRead.mateChromID == theRead.chromID:
+                            brokenMateCoords.append( (reader.getrname(theRead.mateChromID), theRead.mateChromID, theRead.matePos) )
+                        else:
+                            # Can't get these, as we don't know where they map. This happens if BAM is split and unmapped
+                            # reads or broken mates are in another file.
+                            if theRead.mateChromID == -1:
+                                pass
+                            else:
+                                brokenMateCoords.append( (reader.getrname(theRead.mateChromID), theRead.mateChromID, theRead.matePos) )
+
+                if totalReads % 250000 == 0:
+                    logger.debug("Loaded %s reads in region %s:%s-%s" %(totalReads, chrom, start, end))
+
+                if totalReads >= maxReads:
+                    # Explicitly clear up memory, as Cython doesn't seem to do this
+                    logger.warning("Too many reads (%s) in region %s:%s-%s. Quitting now. Either reduce --bufferSize or increase --maxReads." %(totalReads, chrom, start, end))
+                    return None
 
             if fetchBrokenMates:
-                if (not Read_IsProperPair(theRead)) or Read_IsUnmapped(theRead) or Read_MateIsUnmapped(theRead):
-                    if theRead.mateChromID == theRead.chromID:
-                        brokenMateCoords.append( (reader.getrname(theRead.mateChromID), theRead.mateChromID, theRead.matePos) )
-                    else:
-                        # Can't get these, as we don't know where they map. This happens if BAM is split and unmapped
-                        # reads or broken mates are in another file.
-                        if theRead.mateChromID == -1:
-                            pass
-                        else:
+                logger.info("There are %s broken pairs in BAM %s in region %s:%s-%s" %(len(brokenMateCoords), reader.filename, chrom, start, end))
+                brokenMateCoords.sort()
+                queries = mergeQueries(brokenMateCoords)
+
+                for qChrom,qStart,qEnd in queries:
+                    if verbosity >= 3:
+                        logger.debug("Querying broken mates %s:%s-%s" %(qChrom, qStart, qEnd))
+                    readIterator = reader.fetch(qChrom, qStart, qEnd)
+                    theRead = NULL
+
+                    while readIterator.cnext():
+                        if readIterator.b.core.mtid == chromID and start <= readIterator.b.core.mpos <= end:
+                            theRead = createRead(readIterator.b, 0, NULL)
+                            assert theRead != NULL
+                            theReadBuffer.brokenMates.append(theRead)
+
+            readBuffers.append(theReadBuffer)
+            reader.close()
+
+            # Need to release lock here when sharing BAM files
+            if reader.lock is not None:
+                reader.lock.release()
+
+    # We need to merge data from multiple BAM files, or split BAM files by sample. Either way, we check the sample for each read and
+    # add it to the relevant buffer.
+    else:
+        for sample in uniqueSamples:
+            theReadBuffer = bamReadBuffer(chrom, start, end, options)
+            theReadBuffer.sample = bytes(sample)
+            buffersBySample[sample] = theReadBuffer
+
+        for reader in uniqueBAMs:
+
+            # Need to lock here when sharing BAM files
+            if reader.lock is not None:
+                reader.lock.acquire()
+
+            try:
+                readIterator = reader.fetch(chrom, start, end)
+            except Exception, e:
+                logger.warning(e.message)
+                logger.debug("No data could be retrieved for sample %s in file %s in region %s" %(sample, reader.filename, "%s:%s-%s" %(chrom, start, end)))
+                reader.close()
+                continue
+
+            brokenMateCoords = []
+
+            while readIterator.cnext():
+                theRead = createRead(readIterator.b, 1, &rgID)
+
+                if chromID == -1:
+                    chromID = theRead.chromID
+
+                sampleThisRead = samplesByID[rgID]
+                theReadBuffer = buffersBySample[sampleThisRead]
+                theReadBuffer.addReadToBuffer(theRead)
+                free(rgID)
+                rgID = NULL
+
+                if compressReads:
+                    compressRead(theRead, refSeq, start, end, qualBinSize, 0)
+
+                totalReads += 1
+
+                if fetchBrokenMates:
+                    if (not Read_IsProperPair(theRead)) or Read_IsUnmapped(theRead) or Read_MateIsUnmapped(theRead):
+                        if theRead.mateChromID == theRead.chromID:
                             brokenMateCoords.append( (reader.getrname(theRead.mateChromID), theRead.mateChromID, theRead.matePos) )
+                        else:
+                            # Can't get these, as we don't know where they map. This happens if BAM is split and unmapped
+                            # reads or broken mates are in another file.
+                            if theRead.mateChromID == -1:
+                                pass
+                            else:
+                                brokenMateCoords.append( (reader.getrname(theRead.mateChromID), theRead.mateChromID, theRead.matePos) )
 
-            if totalReads >= maxReads:
-                logger.warning("Too many reads (%s) in region %s:%s-%s. Quitting now. Either reduce --bufferSize or increase --maxReads." %(totalReads, chrom, start, end))
-                return None
+                if totalReads >= maxReads:
+                    logger.warning("Too many reads (%s) in region %s:%s-%s. Quitting now. Either reduce --bufferSize or increase --maxReads." %(totalReads, chrom, start, end))
+                    return None
 
-        if fetchBrokenMates:
-            brokenMateCoords.sort()
-            queries = mergeQueries(brokenMateCoords)
-            logger.info("There are %s broken pairs in BAM %s in region %s:%s-%s" %(len(brokenMateCoords), reader.filename, chrom, start, end))
+            if fetchBrokenMates:
+                brokenMateCoords.sort()
+                queries = mergeQueries(brokenMateCoords)
+                logger.info("There are %s broken pairs in BAM %s in region %s:%s-%s" %(len(brokenMateCoords), reader.filename, chrom, start, end))
 
-            for qChrom,qStart,qEnd in queries:
+                for qChrom,qStart,qEnd in queries:
 
-                if verbosity >= 3:
-                    logger.debug("Querying broken mates %s:%s-%s" %(chrom, qStart, qEnd))
-                readIterator = reader.fetch(qChrom, qStart, qEnd)
-                theRead = NULL
+                    if verbosity >= 3:
+                        logger.debug("Querying broken mates %s:%s-%s" %(chrom, qStart, qEnd))
+                    readIterator = reader.fetch(qChrom, qStart, qEnd)
+                    theRead = NULL
 
-                while readIterator.cnext():
-                    if readIterator.b.core.mtid == chromID and start <= readIterator.b.core.mpos <= end:
-                        theRead = createRead(readIterator.b, 1, &rgID)
-                        assert theRead != NULL
-                        sampleThisRead = samplesByID[rgID]
-                        free(rgID)
-                        rgID = NULL
-                        theReadBuffer = buffersBySample[sampleThisRead]
-                        theReadBuffer.brokenMates.append(theRead)
+                    while readIterator.cnext():
+                        if readIterator.b.core.mtid == chromID and start <= readIterator.b.core.mpos <= end:
+                            theRead = createRead(readIterator.b, 1, &rgID)
+                            assert theRead != NULL
+                            sampleThisRead = samplesByID[rgID]
+                            free(rgID)
+                            rgID = NULL
+                            theReadBuffer = buffersBySample[sampleThisRead]
+                            theReadBuffer.brokenMates.append(theRead)
 
-        reader.close()
+            reader.close()
 
-        # Need to release lock here when sharing BAM files
-        if reader.lock is not None:
-            reader.lock.release()
+            # Need to release lock here when sharing BAM files
+            if reader.lock is not None:
+                reader.lock.release()
 
         for theReadBuffer in buffersBySample.values():
             readBuffers.append(theReadBuffer)
