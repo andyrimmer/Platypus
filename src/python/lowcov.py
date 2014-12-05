@@ -1,7 +1,7 @@
 import math
 import heapq
 
-import samtoolsWrapper
+import htslibWrapper
 import pysam
 
 #
@@ -68,7 +68,7 @@ def PreprocessBam( bamFileName, fastaFileName, orphanBamFileName=None,
 
     MAX_REPEAT_LENGTH = 64    # fixed maximum due to ffsll instruction (coreutils/tandem.c)
 
-    bamfile = samtoolsWrapper.Samfile( bamFileName, mode='rb' )
+    bamfile = htslibWrapper.Samfile( bamFileName, mode='rb' )
 
     # extract list of read group identifiers
     readgroups = bamfile.header.get('RG',None)
@@ -80,7 +80,7 @@ def PreprocessBam( bamFileName, fastaFileName, orphanBamFileName=None,
 
     # open orphan bam - write SAM file for now
     if orphanBamFileName:
-        #orphanBamFile = samtoolsWrapper.Samfile( orphanBamFileName, mode='wb', template=bamfile )
+        #orphanBamFile = htslibWrapper.Samfile( orphanBamFileName, mode='wb', template=bamfile )
         orphanSamFile = open( orphanBamFileName, 'w' )
         orphanSamFile.write( bamfile.text )
     else:

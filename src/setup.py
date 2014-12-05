@@ -23,8 +23,9 @@ setup(name="Platypus", py_modules=['python/Platypus'])
 #
 
 extModules = []
-corMods = ['cython/chaplotype.pxd', 'cython/variant.pxd', 'cython/fastafile.pxd', 'cython/calign.pxd', 'cython/samtoolsWrapper.pxd']
-incDirs = ["samtools", "./", "c"]
+corMods = ['cython/chaplotype.pxd', 'cython/variant.pxd', 'cython/fastafile.pxd', 'cython/calign.pxd', 'cython/htslibWrapper.pxd']
+incDirs = ["./", "c"]
+libaryDirs = ["./htslib"]
 
 # Debug for Valgrind
 cFlags = ["-msse2", "-msse3", "-funroll-loops", "-D_LARGEFILE64_SOURCE", "-D_FILE_OFFSET_BITS=64" ,"-g"]
@@ -32,13 +33,13 @@ cFlags = ["-msse2", "-msse3", "-funroll-loops", "-D_LARGEFILE64_SOURCE", "-D_FIL
 # No debug. I don't think this affects performance?
 #cFlags = ["-msse2", "-msse3", "-funroll-loops", "-D_LARGEFILE64_SOURCE", "-D_FILE_OFFSET_BITS=64"]
 
-extModules.append(Extension(name='samtoolsWrapper', sources=['cython/samtoolsWrapper.pyx', 'c/pysam_util.c'] + glob.glob(os.path.join("samtools", "*.c")), include_dirs=incDirs,libraries=['z'], language='c', extra_compile_args=cFlags))
+extModules.append(Extension(name='htslibWrapper', sources=['cython/htslibWrapper.pyx'], language='c',libraries=['hts'], extra_compile_args=cFlags))
 extModules.append(Extension(name='arrays', sources=['cython/arrays.pyx'], include_dirs=incDirs, language='c', extra_compile_args=cFlags))
 extModules.append(Extension(name='fastafile', sources=['cython/fastafile.pyx'], include_dirs=incDirs,  extra_compile_args=cFlags))
-extModules.append(Extension(name='variant', sources=['cython/variant.pyx', 'cython/samtoolsWrapper.pxd'], include_dirs=incDirs, extra_compile_args=cFlags))
+extModules.append(Extension(name='variant', sources=['cython/variant.pyx', 'cython/htslibWrapper.pxd'], include_dirs=incDirs, extra_compile_args=cFlags))
 extModules.append(Extension(name='cerrormodel', sources=['cython/cerrormodel.pyx', 'c/tandem.c'], include_dirs=incDirs, language='c', extra_compile_args=cFlags))
-extModules.append(Extension(name='calign', sources=['cython/calign.pyx', 'c/align.c', 'cython/samtoolsWrapper.pxd', 'cython/cerrormodel.pxd'], include_dirs=incDirs, extra_compile_args=cFlags))
-extModules.append(Extension(name='chaplotype', sources=['cython/chaplotype.pyx', 'cython/variant.pxd','cython/samtoolsWrapper.pxd', 'cython/calign.pxd', 'c/align.c'], include_dirs=incDirs, language='c', extra_compile_args=cFlags))
+extModules.append(Extension(name='calign', sources=['cython/calign.pyx', 'c/align.c', 'cython/htslibWrapper.pxd', 'cython/cerrormodel.pxd'], include_dirs=incDirs, extra_compile_args=cFlags))
+extModules.append(Extension(name='chaplotype', sources=['cython/chaplotype.pyx', 'cython/variant.pxd','cython/htslibWrapper.pxd', 'cython/calign.pxd', 'c/align.c'], include_dirs=incDirs, language='c', extra_compile_args=cFlags))
 
 extModules.append(Extension(name="ctabix", sources=["pysam/ctabix.pyx"] + ["pysam/tabix_util.c"] + glob.glob("tabix/*.pysam.c"), include_dirs=["tabix", "pysam"], libraries=["z"], language="c"))
 extModules.append(Extension(name="TabProxies", sources=[ "pysam/TabProxies.pyx", ], libraries=[ "z", ], language="c"))

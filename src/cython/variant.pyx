@@ -7,28 +7,28 @@ import math
 import datetime
 import logging
 import cython
-import samtoolsWrapper
+import htslibWrapper
 import fastafile
 
 cimport cython
 cimport fastafile
-cimport samtoolsWrapper
+cimport htslibWrapper
 cimport cerrormodel
 
-from samtoolsWrapper cimport cAlignedRead
-from samtoolsWrapper cimport Read_IsReverse
-from samtoolsWrapper cimport Read_IsPaired
-from samtoolsWrapper cimport Read_IsProperPair
-from samtoolsWrapper cimport Read_IsDuplicate
-from samtoolsWrapper cimport Read_IsUnmapped
-from samtoolsWrapper cimport Read_MateIsUnmapped
-from samtoolsWrapper cimport Read_MateIsUnmapped
-from samtoolsWrapper cimport Read_IsQCFail
-from samtoolsWrapper cimport Read_IsReadOne
-from samtoolsWrapper cimport Read_IsSecondaryAlignment
-from samtoolsWrapper cimport Read_IsCompressed
-from samtoolsWrapper cimport compressRead
-from samtoolsWrapper cimport uncompressRead
+from htslibWrapper cimport cAlignedRead
+from htslibWrapper cimport Read_IsReverse
+from htslibWrapper cimport Read_IsPaired
+from htslibWrapper cimport Read_IsProperPair
+from htslibWrapper cimport Read_IsDuplicate
+from htslibWrapper cimport Read_IsUnmapped
+from htslibWrapper cimport Read_MateIsUnmapped
+from htslibWrapper cimport Read_MateIsUnmapped
+from htslibWrapper cimport Read_IsQCFail
+from htslibWrapper cimport Read_IsReadOne
+from htslibWrapper cimport Read_IsSecondaryAlignment
+from htslibWrapper cimport Read_IsCompressed
+from htslibWrapper cimport compressRead
+from htslibWrapper cimport uncompressRead
 
 from fastafile cimport FastaFile
 

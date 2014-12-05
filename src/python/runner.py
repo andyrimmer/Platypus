@@ -21,7 +21,7 @@ import platypusutils
 
 from variantcaller import PlatypusSingleProcess
 from variantcaller import PlatypusMultiProcess
-from platypusutils import open
+from platypusutils import Open
 
 ###################################################################################################
 
@@ -221,7 +221,7 @@ def continueCalling(args):
     logger.info("Platypus will now attempt to finish running a failed process, from the VCF output in file %s" %(options.vcfFile))
     logger.info("Complete output (old + new) will go to file %s" %(newOutputFileName))
 
-    theVCF = open(options.vcfFile, 'r')
+    theVCF = Open(options.vcfFile, 'r')
     lastLine = None
     platypusOptions = None
 
@@ -269,7 +269,7 @@ def continueCalling(args):
     theVCF.seek(0,0)
 
     # Make new file to store complete output
-    outputVCF = open(newOutputFileName, "w")
+    outputVCF = Open(newOutputFileName, "w")
 
     # Copy old, unfinished VCF into new VCF
     for line in theVCF:
@@ -306,12 +306,12 @@ def mergeVCFFiles(tempFileNames, finalFileName, log):
     if finalFileName == "-":
         outputVCF = sys.stdout
     else:
-        outputVCF = open(finalFileName, 'wb')
+        outputVCF = Open(finalFileName, 'wb')
     theHeap = []
 
     # Initialise queue
     for index, fileName in enumerate(tempFileNames):
-        theFile = open(fileName, 'rb')
+        theFile = Open(fileName, 'rb')
 
         for line in theFile:
 
@@ -352,11 +352,37 @@ def mergeVCFFiles(tempFileNames, finalFileName, log):
 
 ###################################################################################################
 
+def expandPaths(options):
+    if not os.path.exists(options.refFile):
+        options.refFile = os.path.expanduser(options.refFile)
+    
+    expandedBamPaths = []
+    for bamPath in options.bamFiles:
+        if os.path.exists(bamPath):
+            expandedBamPaths.append(bamPath)
+        else:
+            expandedBamPaths.append(os.path.expanduser(bamPath))
+    options.bamFiles = expandedBamPaths
+    
+    if not os.path.exists(os.path.dirname(options.output)):
+        options.output = os.path.expanduser(options.output)
+    
+    if options.sourceFile and not os.path.exists(options.sourceFile):
+        options.source = os.path.expanduser(options.sourceFile)
+    
+    if options.logFileName and not os.path.exists(options.logFileName):
+        options.source = os.path.expanduser(options.logFileName)
+    
+    return options
+
 def runVariantCaller(options, continuing=False):
     """
     Run the variant caller. If continuing == True, then we are picking up a failed job from
     where it left off.
     """
+    
+    options = expandPaths(options)
+    
     # Seed the Python random number generator
     random.seed("Full many a flower is born to blush unseen and waste its sweetness on the desert air")
 
@@ -404,7 +430,7 @@ def runVariantCaller(options, continuing=False):
         log.info("Continuing variant calling from where we left off.")
     else:
         log.info("Beginning variant calling")
-
+    
     log.info("Output will go to %s" %(options.output))
 
     regions = None
@@ -479,7 +505,7 @@ def callVariants(args):
     parser.add_option("--refFile",dest="refFile", help="Fasta file of reference. Index must be in same directory", action='store', type='string', required=True)
     parser.add_option("--regions", dest="regions", type="list", help = "region as comma-separated list of chr:start-end, or just list of chr, or nothing", default=None, action = 'store')
     parser.add_option("--skipRegionsFile", dest="skipRegionsFile", type="string", help = "region as comma-separated list of chr:start-end, or just list of chr, or nothing", default=None, action = 'store')
-    parser.add_option("--bamFiles", dest="bamFiles", type="list", help = "Comma-delimited list of bam file names", default=None, required=True)
+    parser.add_option("--bamFiles", dest="bamFiles", type="list", help = "Comma-delimited list of bam or cram file names", default=None, required=True)
     parser.add_option("--bufferSize", dest="bufferSize", type="int", help = "Data will be buffered in regions of this size", default=100000, required=False)
     parser.add_option("--minReads", dest="minReads", help="Minimum number of supporting reads required before a variant candidate will be considered.", action='store', type='int', default=2)
     parser.add_option("--maxReads", dest="maxReads", help="Maximium coverage in window", action='store', type='float', default=5000000)
@@ -493,6 +519,7 @@ def callVariants(args):
     parser.add_option("--alignScoreFile", dest="alignScoreFile", help="If this is set to a string, then alignment scores of reads to haplotypes will be writen to this file.", type='string', action='store', default="")
     parser.add_option("--compressReads", dest="compressReads", help="If this is set to 1, then all reads will be compressed, and decompressd on demand. This will slow things down, but reduce memory usage.", type='int', action='store', default=0)
     parser.add_option("--qualBinSize", dest="qualBinSize", help="This sets the granularity used when compressing quality scores. If > 1 then quality compression is lossy", type='int', action='store', default=1)
+    parser.add_option("--fileCaching", dest="fileCaching", help="Sets if BAM index files should be reloaded rather than cached.", type=int, action='store', default=1)
 
     # Calling Parameters
     parser.add_option("--maxSize", dest="maxSize", help="Largest variant to consider", action='store', type='int', default=1500)

@@ -5,6 +5,7 @@ and facilitating access to reference sequences.
 
 import cython
 import logging
+import os
 cimport cython
 
 ###################################################################################################
@@ -40,6 +41,14 @@ cdef class sequenceTuple:
 
 ###################################################################################################
 
+def expandedOpen(path, mode):
+    try:
+        return open(path, mode)
+    except IOError:
+        return open(os.path.expanduser(path), mode)
+
+###################################################################################################
+
 cdef class FastaIndex:
     """
     Index file for a FastaFile. Contains start and end positions of all
@@ -50,7 +59,7 @@ cdef class FastaIndex:
         Constructor. Takes the name of an Index file. For now, the whole file
         will be read into memory and the references stored in a set.
         """
-        self.theFile = open(fileName, mode)
+        self.theFile = expandedOpen(fileName, mode)
 
     cdef dict getRefs(self, int parseNCBI):
         """
@@ -82,7 +91,7 @@ cdef class FastaFile:
         """
         Constructor. Takes file-name and index file-name
         """
-        self.theFile = open(fileName, mode)
+        self.theFile = expandedOpen(fileName, mode)
         self.theIndex = FastaIndex(indexName)
         self.refs = self.theIndex.getRefs( parseNCBI )
         self.cacheRefName = None

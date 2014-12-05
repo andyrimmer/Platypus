@@ -133,7 +133,7 @@ def PreprocessBam( bamFileName, fastaFileName, orphanBamFileName=None,
 
     # open orphan bam - write SAM file for now
     if orphanBamFileName:
-        #orphanBamFile = samtoolsWrapper.Samfile( orphanBamFileName, mode='wb', template=bamfile )
+        #orphanBamFile = htslibWrapper.Samfile( orphanBamFileName, mode='wb', template=bamfile )
         orphanSamFile = open( orphanBamFileName, 'w' )
         orphanSamFile.write( bamfile.text )
     else:

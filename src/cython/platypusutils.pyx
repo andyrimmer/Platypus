@@ -8,25 +8,24 @@ import logging
 import gzip
 import os
 
-cimport samtoolsWrapper
+cimport htslibWrapper
 cimport cwindow
 cimport variant
 
-from samtoolsWrapper cimport Samfile
-from samtoolsWrapper cimport cAlignedRead
-from samtoolsWrapper cimport IteratorRow
-from samtoolsWrapper cimport createRead
-from samtoolsWrapper cimport Read_IsReverse
-from samtoolsWrapper cimport Read_IsPaired
-from samtoolsWrapper cimport Read_IsProperPair
-from samtoolsWrapper cimport Read_IsDuplicate
-from samtoolsWrapper cimport Read_IsUnmapped
-from samtoolsWrapper cimport Read_MateIsUnmapped
-from samtoolsWrapper cimport Read_MateIsReverse
-from samtoolsWrapper cimport Read_IsQCFail
-from samtoolsWrapper cimport Read_IsReadOne
-from samtoolsWrapper cimport Read_IsSecondaryAlignment
-from samtoolsWrapper cimport compressRead
+from htslibWrapper cimport Samfile
+from htslibWrapper cimport cAlignedRead
+from htslibWrapper cimport ReadIterator
+from htslibWrapper cimport Read_IsReverse
+from htslibWrapper cimport Read_IsPaired
+from htslibWrapper cimport Read_IsProperPair
+from htslibWrapper cimport Read_IsDuplicate
+from htslibWrapper cimport Read_IsUnmapped
+from htslibWrapper cimport Read_MateIsUnmapped
+from htslibWrapper cimport Read_MateIsReverse
+from htslibWrapper cimport Read_IsQCFail
+from htslibWrapper cimport Read_IsReadOne
+from htslibWrapper cimport Read_IsSecondaryAlignment
+from htslibWrapper cimport compressRead
 from cwindow cimport bamReadBuffer
 from chaplotype cimport Haplotype
 from variant cimport Variant
@@ -64,14 +63,29 @@ cdef int CIGAR_S = 4
 
 ###################################################################################################
 
-def open(fileName, mode, compressLevel=9):
+def expandedOpen(path, mode):
+    try:
+        return open(path, mode)
+    except IOError:
+        return open(os.path.expanduser(path), mode)
+
+def Open(fileName, mode, compressLevel=9):
     """
     Function that allows transparent usage of dictzip, gzip and ordinary files
     """
     if fileName.endswith(".gz") or fileName.endswith(".GZ"):
-        return gzip.GzipFile(fileName, mode, compressLevel)
+        fileDir = os.path.dirname(fileName)
+        if os.path.exists(fileDir):
+            return gzip.GzipFile(fileName, mode, compressLevel)
+        else:
+            return gzip.GzipFile(os.path.expanduser(fileName), mode, compressLevel)
     else:
-        return file(fileName, mode)
+        return expandedOpen(fileName, mode)
+
+###################################################################################################
+
+def isIndexable(fileName):
+    return fileName.lower().endswith((".bam", ".cram"))
 
 ###################################################################################################
 
@@ -85,56 +99,58 @@ def getSampleNamesAndLoadIterators(bamFileNames, regions, options):
     bamFiles = []
     nFiles = len(bamFileNames)
     cdef Samfile bamFile
-
+    
     for index,fileName in enumerate(bamFileNames):
-
-        if fileName[-4:] != ".bam":
-            logger.error("Input file %s is not a BAM file" %(fileName))
-            raise StandardError, "Input file %s is not a BAM file" %(fileName)
-
+        
+        if not isIndexable(fileName):
+            logger.error("Input file %s is not a BAM/CRAM file" %(fileName))
+            raise StandardError, "Input file %s is not a BAM/CRAM file" %(fileName)
+        
         bamFile = Samfile(fileName)
-        bamFile._open('rbh', True)
+        bamFile._open('r', True)
+        
         bamFiles.append(bamFile)
-
+        
         try:
             theHeader = bamFile.header
             readGroupTags = theHeader['RG']
-
+            
             if len(readGroupTags) > 1:
                 logger.debug("Found multiple read group tags in file %s" %(fileName))
-
+            
             samplesInBAM = set([x['SM'] for x in readGroupTags])
             samplesByBAM[bamFile] = list(samplesInBAM)
-
+            
             for tag in readGroupTags:
                 samplesByID[tag['ID']] = tag['SM']
-
+            
             if len(samplesInBAM) > 1:
                 logger.info("Found multiple samples in BAM file %s" %(fileName))
                 logger.info("Samples are %s" %(samplesInBAM))
                 samples.extend(samplesInBAM)
-
+            
             elif len(samplesInBAM) == 0:
                 raise StandardError, "No sample information in RG tag in file %s" %(fileName)
-
+            
             else:
                 sampleName = theHeader['RG'][0]['SM']
                 samples.append(sampleName)
                 logger.debug("Adding sample name %s, using BAM RG:SM tag in file %s" %(sampleName, fileName))
-
+            
             del(theHeader)
-
+        
         except StandardError, e:
             logger.debug("Error in BAM header sample parsing. Error was \n%s\n" %(e))
             sampleName = fileName.split("/")[-1][0:-4]
             samples.append(sampleName)
             samplesByBAM[bamFile] = sampleName
             logger.debug("Adding sample name %s, from BAM file %s" %(sampleName, fileName))
-
+        
         # Always close the BAM file
         finally:
-            bamFile.close()
-
+            if not options.fileCaching:
+                bamFile.close()
+    
     return samples,samplesByID,samplesByBAM,bamFiles
 
 ###################################################################################################
@@ -144,12 +160,12 @@ def getBAMFileNamesFromTextFile(fileName):
     Reads a list of BAM file names from a text file
     """
     fileNames = []
-    theTextFile = open(fileName, 'r')
+    theTextFile = Open(fileName, 'r')
 
     for line in theTextFile:
         line = line.strip()
 
-        if line[-4:] == ".bam":
+        if isIndexable(line):
             fileNames.append(line)
 
     theTextFile.close()
@@ -438,7 +454,7 @@ cdef list loadBAMData(list bamFiles, bytes chrom, int start, int end, options, l
     """
     cdef bamReadBuffer theReadBuffer
     cdef cAlignedRead* theRead = NULL
-    cdef IteratorRow readIterator
+    cdef ReadIterator readIterator
     cdef Samfile reader
     cdef list readBuffers = []
     cdef list uniqueSamples = sorted(set(samples))
@@ -456,50 +472,50 @@ cdef list loadBAMData(list bamFiles, bytes chrom, int start, int end, options, l
     cdef int compressReads = options.compressReads
     cdef int qualBinSize = options.qualBinSize
     cdef char* rgID = NULL
-
+    
     if len(set(samples)) == len(set(bamFiles)):
         logger.debug("There is one sample in each BAM file. No merging is required")
-
+        
         for sample in uniqueSamples:
             bamsThisSample = sorted([x for x in uniqueBAMs if sample in samplesByBAM[x]])
             assert len(bamsThisSample) == 1, "Something is screwy here"
             reader = bamsThisSample[0]
-
+            
             # Need to lock here when sharing BAM files
             if reader.lock is not None:
                 reader.lock.acquire()
-
+            
             theReadBuffer = bamReadBuffer(chrom, start, end, options)
             theReadBuffer.sample = bytes(sample)
-
+            
             try:
-                readIterator = reader.fetch(chrom, start, end)
+                readIterator = reader.fetch("%s:%s-%s" %(chrom, start, end))
             except Exception, e:
                 logger.warning(e.message)
                 logger.debug("No data could be retrieved for sample %s in file %s in region %s" %(sample, reader.filename, "%s:%s-%s" %(chrom, start, end)))
                 readBuffers.append(theReadBuffer)
                 reader.close()
                 continue
-
+            
             brokenMateCoords = []
-
+            
             while readIterator.cnext():
-
-                theRead = createRead(readIterator.b, 0, NULL)
-
+                
+                theRead = readIterator.get(0, NULL)
+                
                 if chromID == -1:
                     chromID = theRead.chromID
-
+                
                 theReadBuffer.addReadToBuffer(theRead)
-
+                
                 if compressReads:
                     compressRead(theRead, refSeq, start, end, qualBinSize, 0)
-
+                
                 totalReads += 1
-
+                
                 if fetchBrokenMates:
                     if (not Read_IsProperPair(theRead)) or Read_IsUnmapped(theRead) or Read_MateIsUnmapped(theRead):
-
+                        
                         if theRead.mateChromID == theRead.chromID:
                             brokenMateCoords.append( (reader.getrname(theRead.mateChromID), theRead.mateChromID, theRead.matePos) )
                         else:
@@ -509,39 +525,39 @@ cdef list loadBAMData(list bamFiles, bytes chrom, int start, int end, options, l
                                 pass
                             else:
                                 brokenMateCoords.append( (reader.getrname(theRead.mateChromID), theRead.mateChromID, theRead.matePos) )
-
+                
                 if totalReads % 250000 == 0:
                     logger.debug("Loaded %s reads in region %s:%s-%s" %(totalReads, chrom, start, end))
-
+                
                 if totalReads >= maxReads:
                     # Explicitly clear up memory, as Cython doesn't seem to do this
                     logger.warning("Too many reads (%s) in region %s:%s-%s. Quitting now. Either reduce --bufferSize or increase --maxReads." %(totalReads, chrom, start, end))
                     return None
-
+            
             if fetchBrokenMates:
                 logger.info("There are %s broken pairs in BAM %s in region %s:%s-%s" %(len(brokenMateCoords), reader.filename, chrom, start, end))
                 brokenMateCoords.sort()
                 queries = mergeQueries(brokenMateCoords)
-
+                
                 for qChrom,qStart,qEnd in queries:
                     if verbosity >= 3:
                         logger.debug("Querying broken mates %s:%s-%s" %(qChrom, qStart, qEnd))
-                    readIterator = reader.fetch(qChrom, qStart, qEnd)
+                    readIterator = reader.fetch("%s:%s-%s" %(qChrom, qStart, qEnd))
                     theRead = NULL
-
+                    
                     while readIterator.cnext():
                         if readIterator.b.core.mtid == chromID and start <= readIterator.b.core.mpos <= end:
-                            theRead = createRead(readIterator.b, 0, NULL)
+                            theRead = readIterator.get(0, NULL)
                             assert theRead != NULL
                             theReadBuffer.brokenMates.append(theRead)
-
+            
             readBuffers.append(theReadBuffer)
             reader.close()
-
+            
             # Need to release lock here when sharing BAM files
             if reader.lock is not None:
                 reader.lock.release()
-
+    
     # We need to merge data from multiple BAM files, or split BAM files by sample. Either way, we check the sample for each read and
     # add it to the relevant buffer.
     else:
@@ -557,7 +573,7 @@ cdef list loadBAMData(list bamFiles, bytes chrom, int start, int end, options, l
                 reader.lock.acquire()
 
             try:
-                readIterator = reader.fetch(chrom, start, end)
+                readIterator = reader.fetch("%s:%s-%s" %(chrom, start, end))
             except Exception, e:
                 logger.warning(e.message)
                 logger.debug("No data could be retrieved for sample %s in file %s in region %s" %(sample, reader.filename, "%s:%s-%s" %(chrom, start, end)))
@@ -565,24 +581,25 @@ cdef list loadBAMData(list bamFiles, bytes chrom, int start, int end, options, l
                 continue
 
             brokenMateCoords = []
-
+        
             while readIterator.cnext():
-                theRead = createRead(readIterator.b, 1, &rgID)
-
+                theRead = readIterator.get(1, &rgID)
+                assert theRead != NULL
+            
                 if chromID == -1:
                     chromID = theRead.chromID
-
+            
                 sampleThisRead = samplesByID[rgID]
                 theReadBuffer = buffersBySample[sampleThisRead]
                 theReadBuffer.addReadToBuffer(theRead)
                 free(rgID)
                 rgID = NULL
-
+            
                 if compressReads:
                     compressRead(theRead, refSeq, start, end, qualBinSize, 0)
-
+            
                 totalReads += 1
-
+            
                 if fetchBrokenMates:
                     if (not Read_IsProperPair(theRead)) or Read_IsUnmapped(theRead) or Read_MateIsUnmapped(theRead):
                         if theRead.mateChromID == theRead.chromID:
@@ -594,42 +611,42 @@ cdef list loadBAMData(list bamFiles, bytes chrom, int start, int end, options, l
                                 pass
                             else:
                                 brokenMateCoords.append( (reader.getrname(theRead.mateChromID), theRead.mateChromID, theRead.matePos) )
-
+            
                 if totalReads >= maxReads:
                     logger.warning("Too many reads (%s) in region %s:%s-%s. Quitting now. Either reduce --bufferSize or increase --maxReads." %(totalReads, chrom, start, end))
                     return None
-
+        
             if fetchBrokenMates:
                 brokenMateCoords.sort()
                 queries = mergeQueries(brokenMateCoords)
                 logger.info("There are %s broken pairs in BAM %s in region %s:%s-%s" %(len(brokenMateCoords), reader.filename, chrom, start, end))
-
+            
                 for qChrom,qStart,qEnd in queries:
 
                     if verbosity >= 3:
                         logger.debug("Querying broken mates %s:%s-%s" %(chrom, qStart, qEnd))
-                    readIterator = reader.fetch(qChrom, qStart, qEnd)
+                    readIterator = reader.fetch("%s:%s-%s" %(qChrom, qStart, qEnd))
                     theRead = NULL
 
                     while readIterator.cnext():
                         if readIterator.b.core.mtid == chromID and start <= readIterator.b.core.mpos <= end:
-                            theRead = createRead(readIterator.b, 1, &rgID)
+                            theRead = readIterator.get(1, &rgID)
                             assert theRead != NULL
                             sampleThisRead = samplesByID[rgID]
                             free(rgID)
                             rgID = NULL
                             theReadBuffer = buffersBySample[sampleThisRead]
                             theReadBuffer.brokenMates.append(theRead)
-
+        
             reader.close()
-
+        
             # Need to release lock here when sharing BAM files
             if reader.lock is not None:
                 reader.lock.release()
-
+        
         for theReadBuffer in buffersBySample.values():
             readBuffers.append(theReadBuffer)
-
+    
     cdef list sortedBuffers = []
 
     for theReadBuffer in readBuffers:
@@ -921,29 +938,27 @@ def getRegions(options):
         raise StandardError, "Invalid reference FASTA file supplied"
 
     cdef FastaFile refFile = FastaFile(options.refFile, options.refFile + ".fai", parseNCBI = options.parseNCBI)
+    
     fileName = None
-
-    if len(options.bamFiles) == 1 and options.bamFiles[0][-4:] != ".bam":
-
-        theTextFile = open(options.bamFiles[0], 'r')
-
+    if len(options.bamFiles) == 1 and not isIndexable(options.bamFiles[0]):
+        theTextFile = Open(options.bamFiles[0], 'r')
         for line in theTextFile:
             line = line.strip()
-            if line[-4:] == ".bam":
+            if isIndexable(line):
                 fileName = line
                 break
     else:
         fileName = options.bamFiles[0]
-
-    if fileName[-4:] != ".bam":
-        logger.error("Input file %s is not a BAM file" %(fileName))
-        raise StandardError, "Input file %s is not a BAM file" %(fileName)
-
-    file = samtoolsWrapper.Samfile(fileName)
-    file._open('rbh', loadIndex=True)
+    
+    if not isIndexable(fileName):
+        logger.error("Input file %s is not a BAM/CRAM file" %(fileName))
+        raise StandardError, "Input file %s is not a BAM/CRAM file" %(fileName)
+    
+    file = htslibWrapper.Samfile(fileName)
+    file._open('r', loadIndex=True)
     finalRegions = []
     regions = []
-
+    
     if options.regions is not None and os.path.exists(options.regions[0]):
 
         # Text file with regions in format chr:start-end
@@ -951,7 +966,7 @@ def getRegions(options):
 
             logger.info("Interpreting --regions argument (%s) as a text file with regions in the format chr:start-end" %(options.regions[0]))
 
-            with open(options.regions[0], 'r') as theFile:
+            with Open(options.regions[0], 'r') as theFile:
                 for line in theFile:
                     chrom,region = line.rsplit(":", 1)
                     start = int(region.split("-")[0])
@@ -964,7 +979,7 @@ def getRegions(options):
 
             logger.info("Interpreting --regions argument (%s) as a BED file with regions in the format chr\tstart\tend" %(options.regions[0]))
 
-            with open(options.regions[0], 'r') as theFile:
+            with Open(options.regions[0], 'r') as theFile:
                 for line in theFile:
                     try:
                         cols = line.split("\t")
@@ -994,7 +1009,7 @@ def getRegions(options):
 
             split = region.rsplit(":", 1)
             chrom = bytes(split[0])
-
+            
             if len( split ) == 2 :
                 [ start, end ] = split[1].split("-")
                 regions.append((chrom,int(start),int(end)))
@@ -1017,7 +1032,7 @@ def getRegions(options):
                             regions.append((region, 1, regionTuple.SeqLength))
             else:
                 regions.append((chrom,None,None))
-
+    
     if len(regions) == 0:
         logger.error("Platypus found no regions to search. Check that you are using the correct reference FASTA file or have specified the 'regions' argument correctly")
     elif len(regions) < 100:

@@ -1,11 +1,11 @@
 import cython
 
-cimport samtoolsWrapper
+cimport htslibWrapper
 cimport fastafile
 
-from samtoolsWrapper cimport Samfile
-from samtoolsWrapper cimport IteratorRow
-from samtoolsWrapper cimport cAlignedRead
+from htslibWrapper cimport Samfile
+from htslibWrapper cimport ReadIterator
+from htslibWrapper cimport cAlignedRead
 from fastafile cimport FastaFile
 
 ###################################################################################################

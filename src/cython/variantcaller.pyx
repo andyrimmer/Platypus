@@ -19,7 +19,7 @@ import sys
 cimport platypusutils
 cimport vcfutils
 cimport fastafile
-cimport samtoolsWrapper
+cimport htslibWrapper
 cimport cwindow
 cimport cpopulation
 cimport variant
@@ -29,7 +29,7 @@ cimport chaplotype
 from chaplotype cimport Haplotype
 from cgenotype cimport generateAllGenotypesFromHaplotypeList,DiploidGenotype
 from cwindow cimport bamReadBuffer
-from samtoolsWrapper cimport Samfile,cAlignedRead
+from htslibWrapper cimport Samfile,cAlignedRead
 from cpopulation cimport Population
 from variant cimport Variant
 from variant cimport VariantCandidateGenerator
@@ -45,7 +45,7 @@ from assembler cimport assembleReadsAndDetectVariants
 from bisect import bisect
 from platypusutils cimport leftNormaliseIndel
 from platypusutils cimport betaBinomialCDF
-from platypusutils import open
+from platypusutils import Open
 
 logger = logging.getLogger("Log")
 vcfHeader = [('fileDate',datetime.date.fromtimestamp(time.time())), ('source','Platypus_Version_%s' %(platypusutils.PLATYPUS_VERSION))]
@@ -545,7 +545,7 @@ cdef void callVariantsInRegion(bytes chrom, int start, int end, bamFiles, FastaF
             if options.compressReads:
                 for readBuffer in readBuffers:
                     readBuffer.recompressReadsInCurrentWindow(start, end, refSequence, options.qualBinSize, options.compressReads)
-
+        
         except Exception, e:
             logger.exception('Exception in window %d-%d. Error was %s' %(window['startPos'],window['endPos'], e))
             logger.warning("Window %s:%s-%s will be skipped" %(chrom, window['startPos'],window['endPos']))
@@ -561,16 +561,16 @@ cdef int sumMapQualsTimesReadLength(list readBuffers):
     cdef bamReadBuffer theBuffer
     cdef cAlignedRead** rStart = NULL
     cdef cAlignedRead** rEnd = NULL
-
+    
     for i from 0 <= i < len(readBuffers):
         theBuffer = readBuffers[i]
         rStart = theBuffer.reads.windowStart
         rEnd = theBuffer.reads.windowEnd
-
+        
         while rStart != rEnd:
             result += (rStart[0].mapq*rStart[0].rlen)
             rStart += 1
-
+    
     return result
 
 ###################################################################################################
@@ -711,8 +711,10 @@ class PlatypusSingleProcess(object):
 
         # Need to load data etc.
         self.bamFileNames = options.bamFiles
-
-        if len(self.bamFileNames) == 1 and not self.bamFileNames[0].lower().endswith(".bam"):
+        
+        isBamOrCram = self.bamFileNames[0].lower().endswith((".bam", ".cram"))
+        
+        if len(self.bamFileNames) == 1 and not isBamOrCram:
             logger.debug("Treating --bamFiles argument, %s as a text file containing a list of BAM file names" %(self.bamFileNames))
             self.bamFileNames = platypusutils.getBAMFileNamesFromTextFile(self.bamFileNames[0])
 
@@ -743,12 +745,10 @@ class PlatypusSingleProcess(object):
         
         if options.alignScoreFile != "":
             logger.info("Alignment scores of reads with haplotypes are written to %s" %(options.alignScoreFile))
-            fo = open(options.alignScoreFile, "w")
+            fo = Open(options.alignScoreFile, "w")
             fo.write("#Alignment scores of reads against haplotypes within a each window for each sample\n")
             fo.close()
-
-
-
+    
     def run(self):
         """
         Run a single Platypus process
@@ -765,12 +765,12 @@ class PlatypusSingleProcess(object):
 
         if self.continuing:
             logger.info("Opening file %s for appending" %(self.fileName))
-            self.outputFile = open(self.fileName, 'a')
+            self.outputFile = Open(self.fileName, 'a')
         else:
             if self.fileName == "-":
                 self.outputFile = sys.stdout
             else:
-                self.outputFile = open(self.fileName, 'w')
+                self.outputFile = Open(self.fileName, 'w')
             self.vcf.writeheader(self.outputFile)
 
         cdef Population pop = Population(self.options)

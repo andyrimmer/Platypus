@@ -7,7 +7,7 @@ import logging
 import vcf
 
 cimport fastafile
-cimport samtoolsWrapper
+cimport htslibWrapper
 
 from cwindow cimport bamReadBuffer
 from fastafile cimport FastaFile
@@ -19,18 +19,18 @@ from variant cimport PLATYPUS_VAR
 from variant cimport FILE_VAR
 from platypusutils cimport binomial
 from platypusutils cimport betaBinomialCDF
-from samtoolsWrapper cimport cAlignedRead
-from samtoolsWrapper cimport Read_IsReverse
-from samtoolsWrapper cimport Read_IsPaired
-from samtoolsWrapper cimport Read_IsProperPair
-from samtoolsWrapper cimport Read_IsDuplicate
-from samtoolsWrapper cimport Read_IsUnmapped
-from samtoolsWrapper cimport Read_MateIsUnmapped
-from samtoolsWrapper cimport Read_MateIsReverse
-from samtoolsWrapper cimport Read_IsQCFail
-from samtoolsWrapper cimport Read_IsReadOne
-from samtoolsWrapper cimport Read_IsSecondaryAlignment
-from samtoolsWrapper cimport Read_SetQCFail
+from htslibWrapper cimport cAlignedRead
+from htslibWrapper cimport Read_IsReverse
+from htslibWrapper cimport Read_IsPaired
+from htslibWrapper cimport Read_IsProperPair
+from htslibWrapper cimport Read_IsDuplicate
+from htslibWrapper cimport Read_IsUnmapped
+from htslibWrapper cimport Read_MateIsUnmapped
+from htslibWrapper cimport Read_MateIsReverse
+from htslibWrapper cimport Read_IsQCFail
+from htslibWrapper cimport Read_IsReadOne
+from htslibWrapper cimport Read_IsSecondaryAlignment
+from htslibWrapper cimport Read_SetQCFail
 
 logger = logging.getLogger("Log")
 

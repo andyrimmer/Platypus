@@ -18,13 +18,13 @@ cimport chaplotype
 cimport cgenotype
 cimport vcfutils
 cimport cerrormodel
-cimport samtoolsWrapper
+cimport htslibWrapper
 
 from variant cimport Variant
 from chaplotype cimport Haplotype
 from cgenotype cimport DiploidGenotype
 from cwindow cimport bamReadBuffer
-from samtoolsWrapper cimport cAlignedRead
+from htslibWrapper cimport cAlignedRead
 
 logger = logging.getLogger("Log")
 

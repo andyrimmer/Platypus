@@ -7,28 +7,27 @@ Fast cython implementation of some windowing functions.
 
 import cython
 
-cimport samtoolsWrapper
+cimport htslibWrapper
 
 import logging
 import math
 
-from samtoolsWrapper cimport createRead
-from samtoolsWrapper cimport destroyRead
-from samtoolsWrapper cimport Read_IsReverse
-from samtoolsWrapper cimport Read_IsPaired
-from samtoolsWrapper cimport Read_IsProperPair
-from samtoolsWrapper cimport Read_IsDuplicate
-from samtoolsWrapper cimport Read_IsUnmapped
-from samtoolsWrapper cimport Read_MateIsUnmapped
-from samtoolsWrapper cimport Read_MateIsReverse
-from samtoolsWrapper cimport Read_IsQCFail
-from samtoolsWrapper cimport Read_IsReadOne
-from samtoolsWrapper cimport Read_IsSecondaryAlignment
-from samtoolsWrapper cimport Read_SetQCFail
-from samtoolsWrapper cimport Read_SetCompressed
-from samtoolsWrapper cimport Read_IsCompressed
-from samtoolsWrapper cimport compressRead
-from samtoolsWrapper cimport uncompressRead
+from htslibWrapper cimport destroyRead
+from htslibWrapper cimport Read_IsReverse
+from htslibWrapper cimport Read_IsPaired
+from htslibWrapper cimport Read_IsProperPair
+from htslibWrapper cimport Read_IsDuplicate
+from htslibWrapper cimport Read_IsUnmapped
+from htslibWrapper cimport Read_MateIsUnmapped
+from htslibWrapper cimport Read_MateIsReverse
+from htslibWrapper cimport Read_IsQCFail
+from htslibWrapper cimport Read_IsReadOne
+from htslibWrapper cimport Read_IsSecondaryAlignment
+from htslibWrapper cimport Read_SetQCFail
+from htslibWrapper cimport Read_SetCompressed
+from htslibWrapper cimport Read_IsCompressed
+from htslibWrapper cimport compressRead
+from htslibWrapper cimport uncompressRead
 from bisect import bisect_left
 from heapq import heappush,heappop
 
@@ -119,37 +118,36 @@ cdef class ReadArray:
         """
         self.array = <cAlignedRead**>(malloc(size*sizeof(cAlignedRead*)))
         assert self.array != NULL, "Could not allocate memory for ReadArray"
-
+        
         self.__size = 0 # We don't put anything in here yet, just allocate memory
         self.__capacity = size
         self.__longestRead = 0
         self.windowStart = NULL
         self.windowEnd = NULL
-
+        
         # Always initialise to NULL
         for index from 0 <= index < size:
             self.array[index] = NULL
-
+    
     def __dealloc__(self):
         """
         Free memory
         """
         cdef int index = 0
-
         if self.array != NULL:
             for index from 0 <= index < self.__size:
                 if self.array[index] != NULL:
                     destroyRead(self.array[index])
                     self.array[index] = NULL
-
+            
             free(self.array)
-
+    
     cdef int getSize(self):
         """
         Return the size of the array
         """
         return self.__size
-
+    
     cdef void append(self, cAlignedRead* value):
         """
         Append a new value to the array, re-allocating if necessary.

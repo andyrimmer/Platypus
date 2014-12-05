@@ -1,9 +1,9 @@
 import cython
 import chaplotype
-import samtoolsWrapper
+import htslibWrapper
 
 from chaplotype cimport Haplotype
-from samtoolsWrapper cimport cAlignedRead
+from htslibWrapper cimport cAlignedRead
 
 @cython.final
 cdef class DiploidGenotype:

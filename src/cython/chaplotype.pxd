@@ -1,10 +1,10 @@
 import cython
 
 cimport fastafile
-cimport samtoolsWrapper
+cimport htslibWrapper
 cimport variant
 
-from samtoolsWrapper cimport cAlignedRead
+from htslibWrapper cimport cAlignedRead
 from fastafile cimport FastaFile
 from variant cimport Variant
 

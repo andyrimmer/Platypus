@@ -1,6 +1,6 @@
 cimport cython
-cimport samtoolsWrapper
-from samtoolsWrapper cimport cAlignedRead
+cimport htslibWrapper
+from htslibWrapper cimport cAlignedRead
 
 cdef int hash_nucs
 cdef int hash_size

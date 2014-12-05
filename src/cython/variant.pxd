@@ -3,7 +3,7 @@
 
 import cython
 from fastafile cimport FastaFile
-from samtoolsWrapper cimport cAlignedRead
+from htslibWrapper cimport cAlignedRead
 
 ###################################################################################################
 

@@ -8,7 +8,7 @@ import cython
 cimport cython
 
 cimport chaplotype
-cimport samtoolsWrapper
+cimport htslibWrapper
 cimport variant
 
 from chaplotype cimport Haplotype

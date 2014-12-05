@@ -14,23 +14,23 @@ cimport cython
 cimport variant
 cimport calign
 cimport fastafile
-cimport samtoolsWrapper
+cimport htslibWrapper
 cimport cerrormodel
 
 from calign cimport hash_sequence, hash_sequence_multihit, hashReadForMapping
 from calign cimport mapAndAlignReadToHaplotype
 from fastafile cimport FastaFile
-from samtoolsWrapper cimport cAlignedRead
-from samtoolsWrapper cimport Read_IsReverse
-from samtoolsWrapper cimport Read_IsPaired
-from samtoolsWrapper cimport Read_IsProperPair
-from samtoolsWrapper cimport Read_IsDuplicate
-from samtoolsWrapper cimport Read_IsUnmapped
-from samtoolsWrapper cimport Read_MateIsUnmapped
-from samtoolsWrapper cimport Read_MateIsUnmapped
-from samtoolsWrapper cimport Read_IsQCFail
-from samtoolsWrapper cimport Read_IsReadOne
-from samtoolsWrapper cimport Read_IsSecondaryAlignment
+from htslibWrapper cimport cAlignedRead
+from htslibWrapper cimport Read_IsReverse
+from htslibWrapper cimport Read_IsPaired
+from htslibWrapper cimport Read_IsProperPair
+from htslibWrapper cimport Read_IsDuplicate
+from htslibWrapper cimport Read_IsUnmapped
+from htslibWrapper cimport Read_MateIsUnmapped
+from htslibWrapper cimport Read_MateIsUnmapped
+from htslibWrapper cimport Read_IsQCFail
+from htslibWrapper cimport Read_IsReadOne
+from htslibWrapper cimport Read_IsSecondaryAlignment
 from variant cimport Variant
 from calign cimport hash_nucs,hash_size
 

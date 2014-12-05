@@ -1,9 +1,9 @@
 import variant
-import samtoolsWrapper
+import htslibWrapper
 import cwindow
 
 from variant cimport Variant
-from samtoolsWrapper cimport cAlignedRead
+from htslibWrapper cimport cAlignedRead
 from cwindow cimport bamReadBuffer
 from fastafile cimport FastaFile
 

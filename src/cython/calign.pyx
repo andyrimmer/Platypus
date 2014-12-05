@@ -8,11 +8,11 @@ from __future__ import division
 cimport cython
 
 import logging
-import samtoolsWrapper
+import htslibWrapper
 cimport cerrormodel
-cimport samtoolsWrapper
+cimport htslibWrapper
 
-from samtoolsWrapper cimport cAlignedRead
+from htslibWrapper cimport cAlignedRead
 
 ###################################################################################################
 
