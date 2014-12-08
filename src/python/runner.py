@@ -367,8 +367,14 @@ def expandPaths(options):
     if not os.path.exists(os.path.dirname(options.output)):
         options.output = os.path.expanduser(options.output)
     
-    if options.sourceFile and not os.path.exists(options.sourceFile):
-        options.source = os.path.expanduser(options.sourceFile)
+    if options.sourceFile:
+        expandedSourcePaths = []
+        for sourcePath in options.sourceFile:
+            if os.path.exists(sourcePath):
+                expandedSourcePaths.append(sourcePath)
+            else:
+                expandedSourcePaths.append(os.path.expanduser(sourcePath))
+        options.bamFiles = expandedSourcePaths
     
     if options.logFileName and not os.path.exists(options.logFileName):
         options.source = os.path.expanduser(options.logFileName)
