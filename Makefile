@@ -2,8 +2,8 @@ PYTHON := python
 HEADERS := src/cython/cgenotype.pxd
 SOURCES := src/cython/cpopulation.pyx src/cython/cgenotype.pyx src/cython/cwindow.pyx
 
-PLATYPUS_C := cpopulation.c cgenotype.c cwindow.c vcfutils.c platypusutils.c variantcaller.c variantFilter.c assembler.c\
-calign.c cerrormodel.c chaplotype.c samtoolsWrapper.c variant.c fastafile.c
+PLATYPUS_C := arrays.c cpopulation.c cgenotype.c cwindow.c vcfutils.c platypusutils.c variantcaller.c variantFilter.c assembler.c\
+calign.c cerrormodel.c chaplotype.c htslibWrapper.c variant.c fastafile.c
 
 PLATYPUS_SO := $(PLATYPUS_C:.c=.so)
 
