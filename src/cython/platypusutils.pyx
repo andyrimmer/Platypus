@@ -489,7 +489,8 @@ cdef list loadBAMData(list bamFiles, bytes chrom, int start, int end, options, l
             theReadBuffer.sample = bytes(sample)
             
             try:
-                readIterator = reader.fetch("%s:%s-%s" %(chrom, start, end))
+                region = "%s:%s-%s" %(chrom, start, end)
+                readIterator = reader.fetch( region )
             except Exception, e:
                 logger.warning(e.message)
                 logger.debug("No data could be retrieved for sample %s in file %s in region %s" %(sample, reader.filename, "%s:%s-%s" %(chrom, start, end)))
@@ -542,7 +543,8 @@ cdef list loadBAMData(list bamFiles, bytes chrom, int start, int end, options, l
                 for qChrom,qStart,qEnd in queries:
                     if verbosity >= 3:
                         logger.debug("Querying broken mates %s:%s-%s" %(qChrom, qStart, qEnd))
-                    readIterator = reader.fetch("%s:%s-%s" %(qChrom, qStart, qEnd))
+                    region = "%s:%s-%s" %(qChrom, qStart, qEnd)
+                    readIterator = reader.fetch( region )
                     theRead = NULL
                     
                     while readIterator.cnext():
@@ -573,7 +575,8 @@ cdef list loadBAMData(list bamFiles, bytes chrom, int start, int end, options, l
                 reader.lock.acquire()
 
             try:
-                readIterator = reader.fetch("%s:%s-%s" %(chrom, start, end))
+                region = "%s:%s-%s" %(chrom, start, end)
+                readIterator = reader.fetch( region )
             except Exception, e:
                 logger.warning(e.message)
                 logger.debug("No data could be retrieved for sample %s in file %s in region %s" %(sample, reader.filename, "%s:%s-%s" %(chrom, start, end)))
@@ -625,7 +628,8 @@ cdef list loadBAMData(list bamFiles, bytes chrom, int start, int end, options, l
 
                     if verbosity >= 3:
                         logger.debug("Querying broken mates %s:%s-%s" %(chrom, qStart, qEnd))
-                    readIterator = reader.fetch("%s:%s-%s" %(qChrom, qStart, qEnd))
+                    region = "%s:%s-%s" %(qChrom, qStart, qEnd)
+                    readIterator = reader.fetch( region )
                     theRead = NULL
 
                     while readIterator.cnext():
