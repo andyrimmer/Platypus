@@ -977,7 +977,7 @@ def getRegions(options):
                     end = int(region.split("-")[1])
 
                     regions.append( (chrom,start,end) )
-
+        
         # BED file with regions in format chr\start\tend
         elif options.regions[0].endswith(".bed"):
 
@@ -1016,7 +1016,7 @@ def getRegions(options):
             
             if len( split ) == 2 :
                 [ start, end ] = split[1].split("-")
-                regions.append((chrom,int(start),int(end)))
+                regions.append((chrom,int(start)-1,int(end)))
 
                 if regions[-1][2] - regions[-1][1] > 1e9:
                     logger.error("Input region (%s) is too long. Try again" %(region))

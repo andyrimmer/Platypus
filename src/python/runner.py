@@ -376,8 +376,14 @@ def expandPaths(options):
                 expandedSourcePaths.append(os.path.expanduser(sourcePath))
         options.sourceFile = expandedSourcePaths
     
-    if not os.path.exists(os.path.dirname(options.logFileName)):
+    if options.logFileName and not os.path.exists(os.path.dirname(options.logFileName)):
         options.logFileName = os.path.expanduser(options.logFileName)
+    
+    if options.regions and not os.path.exists(options.regions[0]) and os.path.exists(os.path.expanduser(options.regions[0])):
+        options.regions[0] = os.path.expanduser(options.regions[0])
+    
+    if options.skipRegionsFile and not os.path.exists(options.skipRegionsFile) and os.path.exists(os.path.expanduser(options.skipRegionsFile)):
+        options.skipRegionsFile = os.path.expanduser(options.skipRegionsFile)
     
     return options
 

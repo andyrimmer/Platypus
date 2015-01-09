@@ -495,7 +495,7 @@ cdef class VariantCandidateGenerator(object):
         self.variantHeap = {} # List of variants
         self.refFile = referenceFile
         self.rname = region[0]
-        self.refSeqStart = max(1, region[1]-2000) # Don't try to fetch anything < 0
+        self.refSeqStart = max(0, region[1]-2000) # Don't try to fetch anything < 0
         self.refSeqEnd = min(region[2]+2000, self.refFile.refs[region[0]].SeqLength-1) # Don't try to fetch anything > seqLength
         self.pyRefSeq = self.refFile.getSequence(self.rname, self.refSeqStart, self.refSeqEnd) # Cache this
         self.refSeq = self.pyRefSeq
@@ -527,10 +527,10 @@ cdef class VariantCandidateGenerator(object):
 
             if self.verbosity >= 4:
                 logger.debug("Adding variant %s to existing variant in candidate list" %(var))
-
+                
     cdef void getSnpCandidatesFromReadSegment(self, cAlignedRead* read, char* readSeq, char* readQual, int readStart, int readOffset, int refOffset, int lenSeqToCheck, int minFlank):
         """
-        Get all SNP candidates from a particular read segement.
+        Get all SNP candidates from a particular read segment.
 
         Args:
         char* readSeq -- The complete sequence of bases in the read.
@@ -626,7 +626,7 @@ cdef class VariantCandidateGenerator(object):
         if misMatchStartRef != -1:
             mSNPRef = self.refSeq[misMatchStartRef: misMatchEndRef+1]
             mSNPRead = readSeq[misMatchStartRead: misMatchEndRead+1]
-            #logger.info("Adding MNP. Added = %s. removed = %s. pos = %s" %(mSNPRead, mSNPRef, misMatchStartRef + self.refSeqStart))
+            #logger.info("Adding (last) MNP. Added = %s. removed = %s. pos = %s" %(mSNPRead, mSNPRef, misMatchStartRef + self.refSeqStart))
             self.addVariantToList(Variant(self.rname, misMatchStartRef + self.refSeqStart, mSNPRef, mSNPRead, 1, PLATYPUS_VAR))
 
     cdef void getVariantCandidatesFromSingleRead(self, cAlignedRead* read):
@@ -720,7 +720,7 @@ cdef class VariantCandidateGenerator(object):
             # Soft clipping. Sequence is present in read, but we should ignore it.
             elif flag == self.CIGAR_S:
                 readOffset += length
-
+                
                 # We move back read positions when there is soft clipping at the beginning of
                 # reads
                 if cigarIndex == 0:

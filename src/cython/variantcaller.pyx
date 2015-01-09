@@ -387,7 +387,6 @@ cdef list generateVariantsInRegion(bytes chrom, int start, int end, bamFiles, Fa
 
             varCandGen.addCandidatesFromReads(theReadBuffer.reads.array, theReadBuffer.reads.array + theReadBuffer.reads.getSize())
             #varCandGen.addCandidatesFromReads(theReadBuffer.badReads.array, theReadBuffer.badReads.array + theReadBuffer.badReads.getSize())
-
             if options.verbosity >= 3:
                 logger.debug("Processed sample %s. Detected %s unfiltered variant candidates so far" %(theReadBuffer.sample, len(varCandGen.variantHeap)))
 
@@ -494,8 +493,9 @@ cdef void callVariantsInRegion(bytes chrom, int start, int end, bamFiles, FastaF
     if readBuffers is None:
         logger.info("Skipping region %s:%s-%s as data could not be loaded" %(chrom, start, end))
         return
-
+    
     cdef list allSortedVariants = generateVariantsInRegion(chrom, start, end, bamFiles, refFile, options, windowGenerator, outputFile, vcf, readBuffers)
+    
     cdef Variant var,nextVar
     cdef list sortedVarList
 

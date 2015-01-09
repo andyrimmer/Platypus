@@ -167,7 +167,7 @@ class WindowGenerator(object):
         nWindows = len(windowVars)
 
         for index,varsThisWindow in enumerate(windowVars):
-
+            
             winStart = max(min([v.minRefPos for v in varsThisWindow]) - options.minVarDist, start)
 
             # Don't go past the end of the chromosome/contig. Don't mind here if we overlap slightly into

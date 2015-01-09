@@ -1076,12 +1076,12 @@ cdef dict vcfINFO(double* haplotypeFrequencies, dict variantPosteriors, list gen
     cdef cAlignedRead** pEndBadRead
     cdef cAlignedRead* pRead
     cdef bamReadBuffer readBuffer
-
+    
     # Make sure to do this in the right order
     cdef int HapScore = computeHaplotypeScore(genotypes)
     cdef dict INFO = getHaplotypeInfo(haplotypes, variantPosteriors, haplotypeFrequencies, nHaplotypes)
     cdef list sortedVars = sorted(INFO.keys())
-
+    
     for variant in INFO:
 
         listOfMinBaseQuals = []
@@ -1202,8 +1202,10 @@ cdef dict vcfINFO(double* haplotypeFrequencies, dict variantPosteriors, list gen
                                 minBaseQualInWindow = pRead.qual[windowIndex]
                             else:
                                 minBaseQualInWindow = min(minBaseQualInWindow, pRead.qual[windowIndex])
-
+                        
                         listOfMinBaseQuals.append(minBaseQualInWindow)
+                    
+                    #logger.debug('minBaseQuals list %s' %(';'.join(map(str, listOfMinBaseQuals))))
 
                 pStartRead += 1
 
