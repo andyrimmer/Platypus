@@ -973,7 +973,7 @@ def getRegions(options):
             with Open(options.regions[0], 'r') as theFile:
                 for line in theFile:
                     chrom,region = line.rsplit(":", 1)
-                    start = int(region.split("-")[0])
+                    start = int(region.split("-")[0])-1
                     end = int(region.split("-")[1])
 
                     regions.append( (chrom,start,end) )
@@ -1000,13 +1000,13 @@ def getRegions(options):
 
         try:
             header = file.header
-            regions = [ (d['SN'], 1, d['LN']) for d in header['SQ'] ]
+            regions = [ (d['SN'], 0, d['LN']) for d in header['SQ'] ]
             logger.debug("Loaded regions from BAM header, SQ tags")
         except:
             logger.debug("Loading regions from FASTA index datas")
 
             for region,regionTuple in refFile.refs.iteritems():
-                regions.append((region, 1, regionTuple.SeqLength))
+                regions.append((region, 0, regionTuple.SeqLength))
 
     else:
         for region in options.regions:
@@ -1028,12 +1028,12 @@ def getRegions(options):
                     header = file.header
                     pivot = dict(zip([d['SN'] for d in header['SQ']], [d['LN'] for d in header['SQ']]))
                     end = pivot[chrom]
-                    regions.append((chrom,int(start),int(end)))
+                    regions.append((chrom,int(start)-1,int(end)))
                 except:
                     regions = []
                     for region,regionTuple in refFile.refs.iteritems():
                         if region == chrom:
-                            regions.append((region, 1, regionTuple.SeqLength))
+                            regions.append((region, 0, regionTuple.SeqLength))
             else:
                 regions.append((chrom,None,None))
     
