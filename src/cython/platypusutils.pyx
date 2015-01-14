@@ -988,7 +988,7 @@ def getRegions(options):
                     try:
                         cols = line.split("\t")
                         chrom = cols[0]
-                        start = int(cols[1])
+                        start = int(cols[1])-1
                         end = int(cols[2])
                         regions.append( (chrom,start,end) )
                     except:
