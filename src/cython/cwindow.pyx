@@ -407,25 +407,24 @@ cdef int checkAndTrimRead(cAlignedRead* theRead, cAlignedRead* theLastRead, int 
 
     ## Any read that gets passed here will be used, but low quality tails will be trimmed, and
     ## any overlapping pairs, from small fragments, will have the overlapping bits trimmed.
-
+     
     # Trim low-quality tails for forward reads
     if not Read_IsReverse(theRead):
 
         for index from 1 <= index <= theRead.rlen:
-            if index <= trimReadFlank or theRead.qual[theRead.rlen - index] < 5:
+            if index < trimReadFlank or theRead.qual[theRead.rlen - index] < 5:
                 theRead.qual[theRead.rlen - index] = 0
             else:
                 break
-
     # Trim low-quality tails for reverse reads
     else:
         for index from 0 <= index < theRead.rlen:
 
-            if index <= trimReadFlank or theRead.qual[index] < 5:
+            if index < trimReadFlank or theRead.qual[index] < 5:
                 theRead.qual[index] = 0
             else:
                 break
-
+    
     cdef int absIns = abs(theRead.insertSize)
 
     # Trim overlapping part of forward read, in pairs where the read length is greater than the insert size
@@ -435,7 +434,7 @@ cdef int checkAndTrimRead(cAlignedRead* theRead, cAlignedRead* theLastRead, int 
     if trimOverlapping == 1 and (Read_IsPaired(theRead) and absIns > 0 and (not Read_IsReverse(theRead)) and Read_MateIsReverse(theRead) and absIns < 2*theRead.rlen):
         for index from 1 <= index < min(theRead.rlen, (2*theRead.rlen - theRead.insertSize) + 1):
             theRead.qual[theRead.rlen - index] = 0
-
+    
     # Trim the end of any read where the insert size is < read length. If these have not been
     # already filtered out then they need trimming, as adapter contamination will cause a
     # high FP rate otherwise.
@@ -569,7 +568,7 @@ cdef class bamReadBuffer(object):
                 logger.debug("Found null read")
             return
         else:
-
+            
             # TODO: Check that this works for duplicates when first read goes into bad reads pile...
             if self.lastRead != NULL:
                 readOk = checkAndTrimRead(theRead, self.lastRead, self.minGoodBases, self.filteredReadCountsByType, self.minMapQual, self.minBaseQual, self.minFlank, self.trimOverlapping, self.trimAdapter, self.trimReadFlank)
@@ -578,7 +577,7 @@ cdef class bamReadBuffer(object):
                     self.isSorted = False
             else:
                 readOk = checkAndTrimRead(theRead, NULL, self.minGoodBases, self.filteredReadCountsByType, self.minMapQual, self.minBaseQual, self.minFlank, self.trimOverlapping, self.trimAdapter, self.trimReadFlank)
-
+            
             self.lastRead = theRead
 
             # Put read into bad array, and remove from good array

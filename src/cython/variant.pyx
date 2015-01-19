@@ -554,7 +554,7 @@ cdef class VariantCandidateGenerator(object):
         cdef int misMatchEndRef = -1
         cdef int misMatchStartRead = -1
         cdef int misMatchEndRead = -1
-
+        
         for index from 0 <= index < lenSeqToCheck:
 
             # Don't look at the first 'minFlank' bases for candidate generation
@@ -564,7 +564,7 @@ cdef class VariantCandidateGenerator(object):
             # Don't look at the last 'minFlank' bases for candidate generation
             if index + readOffset >= read.rlen - minFlank:
                 continue
-
+            
             #if index + readOffset + refOffset >= read.rlen:
             #    logger.info("read len = %s. index = %s. read offset = %s. ref offset = %s" %(read.rlen, index, readOffset, refOffset))
 
@@ -578,9 +578,7 @@ cdef class VariantCandidateGenerator(object):
             assert baseQual <= 93, "Something is very wrong. Base qual is %s" %(baseQual)
 
             if readChar != refChar:
-
                 if readChar != 'N' and refChar != 'N' and baseQual >= self.minBaseQual:
-
                     if misMatchStartRef == -1:
                         misMatchStartRef = refIndex
                         misMatchEndRef = refIndex
@@ -650,7 +648,7 @@ cdef class VariantCandidateGenerator(object):
         cdef char* readSeq = read.seq
         cdef bytes insertedSequence = None
         cdef bytes deletedSequence = None
-
+        
         for cigarIndex from 0 <= cigarIndex < cigarLength:
 
             flag = read.cigarOps[2*cigarIndex]
@@ -746,7 +744,6 @@ cdef class VariantCandidateGenerator(object):
         cdef int compressed = 0
 
         while readStart != readEnd:
-
             compressed = 0
 
             if Read_IsQCFail(readStart[0]):

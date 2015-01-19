@@ -378,13 +378,13 @@ cdef list generateVariantsInRegion(bytes chrom, int start, int end, bamFiles, Fa
 
         # We want to check all BAMs and accumulate data before filtering
         for theReadBuffer in readBuffers:
-
+            
             # Make generator per sample
             varCandGen = VariantCandidateGenerator((chrom,start,end), refFile, options.minMapQual, options.minFlank, options.minBaseQual, options.maxReads, maxReadLength, options, options.verbosity, options.genSNPs, options.genIndels)
 
             if theReadBuffer.reads.getLengthOfLongestRead() > longestRead:
                 longestRead = theReadBuffer.reads.getLengthOfLongestRead()
-
+            
             varCandGen.addCandidatesFromReads(theReadBuffer.reads.array, theReadBuffer.reads.array + theReadBuffer.reads.getSize())
             #varCandGen.addCandidatesFromReads(theReadBuffer.badReads.array, theReadBuffer.badReads.array + theReadBuffer.badReads.getSize())
             if options.verbosity >= 3:
@@ -484,7 +484,7 @@ cdef void callVariantsInRegion(bytes chrom, int start, int end, bamFiles, FastaF
 
     try:
         readBuffers = loadBAMData(bamFiles, chrom, start, end, options, samples, samplesByID, samplesByBAM, refSequence)
-
+    
     except Exception, e:
         logger.error('Exception in region %s:%s-%s. Error was %s' %(chrom, start, end, e))
         logger.warning("Region %s:%s-%s will be skipped" %(chrom, start, end))
