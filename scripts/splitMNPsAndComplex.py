@@ -25,7 +25,7 @@ def splitVariant(chrom, pos, theId, ref, alt, qual, filters, info, theRest):
 
 ###################################################################################################
 
-def splitMAVariant(chrom, pos, theId, ref, alt, qual, filters, info, theRest):
+def splitMAVariant(chrom, pos, theId, ref, alts, qual, filters, info, theRest):
     """
     Take information from a single record of VCF, representing a complex, multi-SNP
     variant, and return a list of strings representing the same record split into
@@ -66,9 +66,9 @@ for line in sys.stdin:
             print line.strip()
         # Special treatment for multi-allelic sites
         elif len(alts) > 1:
-            for newLine in splitMAVariant(chrom, pos, theId, ref, alts[0], qual, filters, info, theRest):
+            for newLine in splitMAVariant(chrom, pos, theId, ref, alts, qual, filters, info, theRest):
                 print newLine
         # Otherwise, split the variant into SNPs
         else:
-            for newLine in splitVariant(chrom, pos, theId, ref, alts, qual, filters, info, theRest):
+            for newLine in splitVariant(chrom, pos, theId, ref, alts[0], qual, filters, info, theRest):
                 print newLine
