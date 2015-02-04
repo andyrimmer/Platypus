@@ -130,26 +130,25 @@ cdef class Haplotype:
         fasta file of the referene sequence.
         Variants are sorted on instantiation
         """
-        self.refName = refName
-        self.refFile = refFile
-        self.variants = variants
-        self.hash = -1
-        self.localGapOpen = NULL
-        self.haplotypeSequence = None
-        self.startPos = max(0, startPos)
-        self.endPos = min(endPos, self.refFile.refs[self.refName].SeqLength-1)
-        self.maxReadLength = maxReadLength
-        self.endBufferSize = min(2*maxReadLength, 200) # Cap the buffer size at a reasonable length
-        self.verbosity = options.verbosity
-        self.options = options
+        self.refName             = refName
+        self.refFile             = refFile
+        self.variants            = variants
+        self.hash                = -1
+        self.localGapOpen        = NULL
+        self.haplotypeSequence   = None
+        self.startPos            = max(0, startPos)
+        self.endPos              = min(endPos, self.refFile.refs[self.refName].SeqLength-1)
+        self.maxReadLength       = maxReadLength
+        self.endBufferSize       = min(2*maxReadLength, 200) # Cap the buffer size at a reasonable length
+        self.verbosity           = options.verbosity
+        self.options             = options
         self.lastIndividualIndex = -1
-
+        
         cdef Variant v
-
+        
         if len(variants) > 0:
             self.minVarPos = min([v.minRefPos for v in variants])
             self.maxVarPos = max([v.maxRefPos for v in variants])
-
             if self.minVarPos == self.maxVarPos:
                 self.maxVarPos += 1
         else:
@@ -161,12 +160,12 @@ cdef class Haplotype:
         if len(self.variants) == 0:
             self.haplotypeSequence = self.referenceSequence
         else:
-            leftBuffer = self.refFile.getSequence(self.refName, self.startPos - self.endBufferSize, self.startPos)
+            leftBuffer  = self.refFile.getSequence(self.refName, self.startPos - self.endBufferSize, self.startPos)
             rightBuffer = self.refFile.getSequence(self.refName, self.endPos, self.endPos + self.endBufferSize)
             self.haplotypeSequence = leftBuffer + self.getMutatedSequence() + rightBuffer
-
+        
         self.cHaplotypeSequence = self.haplotypeSequence
-        self.hapLen = len(self.cHaplotypeSequence)
+        self.hapLen             = len(self.cHaplotypeSequence)
 
         #if self.referenceSequence == self.haplotypeSequence and len(self.variants) != 0:
         #    logger.error("Haplotype is broken. Var seq and ref seq are the same, and variants are %s" %(list(self.variants)))
@@ -176,13 +175,13 @@ cdef class Haplotype:
             logger.debug(self.haplotypeSequence)
             raise StandardError, "Haplotype is too long. Max allowed length is %s" %(hash_size)
 
-        self.cHomopolQ = homopolq
-        self.hapSequenceHash = NULL
+        self.cHomopolQ            = homopolq
+        self.hapSequenceHash      = NULL
         self.hapSequenceNextArray = NULL
-        self.likelihoodCache = NULL
-        self.lenCache = 0
-        self.mapCounts = <int*>malloc( (2*(self.hapLen+maxReadLength))*sizeof(int) )
-        self.mapCountsLen = 2*(self.hapLen + maxReadLength)
+        self.likelihoodCache      = NULL
+        self.lenCache             = 0
+        self.mapCounts            = <int*>malloc( (2*(self.hapLen+maxReadLength))*sizeof(int) )
+        self.mapCountsLen         = 2 * (self.hapLen + maxReadLength)
 
     def __dealloc__(self):
         """
@@ -263,7 +262,7 @@ cdef class Haplotype:
             elif self.startPos != other.startPos:
                 return False
             else:
-                thisSeq = self.haplotypeSequence
+                thisSeq  = self.haplotypeSequence
                 otherSeq = other.haplotypeSequence
                 return thisSeq == otherSeq
 
@@ -396,7 +395,7 @@ cdef class Haplotype:
         """
         cdef Variant v
         cdef Variant firstVar
-
+        
         if self.haplotypeSequence is None:
 
             currentPos = self.startPos
@@ -407,7 +406,6 @@ cdef class Haplotype:
             currentPos = firstVar.refPos
 
             for v in self.variants:
-
                 # Move up to one base before the next variant, if we're not already there.
                 if v.refPos > currentPos:
                     bitsOfMutatedSeq.append(self.refFile.getSequence(self.refName, currentPos, v.refPos))

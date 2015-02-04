@@ -115,53 +115,40 @@ cdef class Variant(object):
         co-ordinate is the location of the first deleted base)), the removed and added
         sequences, and the supporting read.
         """
-        # Make sure we don't go negative here.
-        refPos = max(0, refPos)
-        self.refName = refName
-        self.nAdded = len(added)
-        self.nRemoved = len(removed)
-        self.varSource = varSource
-
-        # SNP
-        if self.nRemoved == 1 and self.nAdded == 1:
-            self.minRefPos = refPos
-            self.maxRefPos = refPos
-            self.varType = SNP
-
-        # Multi-nucleotide substitution
-        elif self.nRemoved == self.nAdded:
-            self.minRefPos = refPos
-            self.maxRefPos = refPos + self.nAdded - 1
-            self.varType = MNP
-
-        # Arbitrary sequence replacement
+        refPos = max(0, refPos) # Make sure we don't go negative here.
+        
+        self.refName    = refName
+        self.nAdded     = len(added)
+        self.nRemoved   = len(removed)
+        self.varSource  = varSource
+        self.refPos     = refPos
+        self.bamMinPos  = refPos
+        self.bamMaxPos  = refPos
+        self.removed    = removed
+        self.added      = added
+        self.bamAdded   = added
+        self.bamRemoved = removed
+        self.nSupportingReads = nSupportingReads
+        self.hashValue  = -1
+        self.minRefPos = refPos
+        self.maxRefPos = max(refPos, refPos + self.nRemoved - 1)
+        
+        if self.nRemoved == self.nAdded:
+            self.varType = SNP if self.nAdded == 1 else MNP
         else:
-            self.minRefPos = refPos
-            self.maxRefPos = refPos + self.nRemoved
-
             if self.nRemoved == 0:
                 self.varType = INS
             elif self.nAdded == 0:
                 self.varType = DEL
             else:
                 self.varType = REP
-
-        self.refPos = refPos
-        self.bamMinPos = refPos
-        self.bamMaxPos = refPos
-        self.removed = removed
-        self.added = added
-        self.bamAdded = added
-        self.bamRemoved = removed
-        self.nSupportingReads = nSupportingReads
-        self.hashValue = -1
-
+    
     cdef double indelPrior(self, FastaFile refFile, int indel_length_and_type):
         """
         Calculate indel prior, based on sequence context
         """
-        context = 100
-        leftPos = max(0, self.refPos - context)
+        context  = 100
+        leftPos  = max(0, self.refPos - context)
         rightPos = self.refPos + context          # no range check here
 
         cdef int relRefPos = self.refPos - leftPos
@@ -479,35 +466,35 @@ cdef class VariantCandidateGenerator(object):
         candidates. Create a storage splace for variant candidates, and store the values of some flags which
         are used in the pysam CIGAR information (these should really be module level variables).
         """
-        self.CIGAR_M = 0 # Match
-        self.CIGAR_I = 1 # Insertion
-        self.CIGAR_D = 2 # Deletion
-        self.CIGAR_N = 3 # Skipped region from reference
-        self.CIGAR_S = 4 # Soft clipping. Sequence is present in read
-        self.CIGAR_H = 5 # Hard clipping. Sequence is not present in read
-        self.CIGAR_P = 6 # Padding. Used for padded alignment
+        self.CIGAR_M  = 0 # Match
+        self.CIGAR_I  = 1 # Insertion
+        self.CIGAR_D  = 2 # Deletion
+        self.CIGAR_N  = 3 # Skipped region from reference
+        self.CIGAR_S  = 4 # Soft clipping. Sequence is present in read
+        self.CIGAR_H  = 5 # Hard clipping. Sequence is not present in read
+        self.CIGAR_P  = 6 # Padding. Used for padded alignment
         self.CIGAR_EQ = 7 # Alignment match; sequence match
-        self.CIGAR_X = 8 # Alignment match; sequence mismatch
+        self.CIGAR_X  = 8 # Alignment match; sequence mismatch
 
-        self.minMapQual = minMapQual
-        self.minBaseQual = minBaseQual
-        self.minFlank = minFlank
-        self.variantHeap = {} # List of variants
-        self.refFile = referenceFile
-        self.rname = region[0]
-        self.refSeqStart = max(0, region[1]-2000) # Don't try to fetch anything < 0
-        self.refSeqEnd = min(region[2]+2000, self.refFile.refs[region[0]].SeqLength-1) # Don't try to fetch anything > seqLength
-        self.pyRefSeq = self.refFile.getSequence(self.rname, self.refSeqStart, self.refSeqEnd) # Cache this
-        self.refSeq = self.pyRefSeq
-        self.rStart = region[1]
-        self.rEnd = region[2]
-        self.maxCoverage = maxCoverage
+        self.minMapQual    = minMapQual
+        self.minBaseQual   = minBaseQual
+        self.minFlank      = minFlank
+        self.variantHeap   = {} # List of variants
+        self.refFile       = referenceFile
+        self.rname         = region[0]
+        self.refSeqStart   = max(0, region[1]-2000) # Don't try to fetch anything < 0
+        self.refSeqEnd     = min(region[2]+2000, self.refFile.refs[region[0]].SeqLength-1) # Don't try to fetch anything > seqLength
+        self.pyRefSeq      = self.refFile.getSequence(self.rname, self.refSeqStart, self.refSeqEnd) # Cache this
+        self.refSeq        = self.pyRefSeq
+        self.rStart        = region[1]
+        self.rEnd          = region[2]
+        self.maxCoverage   = maxCoverage
         self.maxReadLength = maxReadLength
-        self.verbosity = verbosity
-        self.genSNPs = genSNPs
-        self.genIndels = genIndels
-        self.options = options
-        self.qualBinSize = options.qualBinSize
+        self.verbosity     = verbosity
+        self.genSNPs       = genSNPs
+        self.genIndels     = genIndels
+        self.options       = options
+        self.qualBinSize   = options.qualBinSize
 
     cdef void addVariantToList(self, Variant var):
         """
@@ -540,20 +527,20 @@ cdef class VariantCandidateGenerator(object):
         int refOffset -- If the read contains indels, we need to offset our reference position accordingly, by this much.
         int lenSeqToCheck -- The number of bases to check.
         """
-        cdef int index = 0
-        cdef int baseQual = 0
+        cdef int index     = 0
+        cdef int baseQual  = 0
         cdef int readIndex = 0
-        cdef int refIndex = 0
+        cdef int refIndex  = 0
         cdef char readChar
         cdef char refChar
 
         cdef bytes mSNPRef
         cdef bytes mSNPRead
 
-        cdef int misMatchStartRef = -1
-        cdef int misMatchEndRef = -1
+        cdef int misMatchStartRef  = -1
+        cdef int misMatchEndRef    = -1
         cdef int misMatchStartRead = -1
-        cdef int misMatchEndRead = -1
+        cdef int misMatchEndRead   = -1
         
         for index from 0 <= index < lenSeqToCheck:
 
@@ -569,10 +556,10 @@ cdef class VariantCandidateGenerator(object):
             #    logger.info("read len = %s. index = %s. read offset = %s. ref offset = %s" %(read.rlen, index, readOffset, refOffset))
 
             readIndex = index + readOffset
-            refIndex = (index + refOffset + readStart) - self.refSeqStart
-            readChar = readSeq[readIndex]
-            refChar = self.refSeq[refIndex]
-            baseQual = readQual[readIndex]
+            refIndex  = (index + refOffset + readStart) - self.refSeqStart
+            readChar  = readSeq[readIndex]
+            refChar   = self.refSeq[refIndex]
+            baseQual  = readQual[readIndex]
 
             assert baseQual >= 0, "Something is very wrong. Base qual is %s" %(baseQual)
             assert baseQual <= 93, "Something is very wrong. Base qual is %s" %(baseQual)
@@ -580,45 +567,40 @@ cdef class VariantCandidateGenerator(object):
             if readChar != refChar:
                 if readChar != 'N' and refChar != 'N' and baseQual >= self.minBaseQual:
                     if misMatchStartRef == -1:
-                        misMatchStartRef = refIndex
-                        misMatchEndRef = refIndex
+                        misMatchStartRef  = refIndex
+                        misMatchEndRef    = refIndex
                         misMatchStartRead = readIndex
-                        misMatchEndRead = readIndex
-
+                        misMatchEndRead   = readIndex
                     elif refIndex - misMatchEndRef <= minFlank:
-                        misMatchEndRef = refIndex
+                        misMatchEndRef  = refIndex
                         misMatchEndRead = readIndex
-
                     else:
-
                         if self.verbosity >= 3:
                             logger.debug("Splitting long mis-match into two variants at %s." %(misMatchStartRef+self.refSeqStart))
 
-                        mSNPRef = self.refSeq[misMatchStartRef: misMatchEndRef+1]
+                        mSNPRef  = self.refSeq[misMatchStartRef: misMatchEndRef+1]
                         mSNPRead = readSeq[misMatchStartRead: misMatchEndRead+1]
                         #logger.info("Adding MNP. Added = %s. removed = %s. pos = %s" %(mSNPRead, mSNPRef, misMatchStartRef + self.refSeqStart))
                         self.addVariantToList(Variant(self.rname, misMatchStartRef + self.refSeqStart, mSNPRef, mSNPRead, 1, PLATYPUS_VAR))
 
-                        misMatchStartRef = refIndex
-                        misMatchEndRef = refIndex
+                        misMatchStartRef  = refIndex
+                        misMatchEndRef    = refIndex
                         misMatchStartRead = readIndex
-                        misMatchEndRead = readIndex
-
+                        misMatchEndRead   = readIndex
             else:
-
                 # We have a mis-match sequence, and now we're past the end of it, as there are
                 # > minFlank matches at the end.
                 if misMatchStartRef != -1 and refIndex - misMatchEndRef > minFlank:
 
-                    mSNPRef = self.refSeq[misMatchStartRef: misMatchEndRef+1]
+                    mSNPRef  = self.refSeq[misMatchStartRef: misMatchEndRef+1]
                     mSNPRead = readSeq[misMatchStartRead: misMatchEndRead+1]
                     #logger.info("Adding MNP. Added = %s. removed = %s. pos = %s" %(mSNPRead, mSNPRef, misMatchStartRef + self.refSeqStart))
                     self.addVariantToList(Variant(self.rname, misMatchStartRef + self.refSeqStart, mSNPRef, mSNPRead, 1, PLATYPUS_VAR))
 
-                    misMatchStartRef = -1
-                    misMatchEndRef = -1
+                    misMatchStartRef  = -1
+                    misMatchEndRef    = -1
                     misMatchStartRead = -1
-                    misMatchEndRead = -1
+                    misMatchEndRead   = -1
 
         # Catch the last one... do I need to do this?
         if misMatchStartRef != -1:
@@ -635,28 +617,27 @@ cdef class VariantCandidateGenerator(object):
         nucleotides associated. For example, [(0, 1), (1, 2), (0, 1)] is a 1 base match, a 2 base insertion,
         and a 1 base match.
         """
-        cdef int readStart = read.pos
-        cdef int readLength = read.rlen
-        cdef int mapQ = read.mapq
-        cdef int flag = 0
-        cdef int length = 0
-        cdef int refOffset = 0
-        cdef int readOffset = 0
-        cdef int cigarIndex = 0
-        cdef int cigarLength = read.cigarLen
-        cdef char* readQual = read.qual
-        cdef char* readSeq = read.seq
+        cdef int readStart          = read.pos
+        cdef int readLength         = read.rlen
+        cdef int mapQ               = read.mapq
+        cdef int flag               = 0
+        cdef int length             = 0
+        cdef int refOffset          = 0
+        cdef int readOffset         = 0
+        cdef int cigarIndex         = 0
+        cdef int cigarLength        = read.cigarLen
+        cdef char* readQual         = read.qual
+        cdef char* readSeq          = read.seq
         cdef bytes insertedSequence = None
-        cdef bytes deletedSequence = None
+        cdef bytes deletedSequence  = None
         
         for cigarIndex from 0 <= cigarIndex < cigarLength:
 
-            flag = read.cigarOps[2*cigarIndex]
-            length = read.cigarOps[ (2*cigarIndex) + 1]
+            flag   = read.cigarOps[2*cigarIndex]
+            length = read.cigarOps[(2*cigarIndex) + 1]
 
             # An insertion take us further along the read, but not the reference
             if flag == self.CIGAR_I:
-
                 # Skip this insertion if it isn't flanked by a matching sequence >= minFlank
                 if cigarIndex > 0 and read.cigarOps[ (2*cigarIndex) -2] == self.CIGAR_M and read.cigarOps[ (2*cigarIndex)-1] >= self.minFlank:
                     pass
@@ -668,7 +649,7 @@ cdef class VariantCandidateGenerator(object):
 
                 insertedSequence = readSeq[readOffset : readOffset+length]
 
-                if insertedSequence.count("N") == 0 and self.genIndels:
+                if insertedSequence.count('N') == 0 and self.genIndels:
                     #logger.info("Adding insertion. Length = %s. Added = %s. removed = %s. pos = %s" %(length, insertedSequence, "", readStart + refOffset -1))
                     self.addVariantToList(Variant(self.rname, readStart+refOffset-1, "", insertedSequence, 1, PLATYPUS_VAR))
 
@@ -676,7 +657,6 @@ cdef class VariantCandidateGenerator(object):
 
             # A deletion take us further along the reference, but not the read
             elif flag == self.CIGAR_D:
-
                 # Skip this deletion if it isn't flanked by a matching sequence >= minFlank
                 if cigarIndex > 0 and read.cigarOps[2*cigarIndex-2] == self.CIGAR_M and read.cigarOps[2*cigarIndex-1] >= self.minFlank:
                     pass
@@ -701,14 +681,14 @@ cdef class VariantCandidateGenerator(object):
                 # Don't generate SNP candidates from matching sequences < minFlank
                 if flag == self.CIGAR_EQ or (length < self.minFlank and flag == self.CIGAR_M):
                     readOffset += length
-                    refOffset += length
+                    refOffset  += length
                     continue
 
                 if self.genSNPs:
                     self.getSnpCandidatesFromReadSegment(read, readSeq, readQual, readStart, readOffset, refOffset, length, self.minFlank)
 
                 readOffset += length
-                refOffset += length
+                refOffset  += length
 
             # Skipped region from the reference.
             elif flag == self.CIGAR_N:
