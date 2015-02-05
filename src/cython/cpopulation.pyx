@@ -151,18 +151,18 @@ cdef class Population:
         my_free(self.maxLogLikelihoods)
         my_free(self.EMLikelihoods)
         my_free(self.freqsPrimeByHapIndex)
-
+    
     cdef void computeVariantINFO(self):
         """
         """
         self.vcfInfo = vcfutils.vcfINFO(self.frequencies, self.variantPosteriors, self.genotypeCalls, self.genotypes, self.haplotypes, self.readBuffers, self.nHaplotypes, self.options, self.refFile)
-
+    
     cdef void computeVariantFILTER(self):
         """
         FILTER field for vcf output, two level dictionary of variant - info field - value
         """
         self.vcfFilter = vcfutils.vcfFILTER(self.genotypeCalls, self.haplotypes, self.vcfInfo, self.varsByPos, self.options)
-
+    
     cdef void reset(self):
         """
         Reset all relevant member variables of the population instance, so it is ready for re-use in the
@@ -193,7 +193,7 @@ cdef class Population:
         for genotypeIndex from 0 <= genotypeIndex < self.options.maxGenotypes:
             memset(self.haplotypeIndexes[genotypeIndex], 0, sizeof(int)*2)
             memset(self.goodnessOfFitValues[genotypeIndex], 0, sizeof(double)*self.nIndividuals)
-
+    
     cdef void setup(self, list variants, list haplotypes, list genotypes, int nInd, int verbosity, list readBuffers):
         """
         Constructor for the population caller. The initial loop over reads, calculating
@@ -458,7 +458,7 @@ cdef class Population:
 
     cdef double calculatePosterior(self, Variant var, int flatPrior=0):
         """
-        Calculate for ecah variant the posterior probability that that variant (in standard format)
+        Calculate for each variant the posterior probability that that variant (in standard format)
         is segregating in the population
         """
         cdef Haplotype hap
@@ -604,12 +604,12 @@ cdef class Population:
         for haplotype in self.haplotypes:
 
             for v in haplotype.variants:
-
+                
                 if v in done:
                     continue
 
                 posterior = self.calculatePosterior(v)
-
+                
                 if posterior >= self.options.minPosterior:
                     self.variantPosteriors[v] = posterior
 
@@ -714,7 +714,7 @@ cdef class Population:
 
         self.callGenotypes()
         self.computeVariantPosteriors()
-
+        
         if computeVCFFields != 0 and len(self.variantPosteriors.keys()) > 0:
             self.computeVariantINFO()
             self.computeVariantFILTER()
