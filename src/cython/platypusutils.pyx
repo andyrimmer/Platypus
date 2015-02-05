@@ -148,9 +148,7 @@ def getSampleNamesAndLoadIterators(bamFileNames, regions, options):
         
         # Always close the BAM file
         finally:
-            if options.fileCaching == 2:
-                bamFile.close()
-            elif options.fileCaching == 1 and bamFile._isBam():
+            if not options.fileCaching:
                 bamFile.close()
     
     return samples,samplesByID,samplesByBAM,bamFiles
@@ -492,15 +490,12 @@ cdef list loadBAMData(list bamFiles, bytes chrom, int start, int end, options, l
             
             try:
                 region = "%s:%s-%s" %(chrom, start, end)
-                readIterator = reader.fetch(region)
+                readIterator = reader.fetch( region )
             except Exception, e:
                 logger.warning(e.message)
                 logger.debug("No data could be retrieved for sample %s in file %s in region %s" %(sample, reader.filename, "%s:%s-%s" %(chrom, start, end)))
                 readBuffers.append(theReadBuffer)
-                if options.fileCaching == 2:
-                    reader.close()
-                elif options.fileCaching == 1 and reader._isBam():
-                    reader.close()
+                reader.close()
                 continue
             
             brokenMateCoords = []
@@ -559,10 +554,7 @@ cdef list loadBAMData(list bamFiles, bytes chrom, int start, int end, options, l
                             theReadBuffer.brokenMates.append(theRead)
             
             readBuffers.append(theReadBuffer)
-            if options.fileCaching == 2:
-                reader.close()
-            elif options.fileCaching == 1 and reader._isBam():
-                reader.close()
+            reader.close()
             
             # Need to release lock here when sharing BAM files
             if reader.lock is not None:
@@ -588,10 +580,7 @@ cdef list loadBAMData(list bamFiles, bytes chrom, int start, int end, options, l
             except Exception, e:
                 logger.warning(e.message)
                 logger.debug("No data could be retrieved for sample %s in file %s in region %s" %(sample, reader.filename, "%s:%s-%s" %(chrom, start, end)))
-                if options.fileCaching == 2:
-                    reader.close()
-                elif options.fileCaching == 1 and reader._isBam():
-                    reader.close()
+                reader.close()
                 continue
 
             brokenMateCoords = []
@@ -652,11 +641,8 @@ cdef list loadBAMData(list bamFiles, bytes chrom, int start, int end, options, l
                             rgID = NULL
                             theReadBuffer = buffersBySample[sampleThisRead]
                             theReadBuffer.brokenMates.append(theRead)
-            
-            if options.fileCaching == 2:
-                reader.close()
-            elif options.fileCaching == 1 and reader._isBam():
-                reader.close()
+        
+            reader.close()
         
             # Need to release lock here when sharing BAM files
             if reader.lock is not None:
@@ -808,13 +794,21 @@ cdef Variant leftNormaliseIndel(Variant variant, FastaFile refFile, int maxReadL
     Shift all indels as far to the left as possible. When this fails due to running out
     of sequence, then report the original position in the BAM.
     """
-    cdef int nAdded   = variant.nAdded
+    cdef int nAdded = variant.nAdded
     cdef int nRemoved = variant.nRemoved
-    
-    if nAdded == nRemoved or nAdded > 0 and nRemoved > 0:
-        # Only left normalise indels
+
+    # For SNPs, and multi-nucleotide substitutions, we don't need to do anything
+    if nAdded == 1 and nRemoved == 1:
         return variant
-    
+
+    # Don't try to left-normalise replacements
+    elif nAdded > 0 and nRemoved > 0 and nAdded != nRemoved:
+        return variant
+
+    # Don't try to left-normalise MNPs
+    elif nAdded > 1 and nRemoved > 1 and nAdded == nRemoved:
+        return variant
+
     # Hack. Leave variants alone if they occur at the extreme left end of the contigs, otherwise
     # we run out of sequence.
     if variant.refPos < 100:
@@ -822,8 +816,8 @@ cdef Variant leftNormaliseIndel(Variant variant, FastaFile refFile, int maxReadL
 
     # We look at the reference for this many bases either side of the variant, so that we can adjust its position
     # accordingly, if there are homopolymers etc.
-    cdef int window    = max(nAdded, nRemoved) + maxReadLength
-    cdef int seqMax    = refFile.refs[variant.refName].SeqLength - 1
+    cdef int window = max(nAdded, nRemoved) + maxReadLength
+    cdef int seqMax = refFile.refs[variant.refName].SeqLength - 1
     cdef int windowMin = max(1, variant.refPos - window)
     cdef int windowMax = min(variant.refPos + window, seqMax)
 
@@ -832,7 +826,7 @@ cdef Variant leftNormaliseIndel(Variant variant, FastaFile refFile, int maxReadL
 
     bytesHapSeq += variant.added
     bytesHapSeq += bytesRefSeq[(variant.refPos - windowMin + nRemoved) + 1:]
-    
+
     # This will invariably happen at the end of chromosomes, e.g. MT
     if bytesHapSeq[-1] != bytesRefSeq[-1] and windowMax != seqMax:
         raise StandardError, "Variant %s not correctly normalised. \nRef = %s\nHap = %s" %(variant, bytesRefSeq, bytesHapSeq)
@@ -843,10 +837,13 @@ cdef Variant leftNormaliseIndel(Variant variant, FastaFile refFile, int maxReadL
     cdef int lenRef = len(refSequence)
     cdef int lenHap = len(hapSequence)
 
-    cdef int index        = 0
+    cdef int index = 0
     cdef int minLenRefHap = 0
-    
-    minLenRefHap = lenRef if lenRef < lenHap else lenHap
+
+    if lenRef < lenHap:
+        minLenRefHap = lenRef
+    else:
+        minLenRefHap = lenHap
 
     # First loop forwards to find out how far to the right we can push it
     for index from 0 <= index < minLenRefHap:
@@ -862,13 +859,13 @@ cdef Variant leftNormaliseIndel(Variant variant, FastaFile refFile, int maxReadL
     cdef int hapIndex = 0
     cdef int refIndex = 0
 
-    cdef bytes newAdded   = bytes("")
+    cdef bytes newAdded = bytes("")
     cdef bytes newRemoved = bytes("")
 
-    cdef int effecctSize   = 0
-    cdef int insStart      = 0
-    cdef int delStart      = 0
-    cdef int lenNewAdded   = 0
+    cdef int effecctSize = 0
+    cdef int insStart = 0
+    cdef int delStart = 0
+    cdef int lenNewAdded = 0
     cdef int lenNewRemoved = 0
 
     cdef Variant newVar
@@ -885,31 +882,34 @@ cdef Variant leftNormaliseIndel(Variant variant, FastaFile refFile, int maxReadL
         # If the sequences are the same at this point, keep going.
         # Once we hit a difference, use that position.
         if hapChar != refChar:
-            
-            newPos = windowMin + lenRef - index - nRemoved - 1
-            
+
             if nAdded > 0:
+                newPos = windowMin + (lenRef - 1) - index
                 insStart = newPos - windowMin + 1 # Position of first inserted base in haplotype sequence string
+
+                #if insStart > len(hapSequence) or insStart + nAdded > len(hapSequence):
+                #    logger.info("Shit. len hap seq = %s. insStart = %s. nAdded = %s. nRemoved = %s. newAdded = %s" %(len(hapSequence), insStart, nAdded, nRemoved, hapSequence[insStart: insStart + nAdded]))
+
                 newAdded = hapSequence[insStart: insStart + nAdded]
 
             if nRemoved > 0:
-                delStart   = newPos - windowMin + 1 # Position of first deleted base in reference sequence
+                newPos = windowMin + (lenRef - 1) - index - (nRemoved)
+                delStart = newPos - windowMin + 1 # Position of first deleted base in reference sequence
                 newRemoved = refSequence[delStart: delStart + nRemoved]
-            
+
             if newPos > variant.refPos:
                 logger.error("Old pos = %s new pos = %s" %(variant.refPos, newPos))
-                logger.error(lenRef)
                 logger.error(variant)
                 logger.error(refSequence)
                 logger.error(hapSequence)
-            
+
             newVar = Variant(variant.refName, newPos, newRemoved, newAdded, variant.nSupportingReads, variant.varSource)
-            newVar.bamMinPos  = newPos
-            newVar.bamMaxPos  = maxPos
-            newVar.bamAdded   = variant.bamAdded
+            newVar.bamMinPos = newPos
+            newVar.bamMaxPos = maxPos
+            newVar.bamAdded = variant.bamAdded
             newVar.bamRemoved = variant.bamRemoved
 
-            lenNewAdded   = len(newAdded)
+            lenNewAdded = len(newAdded)
             lenNewRemoved = len(newRemoved)
 
             if lenNewAdded != nAdded or lenNewRemoved != nRemoved:

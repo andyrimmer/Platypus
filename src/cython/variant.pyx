@@ -121,10 +121,7 @@ cdef class Variant(object):
         self.nAdded = len(added)
         self.nRemoved = len(removed)
         self.varSource = varSource
-        
-        # self.minRefPos = refPos
-        # self.maxRefPos = refPos + self.nRemoved - 1   # zero-based closed-segment convention
-        
+
         # SNP
         if self.nRemoved == 1 and self.nAdded == 1:
             self.minRefPos = refPos

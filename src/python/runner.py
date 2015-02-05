@@ -531,7 +531,7 @@ def callVariants(args):
     parser.add_option("--alignScoreFile", dest="alignScoreFile", help="If this is set to a string, then alignment scores of reads to haplotypes will be writen to this file.", type='string', action='store', default="")
     parser.add_option("--compressReads", dest="compressReads", help="If this is set to 1, then all reads will be compressed, and decompressd on demand. This will slow things down, but reduce memory usage.", type='int', action='store', default=0)
     parser.add_option("--qualBinSize", dest="qualBinSize", help="This sets the granularity used when compressing quality scores. If > 1 then quality compression is lossy", type='int', action='store', default=1)
-    parser.add_option("--fileCaching", dest="fileCaching", help="Sets file caching level. 0: BAM/CRAM files cached. 1: CRAM files cached. 2: No file caching.", type=int, action='store', default=0)
+    parser.add_option("--fileCaching", dest="fileCaching", help="Sets if BAM index files should be reloaded rather than cached.", type=int, action='store', default=1)
 
     # Calling Parameters
     parser.add_option("--maxSize", dest="maxSize", help="Largest variant to consider", action='store', type='int', default=1500)

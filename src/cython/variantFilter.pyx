@@ -62,26 +62,33 @@ cdef list padVariants(list sortedVariants, FastaFile refFile, bytes chrom):
     """
     cdef Variant thisVar = None
     cdef Variant nextVar = None
-    cdef bytes padding   = None
+    cdef bytes padding = None
     cdef list paddedVars = []
-    
+
     for nextVar in sortedVariants:
+
+        #logger.info("Next var = %s" %(nextVar))
+
         if thisVar is None:
             thisVar = nextVar
             paddedVars.append(thisVar)
         else:
+
             # Overlapping variants. These need to be padded
+            #if thisVar.maxRefPos >= nextVar.minRefPos and thisVar.refPos < nextVar.refPos and thisVar.nAdded == thisVar.nRemoved and nextVar.nAdded == nextVar.nRemoved:
             if thisVar.maxRefPos >= nextVar.minRefPos and thisVar.refPos < nextVar.refPos:
-                padding           = refFile.getSequence(chrom, thisVar.minRefPos, nextVar.minRefPos)
+                #logger.info("Padding variant %s to fit with %s" %(nextVar, thisVar))
+                padding = refFile.getSequence(chrom, thisVar.minRefPos, nextVar.minRefPos)
                 nextVar.minRefPos = thisVar.minRefPos
-                nextVar.refPos    = thisVar.refPos
-                nextVar.removed   = padding + nextVar.removed
-                nextVar.added     = padding + nextVar.added
-                nextVar.nAdded    = len(nextVar.added)
-                nextVar.nRemoved  = len(nextVar.removed)
+                nextVar.refPos = thisVar.refPos
+                nextVar.removed = padding + nextVar.removed
+                nextVar.added = padding + nextVar.added
+                nextVar.nAdded = len(nextVar.added)
+                nextVar.nRemoved = len(nextVar.removed)
                 nextVar.hashValue = -1
                 paddedVars.append(nextVar)
                 #logger.info("Done padding. Now vars are %s and %s" %(nextVar, thisVar))
+
             # No overlap
             else:
                 paddedVars.append(nextVar)

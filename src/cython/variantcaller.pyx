@@ -85,9 +85,9 @@ cdef void callVariantsInWindow(dict window, options, FastaFile refFile, list rea
     cdef int qualBinSize = options.qualBinSize
 
     cdef Haplotype refHaplotype = Haplotype(chrom, windowStart, windowEnd, (), refFile, options.rlen, options)
-    
+
     pop.reset()
-    
+
     for theReadBuffer in readBuffers:
         theReadBuffer.setWindowPointers(windowStart, windowEnd, start, end, refSeq, qualBinSize)
         nReadsThisWindow += (theReadBuffer.reads.windowEnd - theReadBuffer.reads.windowStart)
@@ -111,7 +111,7 @@ cdef void callVariantsInWindow(dict window, options, FastaFile refFile, list rea
             #logger.debug("There are %s variants before filtering" %(len(window['variants'])))
             filterVariantsByCoverage(window, chrom, windowStart, windowEnd, refFile, options, variants, refHaplotype, readBuffers)
             #logger.debug("There are %s variants after filtering" %(len(window['variants'])))
-    
+
     # Create haplotype list using all data from all samples. Always consider the reference haplotype.
     cdef list allVarHaplotypes = variantFilter.getHaplotypesInWindow(window, nReadsThisWindow, refFile, options.maxReads, options.minMapQual, options.minBaseQual, options.maxHaplotypes, options.maxVariants, options.rlen, options.verbosity, readBuffers, options)
     #cdef list allUniqueHaplotypes = list(set([refHaplotype] + allVarHaplotypes))
@@ -134,7 +134,7 @@ cdef void callVariantsInWindow(dict window, options, FastaFile refFile, list rea
             #    logger.debug(hap.haplotypeSequence)
 
             return
-    
+
     pop.setup(variants, allUniqueHaplotypes, allGenotypes, options.nInd, options.verbosity, readBuffers)
 
     cdef int maxEMIterations = 100
@@ -273,7 +273,9 @@ cdef list mergeHaplotypes(list haplotypes, FastaFile refFile):
     cdef double priorOne = 1.0
     cdef double priorTwo = 1.0
     cdef Variant theVar
-    
+
+    #logger.debug("Printing un-merged haplotypes")
+
     for hap in sortedHaps:
         #logger.debug(hap)
 
@@ -387,7 +389,7 @@ cdef list generateVariantsInRegion(bytes chrom, int start, int end, bamFiles, Fa
             #varCandGen.addCandidatesFromReads(theReadBuffer.badReads.array, theReadBuffer.badReads.array + theReadBuffer.badReads.getSize())
             if options.verbosity >= 3:
                 logger.debug("Processed sample %s. Detected %s unfiltered variant candidates so far" %(theReadBuffer.sample, len(varCandGen.variantHeap)))
-            
+
             ## Filter by per-sample coverage on each file. No variant should be kept unless it has >= coverageThreshold supporting reads
             ## in at least one sample
             for key,v in varCandGen.variantHeap.iteritems():
@@ -405,7 +407,7 @@ cdef list generateVariantsInRegion(bytes chrom, int start, int end, bamFiles, Fa
 
             if options.verbosity >= 3:
                 logger.debug("This reduces to %s candidates after coverage-filtering" %(len(varCandGen.variantHeap)))
-        
+
         # Add candidates from all samples to list
         rawBamVariants.extend(allSampleVarCandGen.getCandidates(0))
 
@@ -453,11 +455,11 @@ cdef list generateVariantsInRegion(bytes chrom, int start, int end, bamFiles, Fa
             #logger.debug("Assembling region %s:%s-%s (ref seq %s:%s-%s)" %(chrom, assemStart, assemEnd, chrom, refStart, refEnd))
             assemblerVariants.extend(assembleReadsAndDetectVariants(chrom, assemStart, assemEnd, refStart, refEnd, readBuffers, refSequence, options))
             #logger.debug("Variants Found by assembler in region are %s" %(assemblerVariants))
-    
+
     cdef list allVarCands = rawBamVariants + vcfFileVariants + assemblerVariants
     cdef list leftNormVars = sorted( [leftNormaliseIndel(v, refFile, maxReadLength) for v in allVarCands] )
     cdef list filteredVariants = filterVariants(leftNormVars, refFile, maxReadLength, options.minReads, options.maxSize, options.verbosity, options)
-    
+
     # Need to work out how to consistently report these.
     logger.debug("There are %s filtered variant candidates in reads which overlap the region %s:%s-%s" %(len(filteredVariants), chrom, start, end))
 
