@@ -1211,14 +1211,14 @@ cdef dict vcfINFO(double* haplotypeFrequencies, dict variantPosteriors, list gen
 
             nReadsPerSample.append(nReadsThisSample)
             nVarReadsPerSample.append(nVarReadsThisSample)
-
+        
         # Compute per-sample strand-bias
         INFO[variant]['ABPV'] = [round(computeAlleleBiasPValue(TC_ab, TR_ab), 2)]
         INFO[variant]['SbPval'] = [round(computeStrandBiasPValue(TCF_sb, TCR_sb, NF_sb, NR_sb), 2)]
         INFO[variant]['TR'] = [TR]
         INFO[variant]['NF'] = [NF]
         INFO[variant]['NR'] = [NR]
-
+        
         if TR > 0:
             qual = float(INFO[variant]['PP'][0])
             if qual > 2500:
