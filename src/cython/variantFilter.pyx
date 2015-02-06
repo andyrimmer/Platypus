@@ -72,7 +72,7 @@ cdef list padVariants(list sortedVariants, FastaFile refFile, bytes chrom):
         else:
             # Overlapping variants. These need to be padded
             if thisVar.maxRefPos >= nextVar.minRefPos and thisVar.refPos < nextVar.refPos:
-                padding           = refFile.getSequence(chrom, thisVar.minRefPos, nextVar.minRefPos)
+                padding           = refFile.getSequence(chrom, thisVar.minRefPos+1, nextVar.minRefPos+1)
                 nextVar.minRefPos = thisVar.minRefPos
                 nextVar.refPos    = thisVar.refPos
                 nextVar.removed   = padding + nextVar.removed
@@ -85,12 +85,12 @@ cdef list padVariants(list sortedVariants, FastaFile refFile, bytes chrom):
             # No overlap
             else:
                 paddedVars.append(nextVar)
-
+            
             # Always keep 'thisVar' as the variant which extends furthest. Variants are sorted by
             # minRefPos, not maxRefPos.
             if nextVar.maxRefPos > thisVar.maxRefPos:
                 thisVar = nextVar
-
+    
     return paddedVars
 
 ###################################################################################################

@@ -460,8 +460,9 @@ cdef list generateVariantsInRegion(bytes chrom, int start, int end, bamFiles, Fa
     
     # Need to work out how to consistently report these.
     logger.debug("There are %s filtered variant candidates in reads which overlap the region %s:%s-%s" %(len(filteredVariants), chrom, start, end))
-
+    
     cdef list paddedVariants = padVariants(filteredVariants, refFile, chrom)
+    
     return paddedVariants
 
 ###################################################################################################
