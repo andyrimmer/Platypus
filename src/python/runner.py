@@ -575,7 +575,7 @@ def callVariants(args):
 
     # Variant-calling Filter Parameters
     parser.add_option("--maxGOF", dest="maxGOF", help="Max allowed value for goodness-of-fit test. Higher than this triggers GOF filter (Phred-scaled).", action='store', type='int', default=30)
-    parser.add_option("--minPosterior", dest="minPosterior", help="Only variants with posterior >= this will be outpu to the VCF. Value is a Phred-score.", action='store', type='int', default=5)
+    parser.add_option("--minPosterior", dest="minPosterior", help="Only variants with posterior >= this will be output to the VCF. Value is a Phred-score.", action='store', type='int', default=5)
     parser.add_option("--sbThreshold", dest="sbThreshold", help="P-value for strand-bias filtering..", action='store', type='float', default=1e-3)
     parser.add_option("--scThreshold", dest="scThreshold", help="Cut-off for SC filter.", action='store', type='float', default=0.95)
     parser.add_option("--abThreshold", dest="abThreshold", help="P-value for allele-bias filtering..", action='store', type='float', default=1e-3)

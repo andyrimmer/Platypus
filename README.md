@@ -14,6 +14,26 @@ PREREQUISITES: This developmental version of Platypus requires htslib. htslib is
 
 Find the development version of htslib at: https://github.com/samtools/htslib. *DO NOT* use the 1.1 release version.
 
-To build and install htslib, cd into htslib source and type 'make install'. This will install htslib under /usr/local/ (see note below).
+To build and install htslib, cd into htslib source and type 'make install'. This will install htslib under /usr/local/ (see note below). To install htslib in any other directory use 'make install prefix=/path/to/dir'.
 
-NOTE: htslib should be installed in a standard location (e.g. /usr/local/). If not installed in a standard location, you will need to set your library path (e.g. 'export LD_LIBRARY_PATH="/path/to/htslib" on linux, 'export DYLD_FALLBACK_LIBRARY_PATH="/path/to/htslib" on mac).
+NOTE: htslib should be installed in a standard location (e.g. /usr/local/). If not installed in a standard location, you will need to set your library paths:
+
+For linux:
+    
+    export C_INCLUDE_PATH=/path/to/dir/include
+    export LIBRARY_PATH=/path/to/dir/lib (only for making)
+    export LD_LIBRARY_PATH=/path/to/dir/lib
+
+Note the '/include' and '/lib' sub-directories. e.g. if you installed htslib under /Users/me/htslib then set 
+
+    C_INCLUDE_PATH=/Users/me/htslib/include
+    export LIBRARY_PATH=/Users/me/htslib/lib
+    export LD_LIBRARY_PATH=/Users/me/htslib/lib
+
+htslib will automatically make the 'include' and 'lib' directories on install.
+
+For OSX:
+
+    export C_INCLUDE_PATH=/path/to/dir/include
+    export LIBRARY_PATH=/path/to/dir/lib (only for making)
+    export DYLD_FALLBACK_LIBRARY_PATH=/path/to/dir/lib
