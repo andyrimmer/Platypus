@@ -26,7 +26,7 @@ For linux:
 
 Note the '/include' and '/lib' sub-directories. e.g. if you installed htslib under /Users/me/htslib then set 
 
-    C_INCLUDE_PATH=/Users/me/htslib/include
+    export C_INCLUDE_PATH=/Users/me/htslib/include
     export LIBRARY_PATH=/Users/me/htslib/lib
     export LD_LIBRARY_PATH=/Users/me/htslib/lib
 
