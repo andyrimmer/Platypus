@@ -387,8 +387,12 @@ cdef int checkAndTrimRead(cAlignedRead* theRead, cAlignedRead* theLastRead, int 
 
     # Check if this read is actually a duplicate. TODO: store library tag and check.
     if filteredReadCountsByType[DUPLICATE] != -1:
-
-        if theLastRead != NULL:
+        
+        if Read_IsDuplicate(theRead):
+            filteredReadCountsByType[DUPLICATE] += 1
+            Read_SetQCFail(theRead)
+            return False
+        elif theLastRead != NULL:
             if theRead.pos == theLastRead.pos and theRead.rlen == theLastRead.rlen:
 
                 # For paired reads, check mate's position

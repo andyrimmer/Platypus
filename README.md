@@ -10,9 +10,7 @@ python bin/Platypus.py --bamFiles=BAM.bam --refFile=REF.fa --output=variants.vcf
 Platypus has been tested with Python 2.6 and 2.7, and requires Cython 0.20.2 or later
 to build.
 
-PREREQUISITES: This developmental version of Platypus requires htslib. htslib is not currently in a very stable state, in particular the 1.1 release version has a bug that causes memory problems when using CRAM. This should not affect BAM files. htslib will be included in the next release version of Platypus.
-
-Find the development version of htslib at: https://github.com/samtools/htslib. *DO NOT* use the 1.1 release version.
+PREREQUISITES: Platypus requires htslib 1.2.1 or greater. htslib can be downloaded from the htslib website http://www.htslib.org/download/.
 
 To build and install htslib, cd into htslib source and type 'make install'. This will install htslib under /usr/local/ (see note below). To install htslib in any other directory use 'make install prefix=/path/to/dir'.
 
