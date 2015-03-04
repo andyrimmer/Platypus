@@ -10,3 +10,4 @@ cdef void outputCallToVCF(dict varsByPos, dict vcfInfo, dict vcfFilter, list hap
 cdef tuple refAndAlt(char* chrom, int POS, list variants, FastaFile refFile)
 cdef dict vcfINFO(double* haplotypeFrequencies, dict variantPosteriors, list genotypeCalls, list genotypes, list haplotypes, list readBuffers, int nHaplotypes, options, FastaFile refFile)
 cdef dict vcfFILTER(list genotypeCalls, list haplotypes, dict vcfInfo, dict varsByPos, options)
+cdef void outputHLACallToVCF(list haplotypes, list readBuffers, int nIndividuals, FastaFile refFile, outputFile, options, int windowStart, int windowEnd)

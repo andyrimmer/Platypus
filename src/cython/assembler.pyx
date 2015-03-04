@@ -257,13 +257,13 @@ cdef inline char* Node_GetPrefix(Node* theNode):
 ###################################################################################################
 
 @cython.profile(False)
-cdef inline int nodePosComp(void* x, void* y):
+cdef inline int nodePosComp(const void* x, const void* y):
     """
     Comparison function for Node structs, for use in qsort, to sort Nodes by their
     positions.
     """
-    cdef Node** nodeOne = <Node**>(x)
-    cdef Node** nodeTwo = <Node**>(y)
+    cdef const Node** nodeOne = <const Node**>(x)
+    cdef const Node** nodeTwo = <const Node**>(y)
 
     # Sort by position
     return  nodeOne[0].position - nodeTwo[0].position
@@ -924,7 +924,7 @@ cdef int detectCyclesInGraph(DeBruijnGraph* theGraph, double minWeight):
                     break
 
     logger.debug("nNodes = %s. nFilledBuckets = %s. mean entries/bucket = %s" %(nNodes, nFilledBuckets, float(nEntriesThisBucket)/nFilledBuckets))
-    qsort(allNodes, nNodes, sizeof(Node*), nodePosComp)
+    qsort(<void*>allNodes, nNodes, sizeof(Node*), nodePosComp)
 
     for i in range(nNodes):
         thisNode = allNodes[i]
@@ -944,7 +944,7 @@ cdef int detectCyclesInGraph(DeBruijnGraph* theGraph, double minWeight):
         if thisNode.dfsColour == 'w':
             thisNode.dfsColour = 'g'
         elif thisNode.dfsColour == 'g':
-            thisNode.dfsColour == 'b'
+            thisNode.dfsColour = 'b'
         else:
             pass
 

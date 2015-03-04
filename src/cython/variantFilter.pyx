@@ -650,3 +650,254 @@ cdef list getHaplotypesInWindow(dict window, int nReads, FastaFile refFile, int 
     return getFilteredHaplotypes(window, windowChr, windowStart, windowEnd, refFile, options, variants, refHaplotype, readBuffers)
 
 ###################################################################################################
+
+cdef list getAllHLAHaplotypesInRegion(bytes chrom, int windowStart, int windowEnd, FastaFile refFile, options, list variants, Haplotype refHaplotype, list readBuffers):
+
+    """
+    get all haplotypes in a window
+    """
+    cdef Haplotype hap
+    cdef Variant tempVar, thisVar
+    cdef tuple varThisHap
+    cdef tuple varsThisHap2
+    cdef tuple varsFromBothSets
+    cdef list allHaps = []
+    cdef list hapsByBestScore = []
+    cdef list tempOldHaps = []
+    cdef double bestScoreThisHap = 0.0
+    cdef double scoreThisHapAndSample = 0.0
+    cdef int originalMaxHaplotypes = options.originalMaxHaplotypes - 1 # Ref will be added later
+    cdef int maxHaplotypes = options.maxHaplotypes - 1 # Ref will be added later
+    cdef int nVarsInHap = 0
+    cdef int maxReadLength = options.rlen
+    cdef int nVars = len(variants)
+    cdef int varChunkSize = 1 # How many vars to process in one go?
+    cdef int nTempOldHaps = 0
+    cdef int nValidHaps = 0
+    cdef int verbosity = options.verbosity
+    cdef int windowSize = windowEnd - windowStart
+    cdef int targetCoverage = options.coverageSamplingLevel
+    cdef DiploidGenotype gt = DiploidGenotype(refHaplotype, refHaplotype)
+
+    cdef list assemblerVars = []
+    cdef list assemblerHaps = []
+    cdef list outputHaps = []
+    cdef int nAssemblerVars = 0   
+
+    cdef int nHaps = 0
+    cdef Haplotype thisHap
+    cdef Haplotype bestHap
+    cdef int nHapsProcessed = 0
+
+    for tempVar in variants:
+        if tempVar.varSource == FILE_VAR :
+             hap = Haplotype(chrom, windowStart, windowEnd, (tempVar, ), refFile, maxReadLength, options)
+             allHaps.append(hap)
+    nHaps = len(allHaps)
+
+    # If nVar is small, or we've already checked, and the number of valid haplotypes is less than the max, return all combinations
+    # Otherwise, we need to do some filtering. 
+    maxHaplotypes = 150
+    if nHaps <= maxHaplotypes :
+        return allHaps
+    else:
+        while nHapsProcessed < nHaps:
+            thisHap = allHaps[nHapsProcessed]
+            tempOldHaps = sorted(hapsByBestScore)
+            nTempOldHaps = len(tempOldHaps)
+            
+            gt.hap2 = thisHap
+            bestScoreThisHap = computeBestScoreForHaplotype(readBuffers, thisHap)#computeBestScoreForGenotype(readBuffers, gt, windowSize, targetCoverage)
+            if len(hapsByBestScore) < originalMaxHaplotypes:
+                heappush(hapsByBestScore, (bestScoreThisHap, thisHap))
+            else:
+                heappushpop(hapsByBestScore, (bestScoreThisHap, thisHap))
+            nHapsProcessed += 1
+
+        for index,(score, thisHap) in enumerate(sorted(hapsByBestScore, reverse=True)):
+            if index < maxHaplotypes/2:
+                outputHaps.append(thisHap)
+            else:
+                break
+
+        (score, bestHap) = sorted(hapsByBestScore, reverse=True)[0]
+        gt.hap1 = bestHap
+        nHapsProcessed = 0
+
+        while nHapsProcessed < nHaps:
+            thisHap = allHaps[nHapsProcessed]
+            gt.hap2 = thisHap
+            bestScoreThisHap = computeBestScoreForGenotype(readBuffers, gt, windowSize, targetCoverage)
+            
+            if len(hapsByBestScore) < originalMaxHaplotypes:
+                heappush(hapsByBestScore, (bestScoreThisHap, thisHap))
+            else:
+                heappushpop(hapsByBestScore, (bestScoreThisHap, thisHap))
+            nHapsProcessed += 1
+  
+    for index,(score, thisHap) in enumerate(sorted(hapsByBestScore, reverse=True)):
+        if index < maxHaplotypes/2:
+            outputHaps.append(thisHap)
+        else:
+            break
+
+    return outputHaps
+
+###################################################################################################
+cdef  Variant normaliseVar(Variant thisVar):
+        """
+        Trimming leading and trailing bases of the variants
+        """
+         
+        if thisVar.nRemoved ==1:
+            return thisVar
+        #Trimming leading bases
+        cdef char* added = thisVar.added
+        cdef char* removed = thisVar.removed
+        cdef int refPos = thisVar.refPos
+        while  len(added) >0 and len(removed)>0 and removed[0] == added[0]:
+            added +=1
+            removed +=1
+            refPos +=1
+           
+        #Trimming trailing bases
+        while  len(added) >0 and len(removed)>0 and removed[len(removed)-1] == added[len(added)-1]:
+            added[len(added)-1] = '\0'
+            removed[len(removed)-1] = '\0'
+
+        return Variant(thisVar.refName, refPos, removed, added, thisVar.nSupportingReads, thisVar.varSource)
+###################################################################################################
+cdef  Variant trimLongVar(Variant thisVar, int windowStart, int windowEnd):
+        """
+        Trimming leading and trailing bases of the variants
+        """
+         
+        if thisVar.nRemoved ==1:
+            return thisVar
+        #Trimming leading bases
+        cdef char* added = thisVar.added
+        cdef char* removed = thisVar.removed
+        cdef int refPos = thisVar.refPos
+        cdef int diff = 0
+        #trim at the beginning
+        if len(added) == len(removed):
+            if  refPos + len(removed) > windowEnd:
+                diff =  refPos + len(removed) - windowEnd
+                added[len(added) - diff] = '\0'
+                removed[len(removed) - diff] = '\0'
+            if refPos < windowStart:
+                diff = windowStart - refPos
+                added += diff
+                removed += diff  
+        while  len(added) >0 and len(removed)>0 and removed[0] == added[0]:
+            added +=1
+            removed +=1
+            refPos +=1
+           
+        #Trimming trailing bases
+        while  len(added) >0 and len(removed)>0 and removed[len(removed)-1] == added[len(added)-1]:
+            added[len(added)-1] = '\0'
+            removed[len(removed)-1] = '\0'
+
+        return Variant(thisVar.refName, refPos, removed, added, thisVar.nSupportingReads, thisVar.varSource)
+###################################################################################################
+cdef list getAllAssemblerHaplotypesInRegion(bytes chrom, int windowStart, int windowEnd, FastaFile refFile, options, list variants, Haplotype refHaplotype, list readBuffers):
+
+    """
+    get all haplotypes in a window
+    """
+    cdef Haplotype hap
+    cdef Variant tempVar, thisVar
+    cdef tuple varThisHap
+    cdef tuple varsThisHap2
+    cdef tuple varsFromBothSets
+    cdef list allHaps = []
+    cdef list hapsByBestScore = []
+    cdef list tempOldHaps = []
+    cdef double bestScoreThisHap = 0.0
+    cdef double scoreThisHapAndSample = 0.0
+    cdef int originalMaxHaplotypes = options.originalMaxHaplotypes - 1 # Ref will be added later
+    cdef int maxHaplotypes = options.maxHaplotypes - 1 # Ref will be added later
+    cdef int nVarsInHap = 0
+    cdef int maxReadLength = options.rlen
+    cdef int nVars = len(variants)
+    cdef int varChunkSize = 1 # How many vars to process in one go?
+    cdef int nTempOldHaps = 0
+    cdef int nValidHaps = 0
+    cdef int verbosity = options.verbosity
+    cdef int windowSize = windowEnd - windowStart
+    cdef int targetCoverage = options.coverageSamplingLevel
+    cdef DiploidGenotype gt = DiploidGenotype(refHaplotype, refHaplotype)
+
+    cdef list assemblerVars = []
+    cdef list assemblerHaps = []
+    cdef list outputHaps = []
+    cdef int nAssemblerVars = 0   
+
+    cdef int nHaps = 0
+    cdef Haplotype thisHap
+    cdef Haplotype bestHap
+    cdef int nHapsProcessed = 0
+
+    for tempVar in variants:
+        if tempVar.varSource == ASSEMBLER_VAR:
+            thisVar = trimLongVar(tempVar, windowStart, windowEnd) 
+            assemblerVars.append(thisVar)
+
+    nAssemblerVars = len(assemblerVars)
+    #Generate all haplotypes in the region from two sources 
+    for nVarsInHap from 1<= nVarsInHap <=nAssemblerVars:
+        for varsThisHap in combinations(assemblerVars, nVarsInHap):
+            if isHaplotypeValid(varsThisHap):       
+                hap = Haplotype(chrom, windowStart, windowEnd, varsThisHap, refFile, maxReadLength, options)
+                assemblerHaps.append(hap)
+                
+    allHaps.extend(assemblerHaps)
+    nHaps = len(allHaps)
+    # If nVar is small, or we've already checked, and the number of valid haplotypes is less than the max, return all combinations
+    # Otherwise, we need to do some filtering. 
+    if nHaps <= maxHaplotypes:
+        return allHaps
+    else:
+        while nHapsProcessed < nHaps:
+            thisHap = allHaps[nHapsProcessed]
+            tempOldHaps = sorted(hapsByBestScore)
+            nTempOldHaps = len(tempOldHaps)
+            gt.hap2 = thisHap
+            bestScoreThisHap = computeBestScoreForHaplotype(readBuffers, thisHap)#computeBestScoreForGenotype(readBuffers, gt, windowSize, targetCoverage)
+            if len(hapsByBestScore) < originalMaxHaplotypes:
+                heappush(hapsByBestScore, (bestScoreThisHap, thisHap))
+            else:
+                heappushpop(hapsByBestScore, (bestScoreThisHap, thisHap))
+            nHapsProcessed += 1
+
+        for index,(score, thisHap) in enumerate(sorted(hapsByBestScore, reverse=True)):
+            if index < maxHaplotypes/2:
+                outputHaps.append(thisHap)
+            else:
+                break
+
+        (score, bestHap) = sorted(hapsByBestScore, reverse=True)[0]
+        gt.hap1 = bestHap
+        nHapsProcessed = 0
+
+        while nHapsProcessed < nHaps:
+            thisHap = allHaps[nHapsProcessed]
+            gt.hap2 = thisHap
+            bestScoreThisHap = computeBestScoreForGenotype(readBuffers, gt, windowSize, targetCoverage)
+            
+            if len(hapsByBestScore) < originalMaxHaplotypes:
+                heappush(hapsByBestScore, (bestScoreThisHap, thisHap))
+            else:
+                heappushpop(hapsByBestScore, (bestScoreThisHap, thisHap))
+            nHapsProcessed += 1
+  
+    for index,(score, thisHap) in enumerate(sorted(hapsByBestScore, reverse=True)):
+        if index < maxHaplotypes/2:
+            outputHaps.append(thisHap)
+        else:
+            break
+
+    return outputHaps
+
+###################################################################################################

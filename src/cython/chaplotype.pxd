@@ -21,6 +21,7 @@ cdef class Haplotype:
         int maxVarPos
         tuple variants
         bytes haplotypeSequence
+        bytes shortHaplotypeSequence
         char* cHaplotypeSequence
         FastaFile refFile
         object options
@@ -28,12 +29,14 @@ cdef class Haplotype:
         int lenCache
         int lastIndividualIndex
         bytes referenceSequence
+        bytes shortReferenceSequence
+        Variant longVar
         int hash
         int hapLen
         int verbosity
         int endBufferSize
         char* cHomopolQ
-        short* localGapOpen
+        char* localGapOpen
         short* hapSequenceHash # For local re-mapping of reads to haplotype
         short* hapSequenceNextArray # same
         int* mapCounts # Store counts when mapping read to this haplotype
@@ -42,6 +45,7 @@ cdef class Haplotype:
         double alignSingleRead(self, cAlignedRead* theRead, int useMapQualCap)
         char* getReferenceSequence(self, prefix=*)
         char* getMutatedSequence(self)
+        char* getShortHaplotypeSequence(self)
         dict vcfINFO(self)
         bytes getSequenceContext(self, Variant variant)
         int homopolymerLengthForOneVariant(self, Variant variant)

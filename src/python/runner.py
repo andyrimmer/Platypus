@@ -528,7 +528,8 @@ def callVariants(args):
     parser.add_option("--nCPU", dest="nCPU", help="Number of processors to use", action='store', type='int', default=1)
     parser.add_option("--parseNCBI", dest="parseNCBI", help="", type=int, action='store', default=0)
     parser.add_option("--longHaps", dest="longHaps", help="If this is set to 1, then don't trim replacement variants from input VCFs.", type='int', action='store', default=0)
-    parser.add_option("--alignScoreFile", dest="alignScoreFile", help="If this is set to a string, then alignment scores of reads to haplotypes will be writen to this file.", type='string', action='store', default="")
+    parser.add_option("--alignScoreFile", dest="alignScoreFile", help="If this is set to a string, then alignment scores of reads to haplotypes will be writen to this file. This only work when --HLATyping flag is on", type='string', action='store', default="")
+    parser.add_option("--HLATyping", dest="HLATyping", help="If this is set to 1, then run HLA genotyping mode which require a source file containing HLA haplotypes", type='int', action='store', default=0)
     parser.add_option("--compressReads", dest="compressReads", help="If this is set to 1, then all reads will be compressed, and decompressd on demand. This will slow things down, but reduce memory usage.", type='int', action='store', default=0)
     parser.add_option("--qualBinSize", dest="qualBinSize", help="This sets the granularity used when compressing quality scores. If > 1 then quality compression is lossy", type='int', action='store', default=1)
     parser.add_option("--fileCaching", dest="fileCaching", help="Sets file caching level. 0: BAM/CRAM files cached. 1: CRAM files cached. 2: No file caching.", type=int, action='store', default=0)
@@ -572,11 +573,10 @@ def callVariants(args):
     parser.add_option("--filterReadPairsWithSmallInserts", dest="filterReadPairsWithSmallInserts", help="If set to 1, read pairs with insert sizes < one read length will be removed", action='store', type = 'int', default=1, required=False)
     parser.add_option("--trimOverlapping", dest="trimOverlapping", help="If set to 1, overlapping paired reads have overlap set to qual 0", action='store', type = 'int', default=1, required=False)
     parser.add_option("--trimAdapter", dest="trimAdapter", help="If set to 1, then sets to qual 0 any part of read which exceeds the mapped fragment length. This is mainly useful for trimming adapter sequences", action='store', type = 'int', default=1, required=False)
-    parser.add_option("--trimSoftClipped", dest="trimSoftClipped", help="If set to 1, then sets to qual 0 any soft clipped parts of the read.", action='store', type = 'int', default=1, required=False)
 
     # Variant-calling Filter Parameters
     parser.add_option("--maxGOF", dest="maxGOF", help="Max allowed value for goodness-of-fit test. Higher than this triggers GOF filter (Phred-scaled).", action='store', type='int', default=30)
-    parser.add_option("--minPosterior", dest="minPosterior", help="Only variants with posterior >= this will be output to the VCF. Value is a Phred-score.", action='store', type='int', default=5)
+    parser.add_option("--minPosterior", dest="minPosterior", help="Only variants with posterior >= this will be outpu to the VCF. Value is a Phred-score.", action='store', type='int', default=5)
     parser.add_option("--sbThreshold", dest="sbThreshold", help="P-value for strand-bias filtering..", action='store', type='float', default=1e-3)
     parser.add_option("--scThreshold", dest="scThreshold", help="Cut-off for SC filter.", action='store', type='float', default=0.95)
     parser.add_option("--abThreshold", dest="abThreshold", help="P-value for allele-bias filtering..", action='store', type='float', default=1e-3)
