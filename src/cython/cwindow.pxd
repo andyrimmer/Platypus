@@ -44,6 +44,7 @@ cdef class bamReadBuffer:
     cdef int minGoodBases
     cdef int trimOverlapping
     cdef int trimAdapter
+    cdef int trimSoftClipped
     cdef cAlignedRead* lastRead
     cdef bytes sample
     cdef ReadArray reads
