@@ -197,7 +197,12 @@ cdef int mapAndAlignReadToHaplotype(char* read, char* quals, int readStart, int 
     cdef char* aln1 = NULL
     cdef char* aln2 = NULL
     cdef int firstpos = 0
-
+    
+    # TODO: check that this is doing something useful...
+    if strncmp(read, haplotype + indexOfReadIntoHap, readLen) == 0:
+        #logger.debug("%s: perfect match, returning score 0" % (readStart) )
+        return 0
+    
     if hapFlank > 0:
         # avoid allocating memory if there's no flank; this also stops the aligner from doing the backtrace
         aln1 = <char*>malloc( sizeof(char) * (2*readLen + 15 + 1) )
@@ -206,11 +211,6 @@ cdef int mapAndAlignReadToHaplotype(char* read, char* quals, int readStart, int 
     # If we have an exact match in the original position then simply return 0 now, as we can never
     # have a better match than that.
     indexOfReadIntoHap = readStart - hapStart
-
-    # TODO: check that this is doing something useful...
-    if strncmp(read, haplotype + indexOfReadIntoHap, readLen) == 0:
-        #logger.debug("%s: perfect match, returning score 0" % (readStart) )
-        return 0
 
     # Reset counts
     memset(mapCounts, 0, sizeof(int)*mapCountsLen)
@@ -262,9 +262,12 @@ cdef int mapAndAlignReadToHaplotype(char* read, char* quals, int readStart, int 
                     if alignScore < bestScore:
                         bestScore = alignScore
                         bestMappingPosition = indexOfReadIntoHap
-
+                        
                         # Short-circuit this loop if we find an exact match
                         if bestScore == 0:
+                            if hapFlank > 0:
+                                free (aln1)
+                                free (aln2)
                             #logger.debug("%s: found exact match, short circuiting" % (readStart))
                             return bestScore
 
