@@ -76,7 +76,7 @@ cdef extern from "string.h":
 ###################################################################################################
 
 @cython.profile(False)
-cdef inline int readPosComp(void* x, void* y) nogil:
+cdef inline int readPosComp(const void* x, const void* y) nogil:
     """
     Comparison function for use in qsort, to sort reads by their start positions and
     then end positions.
@@ -92,7 +92,7 @@ cdef inline int readPosComp(void* x, void* y) nogil:
 ###################################################################################################
 
 @cython.profile(False)
-cdef int readMatePosComp(void* x, void* y):
+cdef int readMatePosComp(const void* x, const void* y):
     """
     Comparison function for use in qsort, to sort reads by their mate positions, as long as
     the mates are on the same chromosome.
@@ -436,7 +436,7 @@ cdef int checkAndTrimRead(cAlignedRead* theRead, cAlignedRead* theLastRead, int 
     # remove duplicate information, which gives systematic errors when pcr errors have occured in library prep.
 
     if trimOverlapping == 1 and (Read_IsPaired(theRead) and absIns > 0 and (not Read_IsReverse(theRead)) and Read_MateIsReverse(theRead) and absIns < 2*theRead.rlen):
-        for index from 1 <= index < min(theRead.rlen, (2*theRead.rlen - theRead.insertSize) + 1):
+        for index from 1 <= index <= min(theRead.rlen, (2*theRead.rlen - theRead.insertSize) + 1):
             theRead.qual[theRead.rlen - index] = 0
     
     # Trim the end of any read where the insert size is < read length. If these have not been
