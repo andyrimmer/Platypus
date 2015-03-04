@@ -341,3 +341,5 @@ Released on 25 Jan 2013.
 
 - Released on 3 March 2015
 - CRAM support and bug fixes.
+- HLA typing.
+- Changes to aligment routine.
