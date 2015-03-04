@@ -2,21 +2,13 @@
 #define ALIGN_H
 
 /*****************************************************************************************************************
- This code is copyright (c) Gerton Lunter, Jan 2009
+ This code is copyright (c) Gerton Lunter, Jan 2009, Nov 2014
  It may not be distributed, made public, or used in other software without the permission of the copyright holder
 ******************************************************************************************************************/
+int fastAlignmentRoutine(const char* seq1, const char* seq2, const char* qual2, int len1, int len2, int gapextend, int nucprior,
+			 const char* localgapopen, char* aln1, char* aln2, int* firstpos);
 
-#include <emmintrin.h>
-
-static inline short extract0(__m128i x) {return _mm_extract_epi16(x, 0);}
-static inline short extract1(__m128i x) {return _mm_extract_epi16(x, 1);}
-static inline short extract2(__m128i x) {return _mm_extract_epi16(x, 2);}
-static inline short extract3(__m128i x) {return _mm_extract_epi16(x, 3);}
-static inline short extract4(__m128i x) {return _mm_extract_epi16(x, 4);}
-static inline short extract5(__m128i x) {return _mm_extract_epi16(x, 5);}
-static inline short extract6(__m128i x) {return _mm_extract_epi16(x, 6);}
-static inline short extract7(__m128i x) {return _mm_extract_epi16(x, 7);}
-
-int fastAlignmentRoutine(char* seq1, char* seq2, char* qual2, int len1, int len2, int gapextend, int nucprior, short* localgapopen);
+int calculateFlankScore(int hapLen, int hapFlank, const char* quals, const char* localGapOpen, int gapExtend, int nucprior,
+			int firstpos, const char* aln1, const char* aln2);
 
 #endif

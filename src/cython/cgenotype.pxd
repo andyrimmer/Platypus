@@ -11,7 +11,7 @@ cdef class DiploidGenotype:
     cdef Haplotype hap2
     cdef double hap1Like
     cdef double hap2Like
-    cdef double calculateDataLikelihood(DiploidGenotype self, cAlignedRead** start, cAlignedRead** end, cAlignedRead** badReadsStart, cAlignedRead** badReadsEnd, cAlignedRead** brokenMatesStart, cAlignedRead** brokenMatesEnd, int individualIndex, int nIndividuals, double* gof)
+    cdef double calculateDataLikelihood(DiploidGenotype self, cAlignedRead** start, cAlignedRead** end, cAlignedRead** badReadsStart, cAlignedRead** badReadsEnd, cAlignedRead** brokenMatesStart, cAlignedRead** brokenMatesEnd, int individualIndex, int nIndividuals, double* gof, int useMapQualCap)
 
 @cython.final
 cdef class HaploidGenotype:

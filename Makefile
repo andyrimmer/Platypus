@@ -11,21 +11,21 @@ PLATYPUS_SO := $(PLATYPUS_C:.c=.so)
 PYTHONSRC := src/python/Platypus.py src/python/platypusexceptions.py src/python/runner.py src/python/variantutils.py\
 src/python/window.py src/python/vcf.py src/python/filez.py src/python/extendedoptparse.py
 
-VERSION := 0.8
+VERSION := 0.7.9.5
 TARGET := Platypus_${VERSION}
 
 # Cython source files needed for building release (these are not compiled, only distributed)
 CYTHONSRC:= src/cython/platypusutils.pyx src/cython/cgenotype.pyx src/cython/cpopulation.pyx\
 src/cython/cwindow.pyx src/cython/variantcaller.pyx src/cython/vcfutils.pyx src/cython/variantFilter.pyx\
 src/cython/assembler.pyx src/cython/calign.pyx src/cython/chaplotype.pyx\
-src/cython/fastafile.pyx src/cython/htslibWrapper.pyx src/cython/variant.pyx src/cython/cerrormodel.pyx\
+src/cython/fastafile.pyx src/cython/samtoolsWrapper.pyx src/cython/variant.pyx src/cython/cerrormodel.pyx\
 src/pysam/ctabix.pyx src/pysam/ctabix.pxd src/pysam/TabProxies.pxd src/pysam/TabProxies.pyx
 
 # C source files needed for building release (these will be compiled when building the released code)
 CSRC := src/cython/platypusutils.c src/cython/cgenotype.c src/cython/cpopulation.c\
 src/cython/cwindow.c src/cython/variantcaller.c src/cython/vcfutils.c src/cython/variantFilter.c\
 src/cython/assembler.c src/c/align.c src/cython/calign.c src/cython/chaplotype.c src/cython/fastafile.c\
-src/c/pysam_util.c src/cython/htslibWrapper.c src/cython/variant.c src/c/pysam_util.h src/c/align.h\
+src/c/pysam_util.c src/cython/samtoolsWrapper.c src/cython/variant.c src/c/pysam_util.h src/c/align.h\
 src/cython/cerrormodel.c src/c/tandem.h src/c/tandem.c src/pysam/ctabix.c src/pysam/TabProxies.c src/pysam/tabix_util.c
 
 OTHER := misc/README.txt LICENSE release/setup.py release/buildPlatypus.sh
@@ -57,6 +57,8 @@ releasedir: platypus
 	cp -f ${CYTHONSRC} ${TARGET}/src
 	echo 'Copying Platypus README, LICENCE etc files to ' ${TARGET}
 	cp -f ${OTHER} ${TARGET}
+	echo 'Copying Samtools files'
+	rsync -a --exclude='.svn' src/samtools ${TARGET}/
 	echo 'Copying pysam *.c files'
 	cp -f src/pysam/*.c ${TARGET}/src/pysam/
 	cp -f src/pysam/COPYING ${TARGET}/src/pysam/

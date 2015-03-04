@@ -28,10 +28,9 @@ incDirs = ["./", "c"]
 libaryDirs = ["./htslib"]
 
 # Debug for Valgrind
-cFlags = ["-msse2", "-msse3", "-funroll-loops", "-D_LARGEFILE64_SOURCE", "-D_FILE_OFFSET_BITS=64" ,"-g"]
-
-# No debug. I don't think this affects performance?
-#cFlags = ["-msse2", "-msse3", "-funroll-loops", "-D_LARGEFILE64_SOURCE", "-D_FILE_OFFSET_BITS=64"]
+cFlags = ["-msse2", "-msse3", "-funroll-loops", "-D_LARGEFILE64_SOURCE", "-D_FILE_OFFSET_BITS=64" ,"-g", "-Wno-unused-function"]
+tabixFlags = ["-Wno-incompatible-pointer-types-discards-qualifiers","-Wno-unused-function","-Wno-unneeded-internal-declaration"]
+tabproxiesFlags = ["-Wno-unused-function"]
 
 extModules.append(Extension(name='htslibWrapper', sources=['cython/htslibWrapper.pyx'], language='c',libraries=['hts'], extra_compile_args=cFlags))
 extModules.append(Extension(name='arrays', sources=['cython/arrays.pyx'], include_dirs=incDirs, language='c', extra_compile_args=cFlags))
@@ -41,8 +40,8 @@ extModules.append(Extension(name='cerrormodel', sources=['cython/cerrormodel.pyx
 extModules.append(Extension(name='calign', sources=['cython/calign.pyx', 'c/align.c', 'cython/htslibWrapper.pxd', 'cython/cerrormodel.pxd'], include_dirs=incDirs, extra_compile_args=cFlags))
 extModules.append(Extension(name='chaplotype', sources=['cython/chaplotype.pyx', 'cython/variant.pxd','cython/htslibWrapper.pxd', 'cython/calign.pxd', 'c/align.c'], include_dirs=incDirs, language='c', extra_compile_args=cFlags))
 
-extModules.append(Extension(name="ctabix", sources=["pysam/ctabix.pyx"] + ["pysam/tabix_util.c"] + glob.glob("tabix/*.pysam.c"), include_dirs=["tabix", "pysam"], libraries=["z"], language="c"))
-extModules.append(Extension(name="TabProxies", sources=[ "pysam/TabProxies.pyx", ], libraries=[ "z", ], language="c"))
+extModules.append(Extension(name="ctabix", sources=["pysam/ctabix.pyx"] + ["pysam/tabix_util.c"] + glob.glob("tabix/*.pysam.c"), include_dirs=["tabix", "pysam"], libraries=["z"], language="c", extra_compile_args=tabixFlags))
+extModules.append(Extension(name="TabProxies", sources=[ "pysam/TabProxies.pyx", ], libraries=[ "z", ], language="c", extra_compile_args=tabproxiesFlags))
 extModules.append(Extension(name='cwindow', sources=corMods+['cython/cwindow.pyx'], include_dirs=incDirs,  extra_compile_args=cFlags, language='c'))
 extModules.append(Extension(name='assembler', sources=corMods+['cython/assembler.pyx','cython/cwindow.pxd'], include_dirs=incDirs, extra_compile_args=cFlags, language='c'))
 extModules.append(Extension(name='cgenotype', sources=corMods+['cython/cgenotype.pyx','cython/cwindow.pxd'], include_dirs=incDirs,  extra_compile_args=cFlags, language='c'))

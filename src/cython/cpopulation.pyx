@@ -293,7 +293,7 @@ cdef class Population:
                 if nReadsThisInd == 0:
                     self.genotypeLikelihoods[individualIndex][genotypeIndex] = 1.0
                 else:
-                    logLikelihood = genotype.calculateDataLikelihood(theBuffer.reads.windowStart, theBuffer.reads.windowEnd, theBuffer.badReads.windowStart, theBuffer.badReads.windowEnd, theBuffer.brokenMates.windowStart, theBuffer.brokenMates.windowEnd, individualIndex, self.nIndividuals, self.goodnessOfFitValues[genotypeIndex])
+                    logLikelihood = genotype.calculateDataLikelihood(theBuffer.reads.windowStart, theBuffer.reads.windowEnd, theBuffer.badReads.windowStart, theBuffer.badReads.windowEnd, theBuffer.brokenMates.windowStart, theBuffer.brokenMates.windowEnd, individualIndex, self.nIndividuals, self.goodnessOfFitValues[genotypeIndex], self.options.HLATyping)
 
                     if logLikelihood > self.maxLogLikelihoods[individualIndex]:
                         self.maxLogLikelihoods[individualIndex] = logLikelihood

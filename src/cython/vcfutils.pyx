@@ -51,7 +51,7 @@ cdef extern from "stdlib.h":
     void *malloc(size_t)
     void *calloc(size_t,size_t)
     void *realloc(void *,size_t)
-
+    void *memset(void* ptr, int value, size_t num)
 ###################################################################################################
 
 # Nasty global variables
@@ -599,6 +599,199 @@ cdef void outputCallToVCF(dict varsByPos, dict vcfInfo, dict vcfFilter, list hap
     free(haplotypeIsRefAtThisPos)
 
 ###################################################################################################
+cdef void outputHLACallToVCF(list haplotypes, list readBuffers, int nIndividuals, FastaFile refFile, outputFile, options, int windowStart, int windowEnd):
+    """
+    Output a call to a vcf file. Uses the signature of the callingModule.
+    the file is opened and the header written when this object is initialised.
+    The call object must have genotypes, and variants methods. Genotypes is a list of
+    genotypes in the same order as the samples header of the vcf file.
+    this code prints for each of the variants, the appropriate line.
+    """
+    cdef Haplotype refHap
+    cdef Haplotype haplotype
+    cdef bamReadBuffer theBuffer
+    cdef cAlignedRead** startRead
+    cdef cAlignedRead** endRead
+    cdef bytes thisSample
+    cdef Variant longVar
+    haplotype = haplotypes[0]
+    longVar = haplotype.longVar  
+ 
+    chrom = longVar.refName
+
+    alts = []
+    
+    cdef: 
+        int index = 0
+        list indexOfBestGenotype=[]
+        double likelihoodThisGenotype =0.0
+        double maxEMLikelihood = 0.0
+        DiploidGenotype gt
+        int nHaplotypes = len(haplotypes)
+        list gtIdx
+        int hapIndex1, hapIndex2
+        
+        list genotypeCalls = [] # Genotype data type genotype calls of all individuals, stored by index in the "genotypes"  list
+        int nReads =0           
+        list allGTs =[]   # all genotypes of individuals, indexing  by the order of alts, 
+        list thisGTs = [] # genotype this individual, indexing by the order in the alts list 
+        list GLs = []     # genotype likelihood of the called genotype
+        list NRs = []     # number of reads supporting first haplotype
+        list NV1s = []     # number of reads supporting 
+        list NV2s = []     # number of reads supporting 
+        list CFs = []     # confidence score = (maximumLikelihood - secondMaximumLikelihood) / haplotypeLen
+        list secondMaxCandidates = []
+        double secondMaxLikelihood = 0.0
+        int nv1, nv2, readIndex, totalReads, nBadReads, nBrokenPairReads
+        double* alignScoreArr1 = NULL
+        double* alignScoreArr2 = NULL
+        cAlignedRead* thisRead
+        cdef Haplotype hap1, hap2
+        list thisNV1, thisNV2
+        double like1, like2, likelihood
+        double* gof = <double*>(calloc(nIndividuals+10, sizeof(double)))
+        double* arr = NULL
+
+    varSource = set()    
+    logger.debug("Start output to vcf")
+    ref = '' 
+    memset(gof, 0, sizeof(double)* (nIndividuals+3))
+    fo = None
+    if options.alignScoreFile != "":
+        fo = open(options.alignScoreFile, 'a')
+
+    for index from 0<= index < nIndividuals:
+        theBuffer = readBuffers[index]
+        nReads = theBuffer.reads.windowEnd - theBuffer.reads.windowStart
+        nBadReads = theBuffer.badReads.windowEnd - theBuffer.badReads.windowStart
+        nBrokenPairReads = theBuffer.brokenMates.windowEnd - theBuffer.brokenMates.windowStart
+        totalReads = nReads + nBadReads + nBrokenPairReads
+        if options.alignScoreFile != "":
+            fo.write("Individual\t%d\t%d\t%d:%d-%d\n" %(index, len(haplotypes), nReads,windowStart, windowEnd))
+        secondMaxCandidates = []
+
+        thisGTs = []
+        NRs.append(nReads) 
+        thisNV1, thisNV2 = [], []
+        if nReads ==0:
+            genotypeCalls.append([])
+            allGTs.append(thisGTs)
+            GLs.append(0.0)
+            NV1s.append([])       
+            NV2s.append([])
+            CFs.append(0.0)
+            continue
+
+        indexOfBestGenotype = []
+        maxEMLikelihood = 0.0
+        likelihoodThisGenotype = -1e7
+        if options.alignScoreFile != "":
+            for hap1 in haplotypes:
+                thisStr = hap1.shortHaplotypeSequence
+                fo.write("%d %d %s\n" %(hap1.startPos+1, hap1.endPos, thisStr))
+
+        for hapIndex1 from 0<= hapIndex1 < nHaplotypes:
+            LKs = []
+            hap1 = haplotypes[hapIndex1]
+            arr = hap1.alignReads(index, theBuffer.reads.windowStart, theBuffer.reads.windowEnd, theBuffer.badReads.windowStart, theBuffer.badReads.windowEnd, theBuffer.brokenMates.windowStart, theBuffer.brokenMates.windowEnd,1)
+
+        for hapIndex1 from 0<= hapIndex1 < nHaplotypes:
+            LKs = []
+            hap1 = haplotypes[hapIndex1]
+            for hapIndex2 from 0<=hapIndex2 < nHaplotypes:
+                hap2 = haplotypes[hapIndex2]
+                gt = DiploidGenotype(hap1, hap2)
+                likelihoodThisGenotype= gt.calculateDataLikelihood(theBuffer.reads.windowStart, theBuffer.reads.windowEnd, theBuffer.badReads.windowStart, theBuffer.badReads.windowEnd, theBuffer.brokenMates.windowStart, theBuffer.brokenMates.windowEnd, index, nIndividuals, gof, options.HLATyping)
+                LKs.append(likelihoodThisGenotype)
+                tempIndex = sorted([hapIndex1, hapIndex2])
+                if indexOfBestGenotype == [] or likelihoodThisGenotype > maxEMLikelihood:
+                    maxEMLikelihood = likelihoodThisGenotype
+                    indexOfBestGenotype = [tempIndex]
+                    secondMaxCandidates.append(likelihoodThisGenotype)
+                elif likelihoodThisGenotype == maxEMLikelihood and tempIndex not in indexOfBestGenotype:
+                    indexOfBestGenotype.append(tempIndex)
+            if options.alignScoreFile != "":
+                fo.write("%s\n" %("\t".join(map(str,LKs))))
+        #find the secondMaxLikelihood value to calculate confidence score
+        if len(secondMaxCandidates) > 1:
+            secondMaxLikelihood = sorted(secondMaxCandidates, reverse = True)[1]
+        else:
+            secondMaxLikelihood = maxEMLikelihood -100.0
+        
+        for tempIdx, gtIndex in enumerate(indexOfBestGenotype):
+            hap1, hap2 = haplotypes[gtIndex[0]], haplotypes[gtIndex[1]]
+            alt1, alt2 = hap1.getShortHaplotypeSequence(), hap2.getShortHaplotypeSequence()
+            varSource.add(hap1.longVar.varSource)
+            varSource.add(hap2.longVar.varSource)
+            if tempIdx ==0:
+                ref = hap1.shortReferenceSequence
+                       
+            if alt1 != ref and alt1 not in alts:
+               alts.append(alt1)
+            if alt2 != ref and alt2 not in alts:
+               alts.append(alt2)
+            altIndex1, altIndex2 = 0 , 0
+            if alt1 in alts:
+                altIndex1 = alts.index(alt1) + 1
+            if alt2 in alts:
+                altIndex2 = alts.index(alt2) + 1
+            thisGTs.append(str(altIndex1) +  "/" +str( altIndex2))
+            nv1, nv2 = 0, 0
+            alignScoreArr1 = hap1.alignReads(index, theBuffer.reads.windowStart, theBuffer.reads.windowEnd, theBuffer.badReads.windowStart, theBuffer.badReads.windowEnd, theBuffer.brokenMates.windowStart, theBuffer.brokenMates.windowEnd, True)            
+            alignScoreArr2 = hap2.alignReads(index, theBuffer.reads.windowStart, theBuffer.reads.windowEnd, theBuffer.badReads.windowStart, theBuffer.badReads.windowEnd, theBuffer.brokenMates.windowStart, theBuffer.brokenMates.windowEnd, True)            
+            for readIndex from 0<= readIndex < nReads:
+                if alignScoreArr1[readIndex]==999 and alignScoreArr2[readIndex] ==999:
+                    break
+                score1 = -10 *  alignScoreArr1[readIndex]
+                score2 = -10 *  alignScoreArr2[readIndex]
+                if score1 < 5:  nv1 +=1
+                if score2 < 5:  nv2 +=1
+            thisNV1.append(nv1)
+            thisNV2.append(nv2)
+        if maxEMLikelihood!=0.0:
+            confidenceScore = -(maxEMLikelihood - secondMaxLikelihood) *  (windowEnd - windowStart)/maxEMLikelihood
+        elif len(haplotypes) > 1:
+            confidenceScore = maxEMLikelihood - secondMaxLikelihood
+        else:
+            confidenceScore = 100
+
+        genotypeCalls.append(indexOfBestGenotype)
+        allGTs.append(thisGTs)
+        GLs.append(maxEMLikelihood)
+        NV1s.append(thisNV1)
+        NV2s.append(thisNV2)
+        CFs.append(confidenceScore)
+    if options.alignScoreFile != "":
+        fo.close()
+
+    theId = "."
+    qual = -1
+    format = 'GT:GL:NR:NV1:NV2'
+    linefilter = ["PASS"]
+    linefilter = ""
+    qual = max([int(cf) for cf in CFs])
+    if alts== []:
+        alts = ["."]
+        linefilter = "REFCALL"
+    else:
+        linefilter = "PASS"
+
+    infoLine = "WS=" + str(windowStart+1) + ";WE=" + str(windowEnd) + ";Size=" + str(windowEnd - windowStart + 1) + ";varSource=" + ",".join(map(str, list(varSource)))
+    theLine = "\t".join([chrom, str(windowStart+1), theId, ref, ",".join(alts), str(qual), linefilter,  infoLine, format]) 
+
+    # Now pull out the genotype informations for each sample, and compute genotype likelihoods and
+
+    for i from 0 <= i < nIndividuals:
+        theBuffer = readBuffers[i]
+        thisSample = theBuffer.sample
+        sampleLine = ":".join([",".join(allGTs[i]), str(GLs[i]), str(NRs[i]), ",".join(map(str, NV1s[i])), ",".join(map(str, NV2s[i]))])
+        theLine += "\t" + sampleLine
+
+    outputFile.write("%s\n" %(theLine))    
+    free(gof)
+    logger.debug('Out vcf writing')
+###################################################################################################
+
 
 def trimLeftPadding(vcfDataLine):
     """

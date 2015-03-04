@@ -139,21 +139,28 @@ cdef class Haplotype:
         self.startPos            = max(0, startPos)
         self.endPos              = min(endPos, self.refFile.refs[self.refName].SeqLength-1)
         self.maxReadLength       = maxReadLength
-        self.endBufferSize       = min(2*maxReadLength, 200) # Cap the buffer size at a reasonable length
+        self.endBufferSize       = min(2*maxReadLength, 500) # Cap the buffer size at a reasonable length
         self.verbosity           = options.verbosity
         self.options             = options
         self.lastIndividualIndex = -1
         
         cdef Variant v
         
+        self.shortReferenceSequence = self.getReferenceSequence()
+        self.shortHaplotypeSequence = None
+
         if len(variants) > 0:
             self.minVarPos = min([v.minRefPos for v in variants])
             self.maxVarPos = max([v.maxRefPos for v in variants])
             if self.minVarPos == self.maxVarPos:
                 self.maxVarPos += 1
+            self.shortHaplotypeSequence = self.getMutatedSequence()
+            self.longVar = Variant(refName, startPos, self.shortReferenceSequence , self.shortHaplotypeSequence, 0, variants[0].varSource)
         else:
             self.minVarPos = self.startPos
             self.maxVarPos = self.endPos
+            self.shortHaplotypeSequence = self.shortReferenceSequence
+            self.longVar = Variant(refName, startPos, self.shortReferenceSequence, self.shortReferenceSequence, 0, 1)
 
         self.referenceSequence = self.refFile.getSequence(self.refName, self.startPos - self.endBufferSize, self.endPos + self.endBufferSize)
 
@@ -290,6 +297,11 @@ cdef class Haplotype:
             self.hash = hash((self.refName, self.startPos, self.endPos, self.haplotypeSequence))
 
         return self.hash
+	
+    cdef char* getShortHaplotypeSequence(self):
+        if self.shortHaplotypeSequence == None:
+            return self.getMutatedSequence()
+        return self.shortHaplotypeSequence
 
     cdef double* alignReads(self, int individualIndex, cAlignedRead** start, cAlignedRead** end, cAlignedRead** badReadsStart, cAlignedRead** badReadsEnd, cAlignedRead** brokenReadsStart, cAlignedRead** brokenReadsEnd, int useMapQualCap):
         """
@@ -303,10 +315,9 @@ cdef class Haplotype:
         cdef int readOverlap = 0
         cdef int readLen = 0
         cdef double* temp = NULL
-
+      
         # Either first time, or new individual
         if individualIndex != self.lastIndividualIndex:
-
             if self.likelihoodCache == NULL:
                 self.likelihoodCache = <double*>(my_malloc((totalReads+1)*sizeof(double)))
                 self.lenCache = totalReads
@@ -399,18 +410,18 @@ cdef class Haplotype:
         if self.haplotypeSequence is None:
 
             currentPos = self.startPos
-
             # Get sequence up to one base before the first variant
             firstVar = self.variants[0]
-            bitsOfMutatedSeq = [self.refFile.getSequence(self.refName, currentPos, firstVar.refPos)]
-            currentPos = firstVar.refPos
-
+            #if firstVar.refPos == currentPos, no need to get the sequence before the variant
+            bitsOfMutatedSeq = []
+            if firstVar.refPos != currentPos:
+                bitsOfMutatedSeq = [self.refFile.getSequence(self.refName, currentPos, firstVar.refPos)]
+                currentPos = firstVar.refPos
             for v in self.variants:
                 # Move up to one base before the next variant, if we're not already there.
                 if v.refPos > currentPos:
                     bitsOfMutatedSeq.append(self.refFile.getSequence(self.refName, currentPos, v.refPos))
                     currentPos = v.refPos
-
                 # SNP/Mult-SNP/Complex
                 if v.nAdded == v.nRemoved:
                     bitsOfMutatedSeq.append(v.added)
@@ -418,15 +429,16 @@ cdef class Haplotype:
 
                 # Arbitrary length-changing sequence replacement
                 else:
-                    if v.refPos == currentPos:
-                        bitsOfMutatedSeq.append(self.refFile.getCharacter(self.refName, v.refPos))
-                        currentPos += 1
-
+                    #HP : Need to be careful here, this seem to deal with indels only, not sequence replacement ABC -> CGA  
+                    if len(v.added) ==0 or len(v.removed) ==0:
+                        if v.refPos == currentPos:
+                            bitsOfMutatedSeq.append(self.refFile.getCharacter(self.refName, v.refPos))
+                            currentPos += 1
                     currentPos += v.nRemoved
                     bitsOfMutatedSeq.append(v.added)
 
             # Is this ok when currentPos == endPos?
-            if currentPos > self.endPos:
+            if currentPos > self.endPos + 1:
                 logger.error("cpos = %s end pos = %s. Variants are %s" %(currentPos, self.endPos, self.variants))
 
             if currentPos < self.endPos:
@@ -552,26 +564,32 @@ cdef class Haplotype:
         cdef int homopol = -1
         cdef int homopollen = 0
 
-        self.localGapOpen = <short*>(malloc(self.hapLen*sizeof(short)))
+        self.localGapOpen = <char*>(malloc((self.hapLen+1)*sizeof(char)))
 
-        homopol = -1
-        homopollen = 0
+        # compute local gap open penalties by applying a homopolymer model
+        # Fill in from the back to help left-justify indels (though this is prob. unnecessary)
+
+        self.localGapOpen[index] = 0
 
         while index > 0:
             index -= 1
 
             if seq[index] == homopol:
-                homopollen += <int>(not(not(errorModel[homopollen+1])))
+                if errorModel[homopollen+1] != 0:
+                    homopollen += 1
             else:
                 homopollen = 0
+                    
+            self.localGapOpen[index] = <char>( <int>(errorModel[homopollen]) - (<int>'!') )
 
-            self.localGapOpen[index] = 4*(<int>(errorModel[homopollen]) - (<int>'!'))
+            if self.localGapOpen[index] < 0:
+                raise ValueError("Internal error: encountered negative gap open score (%s, at position %s)" % (self.localGapOpen[index], index))
+
             homopol = seq[index];
-
             if homopol == 'N':
                 homopol = 0
 
-###################################################################################################
+##################################################################################################
 
 cdef double alignReadToHaplotype(cAlignedRead* read, Haplotype hap, int useMapQualCap):
     """
@@ -589,6 +607,7 @@ cdef double alignReadToHaplotype(cAlignedRead* read, Haplotype hap, int useMapQu
     cdef int gapExtend = 3
     cdef int nucprior = 2
     cdef int hapLen = hap.hapLen
+    cdef int hapFlank = hap.endBufferSize    # ignore contribution to score by mismatches in flank.  Set to 0 to include all mismatches
 
     cdef char* readSeq = read.seq
     cdef char* readQuals = read.qual
@@ -597,11 +616,14 @@ cdef double alignReadToHaplotype(cAlignedRead* read, Haplotype hap, int useMapQu
     cdef int readLen = read.rlen
     cdef int mapQual = read.mapq
 
-    cdef int lenOfHapSeqToTest = readLen + 15
     cdef int alignScore = 0
 
     cdef double probMapWrong = mLTOT*read.mapq  # A log value
     cdef double probMapRight = log(1.0 - exp(mLTOT*read.mapq)) # A log value
+
+    cdef int offset1 = 0
+    cdef int offset2 = 0
+
 
     # Arbitrary cap
     cdef double likelihoodCap = 0.0
@@ -622,9 +644,36 @@ cdef double alignReadToHaplotype(cAlignedRead* read, Haplotype hap, int useMapQu
     if hap.localGapOpen == NULL:
         hap.annotateWithGapOpen()
 
-    alignScore = mapAndAlignReadToHaplotype(readSeq, readQuals, readStart, hapStart, readLen, hapLen, hap.hapSequenceHash, hap.hapSequenceNextArray, read.hash, hapSeq, gapExtend, nucprior, hap.localGapOpen, hap.mapCounts, hap.mapCountsLen)
+    if useMapQualCap:
+        offset1 = hapStart - readStart 
+        offset2 = readStart + readLen - hap.startPos - hapLen
+        if offset1 <0: offset1 = 0
+        if offset2 <0: offset2 = 0
+        readStart = readStart + offset1
+        readLen = readLen - offset1 - offset2
+        readSeq   += offset1
+        readQuals += offset1
+        #logger.debug("alignReads: i have updated readStart etc by offsets %s and %s" % (offset1, offset2))
 
-    return max(mLTOT*alignScore + probMapRight, likelihoodCap)
+    #logger.debug("alignReads: calling mapAndAlignReadToHaplotype with readseq start/len==%s %s hap start/len = %s %s  flank=%s" % (readStart,readLen,hapStart,hapLen,hapFlank))
+
+    alignScore = mapAndAlignReadToHaplotype(readSeq, readQuals, readStart, hapStart, readLen, hapLen, 
+                                            hap.hapSequenceHash, hap.hapSequenceNextArray, read.hash, hapSeq, 
+                                            gapExtend, nucprior, hap.localGapOpen, 
+                                            hap.mapCounts, hap.mapCountsLen, hapFlank)
+    #logger.debug("alignScore = %f " %(alignScore))
+    
+    # Hang added this to deal with HLA.  The idea is to cap the alignment score but in a smooth way.
+    # (GL: modified to make the graph differentiable at the threshold, and to allow altering the shape with a single parameter)
+    cdef double alignScoreThreshold = 100
+    cdef double shapeParameter = 0.5          # must be between 0 and 1; lower values give less abrupt truncation
+    if useMapQualCap and alignScore > alignScoreThreshold:
+        return max( likelihoodCap, 
+                    mLTOT * ( alignScoreThreshold - 1 + math.pow(alignScore - alignScoreThreshold + 1, shapeParameter) / shapeParameter ) )
+
+    # standard case
+    return max( likelihoodCap,
+                mLTOT*alignScore + probMapRight )
 
 ###################################################################################################
 

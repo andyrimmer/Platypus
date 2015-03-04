@@ -76,7 +76,7 @@ cdef extern from "string.h":
 ###################################################################################################
 
 @cython.profile(False)
-cdef inline int readPosComp(void* x, void* y) nogil:
+cdef inline int readPosComp(const void* x, const void* y) nogil:
     """
     Comparison function for use in qsort, to sort reads by their start positions and
     then end positions.
@@ -92,7 +92,7 @@ cdef inline int readPosComp(void* x, void* y) nogil:
 ###################################################################################################
 
 @cython.profile(False)
-cdef int readMatePosComp(void* x, void* y):
+cdef int readMatePosComp(const void* x, const void* y):
     """
     Comparison function for use in qsort, to sort reads by their mate positions, as long as
     the mates are on the same chromosome.
@@ -329,7 +329,7 @@ cdef int bisectReadsRight(cAlignedRead** reads, int testPos, int nReads, int tes
 
 ###################################################################################################
 
-cdef int checkAndTrimRead(cAlignedRead* theRead, cAlignedRead* theLastRead, int minGoodQualBases, int* filteredReadCountsByType, int minMapQual, int minBaseQual, int minFlank, int trimOverlapping, int trimAdapter, int trimReadFlank, int trimSoftClipped):
+cdef int checkAndTrimRead(cAlignedRead* theRead, cAlignedRead* theLastRead, int minGoodQualBases, int* filteredReadCountsByType, int minMapQual, int minBaseQual, int minFlank, int trimOverlapping, int trimAdapter, int trimReadFlank):
     """
     Performs various quality checks on the read, and trims read (i.e. set q-scores to zero). Returns
     true if read is ok, and false otherwise.
@@ -387,12 +387,8 @@ cdef int checkAndTrimRead(cAlignedRead* theRead, cAlignedRead* theLastRead, int 
 
     # Check if this read is actually a duplicate. TODO: store library tag and check.
     if filteredReadCountsByType[DUPLICATE] != -1:
-        
-        if Read_IsDuplicate(theRead):
-            filteredReadCountsByType[DUPLICATE] += 1
-            Read_SetQCFail(theRead)
-            return False
-        elif theLastRead != NULL:
+
+        if theLastRead != NULL:
             if theRead.pos == theLastRead.pos and theRead.rlen == theLastRead.rlen:
 
                 # For paired reads, check mate's position
@@ -436,48 +432,47 @@ cdef int checkAndTrimRead(cAlignedRead* theRead, cAlignedRead* theLastRead, int 
     # remove duplicate information, which gives systematic errors when pcr errors have occured in library prep.
 
     if trimOverlapping == 1 and (Read_IsPaired(theRead) and absIns > 0 and (not Read_IsReverse(theRead)) and Read_MateIsReverse(theRead) and absIns < 2*theRead.rlen):
-        for index from 1 <= index < min(theRead.rlen, (2*theRead.rlen - theRead.insertSize) + 1):
+        for index from 1 <= index <= min(theRead.rlen, (2*theRead.rlen - theRead.insertSize) + 1):
             theRead.qual[theRead.rlen - index] = 0
     
     # Trim the end of any read where the insert size is < read length. If these have not been
     # already filtered out then they need trimming, as adapter contamination will cause a
     # high FP rate otherwise.
     if trimAdapter == 1 and (Read_IsPaired(theRead) and absIns > 0 and absIns < theRead.rlen):
-        
+
         if Read_IsReverse(theRead):
             for index from 1 <= index < theRead.rlen - absIns + 1:
                 theRead.qual[theRead.rlen - index] = 0
         else:
             for index from absIns <= index < theRead.rlen:
                 theRead.qual[index] = 0
-    
-    
+
+
     # Check for soft-clipping (present in BWA reads, for example, but not Stampy). Soft-clipped
     # sequences should be set to QUAL = 0, as they may include contamination by adapters etc.
+    index = 0
+
     cdef int cigarIndex = 0
     cdef int j = 0
     cdef int cigarOp = -1
     cdef int cigarLen = -1
-    
-    if trimSoftClipped == 1:
-        index = 0
-        
-        for cigarIndex in range(theRead.cigarLen):
-            
-            cigarOp = theRead.cigarOps[2*cigarIndex]
-            cigarLen = theRead.cigarOps[2*cigarIndex + 1]
-            
-            # Skip good sequence. 0 is match. 1 is insertion.
-            if cigarOp == 0 or cigarOp == 1:
-                index += theRead.cigarOps[2*cigarIndex + 1]
-            
-            # 4 is soft-clipping
-            elif cigarOp == 4:
-                # Set quals to zero across all sequence flagged as soft-clipped
-                for j in range(theRead.cigarOps[2*cigarIndex + 1]):
-                    theRead.qual[index] = 0
-                    index += 1
-    
+
+    for cigarIndex in range(theRead.cigarLen):
+
+        cigarOp = theRead.cigarOps[2*cigarIndex]
+        cigarLen = theRead.cigarOps[2*cigarIndex + 1]
+
+        # Skip good sequence. 0 is match. 1 is insertion.
+        if cigarOp == 0 or cigarOp == 1:
+            index += theRead.cigarOps[2*cigarIndex + 1]
+
+        # 4 is soft-clipping
+        elif cigarOp == 4:
+            # Set quals to zero across all sequence flagged as soft-clipped
+            for j in range(theRead.cigarOps[2*cigarIndex + 1]):
+                theRead.qual[index] = 0
+                index += 1
+
     return True
 
 ###################################################################################################
@@ -509,7 +504,6 @@ cdef class bamReadBuffer(object):
         self.verbosity = options.verbosity
         self.trimOverlapping = options.trimOverlapping
         self.trimAdapter = options.trimAdapter
-        self.trimSoftClipped = options.trimSoftClipped
         self.lastRead = NULL
 
         if options.filterDuplicates == 0:
@@ -577,12 +571,12 @@ cdef class bamReadBuffer(object):
             
             # TODO: Check that this works for duplicates when first read goes into bad reads pile...
             if self.lastRead != NULL:
-                readOk = checkAndTrimRead(theRead, self.lastRead, self.minGoodBases, self.filteredReadCountsByType, self.minMapQual, self.minBaseQual, self.minFlank, self.trimOverlapping, self.trimAdapter, self.trimReadFlank, self.trimSoftClipped)
+                readOk = checkAndTrimRead(theRead, self.lastRead, self.minGoodBases, self.filteredReadCountsByType, self.minMapQual, self.minBaseQual, self.minFlank, self.trimOverlapping, self.trimAdapter, self.trimReadFlank)
 
                 if self.lastRead.pos > theRead.pos:
                     self.isSorted = False
             else:
-                readOk = checkAndTrimRead(theRead, NULL, self.minGoodBases, self.filteredReadCountsByType, self.minMapQual, self.minBaseQual, self.minFlank, self.trimOverlapping, self.trimAdapter, self.trimReadFlank, self.trimSoftClipped)
+                readOk = checkAndTrimRead(theRead, NULL, self.minGoodBases, self.filteredReadCountsByType, self.minMapQual, self.minBaseQual, self.minFlank, self.trimOverlapping, self.trimAdapter, self.trimReadFlank)
             
             self.lastRead = theRead
 

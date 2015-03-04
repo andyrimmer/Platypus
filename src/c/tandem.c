@@ -151,7 +151,7 @@ void annotate(char* sequence, char* sizes, char* displacements, int length)
         twobit( sequence, length, 3 ) };
 
     // DEBUG
-    int buflen = (129 + (((length + MAX_UNIT_LENGTH) * 2 ) | 127)) / 8;
+    //int buflen = (129 + (((length + MAX_UNIT_LENGTH) * 2 ) | 127)) / 8;
 
     // initialize size and displacement arrays
     int pos, displacement;

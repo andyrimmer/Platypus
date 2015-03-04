@@ -11,7 +11,6 @@
 Platypus requires Python 2.6 or greater. It has not tested with the Python 3.X
 series.
 
-htslib 1.2.1 or greater: See the htslib website (http://www.htslib.org/download/) for details on how to download and install htslib.
 
 2. Installation
 ===============
@@ -335,9 +334,3 @@ Released on 25 Jan 2013.
 
 - Released on 23 July 2014
 - Major memory leak fixed when skipping regions due to high coverage.
-
-0.8
-=====
-
-- Released on 3 March 2015
-- CRAM support and bug fixes.
