@@ -572,6 +572,7 @@ def callVariants(args):
     parser.add_option("--filterReadPairsWithSmallInserts", dest="filterReadPairsWithSmallInserts", help="If set to 1, read pairs with insert sizes < one read length will be removed", action='store', type = 'int', default=1, required=False)
     parser.add_option("--trimOverlapping", dest="trimOverlapping", help="If set to 1, overlapping paired reads have overlap set to qual 0", action='store', type = 'int', default=1, required=False)
     parser.add_option("--trimAdapter", dest="trimAdapter", help="If set to 1, then sets to qual 0 any part of read which exceeds the mapped fragment length. This is mainly useful for trimming adapter sequences", action='store', type = 'int', default=1, required=False)
+    parser.add_option("--trimSoftClipped", dest="trimSoftClipped", help="If set to 1, then sets to qual 0 any soft clipped parts of the read.", action='store', type = 'int', default=1, required=False)
 
     # Variant-calling Filter Parameters
     parser.add_option("--maxGOF", dest="maxGOF", help="Max allowed value for goodness-of-fit test. Higher than this triggers GOF filter (Phred-scaled).", action='store', type='int', default=30)
