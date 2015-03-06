@@ -171,7 +171,7 @@ cdef void hashReadForMapping(cAlignedRead* read) nogil:
 ###################################################################################################
 
 # remove 'nogil' when debugging (also in calign.pxd)
-cdef int mapAndAlignReadToHaplotype(char* read, char* quals, int readStart, int hapStart, int readLen, int hapLen, short* haplotypeHash, short* haplotypeNextArray, short* readHash, char* haplotype, int gapExtend, int nucprior, char* localGapOpen, int* mapCounts, int mapCountsLen, int hapFlank) nogil:
+cdef int mapAndAlignReadToHaplotype(char* read, char* quals, int readStart, int hapStart, int readLen, int hapLen, short* haplotypeHash, short* haplotypeNextArray, short* readHash, char* haplotype, int gapExtend, int nucprior, char* localGapOpen, int* mapCounts, int mapCountsLen, int hapFlank, int doCalculateFlankScore) nogil:
 
 
     """
@@ -254,7 +254,7 @@ cdef int mapAndAlignReadToHaplotype(char* read, char* quals, int readStart, int 
                     
                     # calculate contribution to alignment score of mismatches and indels in flank, and adjust score.
                     # short circuit if calculation is unnecessary
-                    if alignScore > 0 and hapFlank > 0:
+                    if doCalculateFlankScore == 1 and alignScore > 0 and hapFlank > 0:
                         alignScore -= calculateFlankScore(hapLen, hapFlank, quals, localGapOpen, gapExtend, nucprior,
                                                           firstpos + readStartInHap, aln1, aln2 )
                     #logger.debug("updated alignScore = %f  firstpos = %s" %(alignScore, firstpos))
@@ -284,7 +284,7 @@ cdef int mapAndAlignReadToHaplotype(char* read, char* quals, int readStart, int 
  
         # calculate contribution to alignment score of mismatches and indels in flank, and adjust score.
         # short circuit if calculation is unnecessary
-        if alignScore > 0 and hapLen > 0:
+        if doCalculateFlankScore == 1 and alignScore > 0 and hapLen > 0:
             alignScore -= calculateFlankScore(hapLen, hapFlank, quals, localGapOpen, gapExtend, nucprior,
                                               firstpos + readStartInHap, aln1, aln2 )
 

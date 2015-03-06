@@ -345,7 +345,7 @@ cdef class Haplotype:
                 if Read_IsQCFail(start[0]) or readOverlap < hash_nucs:
                     self.likelihoodCache[readIndex] = 0
                 else:
-                    score = alignReadToHaplotype(start[0], self, useMapQualCap)
+                    score = alignReadToHaplotype(start[0], self, useMapQualCap, self.options.calculateFlankScore)
                     self.likelihoodCache[readIndex] = score
 
                 start += 1
@@ -358,7 +358,7 @@ cdef class Haplotype:
                 if Read_IsQCFail(badReadsStart[0]) or readOverlap < hash_nucs:
                     self.likelihoodCache[readIndex] = 0
                 else:
-                    score = alignReadToHaplotype(badReadsStart[0], self, useMapQualCap)
+                    score = alignReadToHaplotype(badReadsStart[0], self, useMapQualCap, self.options.calculateFlankScore)
                     self.likelihoodCache[readIndex] = score
 
                 badReadsStart += 1
@@ -367,7 +367,7 @@ cdef class Haplotype:
             # It doesn't make sense to check overlap for the broken mates, as their mapping positions don't make
             # sense in this context.
             while brokenReadsStart != brokenReadsEnd:
-                score = alignReadToHaplotype(brokenReadsStart[0], self, useMapQualCap)
+                score = alignReadToHaplotype(brokenReadsStart[0], self, useMapQualCap, self.options.calculateFlankScore)
                 self.likelihoodCache[readIndex] = score
                 brokenReadsStart += 1
                 readIndex += 1
@@ -381,7 +381,7 @@ cdef class Haplotype:
         Returns the alignment score for a single read. If 'useMapQualCap' is True, then read likelihood
         is capped using the mapping quality of the read. Otherwise it is capped at 1e-300.
         """
-        return alignReadToHaplotype(theRead, self, useMapQualCap)
+        return alignReadToHaplotype(theRead, self, useMapQualCap, self.options.calculateFlankScore)
 
     cdef char* getReferenceSequence(self, prefix = 0):
         """
@@ -591,7 +591,7 @@ cdef class Haplotype:
 
 ##################################################################################################
 
-cdef double alignReadToHaplotype(cAlignedRead* read, Haplotype hap, int useMapQualCap):
+cdef double alignReadToHaplotype(cAlignedRead* read, Haplotype hap, int useMapQualCap, int calculateFlankScore):
     """
     This is the basic, banded-alignment routine that forms the heart of Platypus. This function decides where to anchor the
     read sequence to the specified haplotype, and calls the fastAlignmentRoutine function, which performs a banded alignment.
@@ -660,7 +660,7 @@ cdef double alignReadToHaplotype(cAlignedRead* read, Haplotype hap, int useMapQu
     alignScore = mapAndAlignReadToHaplotype(readSeq, readQuals, readStart, hapStart, readLen, hapLen, 
                                             hap.hapSequenceHash, hap.hapSequenceNextArray, read.hash, hapSeq, 
                                             gapExtend, nucprior, hap.localGapOpen, 
-                                            hap.mapCounts, hap.mapCountsLen, hapFlank)
+                                            hap.mapCounts, hap.mapCountsLen, hapFlank, calculateFlankScore)
     #logger.debug("alignScore = %f " %(alignScore))
     
     # Hang added this to deal with HLA.  The idea is to cap the alignment score but in a smooth way.

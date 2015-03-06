@@ -553,7 +553,8 @@ def callVariants(args):
     parser.add_option("--minVarDist", dest="minVarDist", help="Min distance allowed between windows", action='store', type='int', default=9) # 9 is 1 base longer than the max possible alignment shift
     parser.add_option("--useEMLikelihoods", dest="useEMLikelihoods", help="If 1, likelihoods computed from EM algorithm will be used to call genotypes for each sample, otherwise likelihoods from individual sample will be used.", action='store', type='int', default=0)
     parser.add_option("--countOnlyExactIndelMatches", dest="countOnlyExactIndelMatches", help="If 1, only exactly matching indels will be counted in the NV field", action='store', type='int', default=0)
-
+    parser.add_option("--calculateFlankScore", dest="calculateFlankScore", help="If 1, an additional alignment routine is used to calculate scores from flanks outside windows (EXPERIMENTAL).", action='store', type='int', default=0)
+    
     # Assembly parameters
     parser.add_option("--assemble", dest="assemble", help="If 1, Cortex will be used to assemble variant candidates for Platypus to call.", action='store', type='int', default=0)
     parser.add_option("--assembleAll", dest="assembleAll", help="If 1 then Platypus will assemble all regions.'.", action='store', type='int', default=1)
