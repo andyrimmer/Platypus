@@ -33,7 +33,7 @@ from fastafile cimport FastaFile
 
 ###################################################################################################
 
-PLATYPUS_VERSION = "0.7.9.5"
+PLATYPUS_VERSION = "0.8.1"
 
 ###################################################################################################
 
@@ -988,7 +988,7 @@ def getRegions(options):
                     try:
                         cols = line.split("\t")
                         chrom = cols[0]
-                        start = int(cols[1])-1
+                        start = int(cols[1])
                         end = int(cols[2])
                         regions.append( (chrom,start,end) )
                     except:

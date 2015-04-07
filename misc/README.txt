@@ -336,7 +336,7 @@ Released on 25 Jan 2013.
 - Released on 23 July 2014
 - Major memory leak fixed when skipping regions due to high coverage.
 
-0.8
+0.8.1
 =====
 
 - Released on 3 March 2015
