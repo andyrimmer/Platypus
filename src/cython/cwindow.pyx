@@ -337,7 +337,7 @@ cdef int checkAndTrimRead(cAlignedRead* theRead, cAlignedRead* theLastRead, int 
     if Read_IsSecondaryAlignment(theRead):
         Read_SetQCFail(theRead)
         return False
-
+    
     if theRead.mapq < minMapQual:
         filteredReadCountsByType[LOW_MAP_QUAL] += 1
         Read_SetQCFail(theRead)

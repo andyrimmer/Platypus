@@ -198,7 +198,7 @@ ctypedef struct cAlignedRead:
     int insertSize
     int matePos
     int bitFlag
-    char mapq
+    unsigned char mapq
 
 cdef class Samfile:
     cdef void clearHeader(self)
