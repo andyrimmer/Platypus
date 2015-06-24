@@ -29,5 +29,5 @@ for line in sys.stdin:
             else:
                 raise StandardError, "Flag should be <,> or = and is %s" %(flag)
 
-    except:
+    except Exception:
         continue

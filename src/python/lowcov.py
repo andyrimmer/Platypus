@@ -699,7 +699,7 @@ def estimateErrorRate( chromosome, motiffile, lowcovbam,
             num += 1
             if num > maxprocessedmotifs: break
 
-    except:
+    except Exception:
         raise
 
     #  create aggregate counts
@@ -728,7 +728,7 @@ def report( counts, coverage ):
         tunit, tlen = key.split(':')
         tlen = int(tlen)
         try:      tunit = int(tunit)
-        except:   pass
+        except Exception:   pass
 
         # fit model to counts
         N00, N01, N11, epsilon, beta = fitmodel( counts[key], coverage )
@@ -759,7 +759,7 @@ def parse_counts( infile ):
         try:
             # convert numbers into ints; leave tandem units alone
             unit = int(unit)
-        except:
+        except Exception:
             pass
 
         key = "%s:%s" % (unit,length)

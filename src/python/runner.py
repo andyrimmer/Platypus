@@ -45,7 +45,7 @@ class FileForQueueing(object):
         # original names.
         try:
             chrom = int(chrom.upper().strip("CHR"))
-        except:
+        except Exception:
             pass
 
         pos = int(cols[1])
@@ -60,7 +60,7 @@ class FileForQueueing(object):
 
                 try:
                     chrom = int(chrom.upper().strip("CHR"))
-                except:
+                except Exception:
                     pass
 
                 pos = int(cols[1])
@@ -104,7 +104,7 @@ class FileForQueueing(object):
                 # original names.
                 try:
                     chrom = int(chrom.upper().strip("CHR"))
-                except:
+                except Exception:
                     pass
 
                 pos = int(cols[1])

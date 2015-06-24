@@ -42,7 +42,7 @@ def summariseVariantCalls():
                 nTransitionSnps += 1
             else:
                 nTransversionSnps += 1
-        except:
+        except Exception:
             #print line
             continue
             #raise

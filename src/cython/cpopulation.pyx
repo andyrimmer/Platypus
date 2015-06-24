@@ -615,7 +615,7 @@ cdef class Population:
 
                     try:
                         self.varsByPos[v.refPos].append(v)
-                    except:
+                    except Exception:
                         self.varsByPos[v.refPos] = [v]
 
                 done.add(v)

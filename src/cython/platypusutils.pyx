@@ -991,7 +991,7 @@ def getRegions(options):
                         start = int(cols[1])
                         end = int(cols[2])
                         regions.append( (chrom,start,end) )
-                    except:
+                    except Exception:
                         logger.debug("Could not parse line in regions file (%s). Skipping..." %(options.regions[0]))
                         logger.debug("Line was %s" %(line))
                         continue
@@ -1002,7 +1002,7 @@ def getRegions(options):
             header = file.header
             regions = [ (d['SN'], 0, d['LN']) for d in header['SQ'] ]
             logger.debug("Loaded regions from BAM header, SQ tags")
-        except:
+        except Exception:
             logger.debug("Loading regions from FASTA index datas")
 
             for region,regionTuple in refFile.refs.iteritems():
@@ -1029,7 +1029,7 @@ def getRegions(options):
                     pivot = dict(zip([d['SN'] for d in header['SQ']], [d['LN'] for d in header['SQ']]))
                     end = pivot[chrom]
                     regions.append((chrom,int(start)-1,int(end)))
-                except:
+                except Exception:
                     regions = []
                     for region,regionTuple in refFile.refs.iteritems():
                         if region == chrom:

@@ -13,5 +13,5 @@ for line in sys.stdin:
 
         if nVar / nTot >= 0.30:
             print line.strip()
-    except:
+    except Exception:
         print line.strip()

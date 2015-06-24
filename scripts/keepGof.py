@@ -11,5 +11,5 @@ for line in sys.stdin:
         cols = line.strip().split("\t")
         if int(cols[9].split(":")[-4]) >= threshold:
             print line.strip()
-    except:
+    except Exception:
         print line.strip()

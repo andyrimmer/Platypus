@@ -56,7 +56,7 @@ def summariseVariantCalls(binSize):
                     nInsertions[hp//binSize] += 1
                 else:
                     pass
-        except:
+        except Exception:
             print "Error. Prob last line..."
             print line
             continue

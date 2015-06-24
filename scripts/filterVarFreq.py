@@ -26,5 +26,5 @@ for line in sys.stdin:
         if TR/TCR > 0.3:
             print line.strip()
 
-    except:
+    except Exception:
         continue

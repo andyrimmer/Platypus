@@ -135,7 +135,7 @@ cdef class FastaFile:
 
         try:
             return self.theFile.read(1).upper()
-        except:
+        except Exception:
             return <char*>"-"
 
     cdef void setCacheSequence(self, bytes seqName, long long int beginPos, long long int endPos):
