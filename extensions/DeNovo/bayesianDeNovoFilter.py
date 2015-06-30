@@ -95,7 +95,7 @@ class Variant(object):
             try:
                 key,value = item.split("=")
                 self.info[key] = value.split(",")
-            except:
+            except Exception:
                 pass
                 #print item
                 #raise
@@ -522,7 +522,7 @@ if __name__ == "__main__":
 
     try:
         extension = sys.argv[3]
-    except:
+    except Exception:
         extension = ""
 
     # Make output files using the name of the input VCF with various extensions

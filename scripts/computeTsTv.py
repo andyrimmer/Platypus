@@ -54,7 +54,7 @@ def summariseVariantCalls():
 
                     if filters == "PASS":
                         nPASSTransversionSnps += 1
-        except:
+        except Exception:
             continue
 
     print "nSNP = %s. \t TsTv = %s. PASS TsTv = %s" %(nSNPs,nTransitionSnps/nTransversionSnps,nPASSTransitionSnps/nPASSTransversionSnps)

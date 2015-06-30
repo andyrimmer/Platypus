@@ -627,7 +627,7 @@ class IndelHistogram:
     def report(self):
         try:
             self.i += 1
-        except:
+        except Exception:
             self.i = 0
         if self.i % 10000 == 0:
             print "Histogram report:"
@@ -864,7 +864,7 @@ class IndelHistogram:
 
         try:
             base = results[1][1]  # if this fails, there was no data
-        except:
+        except Exception:
             raise ValueError("Too few observations to build error model!")
 
         for repeat_unit in results:

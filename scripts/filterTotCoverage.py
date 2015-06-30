@@ -12,6 +12,6 @@ for line in sys.stdin:
 
     if nTot >= 15 and nTot <= 50:
         print line.strip()
-    #except:
+    #except Exception:
     #    print line.strip()
     #    continue

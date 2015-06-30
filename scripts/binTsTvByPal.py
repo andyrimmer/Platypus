@@ -48,7 +48,7 @@ def summariseVariantCalls(binSize):
                 nTs[pal//binSize] += 1
             else:
                 nTv[pal//binSize] += 1
-        except:
+        except Exception:
             print "Error. Prob last line..."
             print line
             continue

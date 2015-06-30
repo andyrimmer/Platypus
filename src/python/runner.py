@@ -18,6 +18,7 @@ import logging
 import filez
 import logging.handlers
 import platypusutils
+import time
 
 from variantcaller import PlatypusSingleProcess
 from variantcaller import PlatypusMultiProcess
@@ -45,7 +46,7 @@ class FileForQueueing(object):
         # original names.
         try:
             chrom = int(chrom.upper().strip("CHR"))
-        except:
+        except Exception:
             pass
 
         pos = int(cols[1])
@@ -60,7 +61,7 @@ class FileForQueueing(object):
 
                 try:
                     chrom = int(chrom.upper().strip("CHR"))
-                except:
+                except Exception:
                     pass
 
                 pos = int(cols[1])
@@ -104,7 +105,7 @@ class FileForQueueing(object):
                 # original names.
                 try:
                     chrom = int(chrom.upper().strip("CHR"))
-                except:
+                except Exception:
                     pass
 
                 pos = int(cols[1])
@@ -452,53 +453,52 @@ def runVariantCaller(options, continuing=False):
     else:
         regions = sorted(platypusutils.getRegions(options), cmp=regionSort)
 
-    if options.nCPU == 1:
-        fileName = None
+    # Always create process manager even if nCPU=1, so that we can listen for signals from the main thread
+    fileNames = set()
+    processes = []
+    regionsForEachProcess = []
 
-        if options.output == "-":
-            fileName = options.output
-        else:
-            fileName = options.output + "_temp_1.gz"
+    # In this case, create all the BAM files here, before splitting into separate processes. The files will be left open until
+    # the end of the parent process, and all child processes will share the same open files via pointers.
+    bamFileNames = None
+    samples = None
+    samplesByID = None
+    samplesByBAM = None
+    bamFiles = None
+    theLocks = None
 
-        p1 = PlatypusSingleProcess(fileName, options, regions, continuing)
-        p1.run()
-        if options.output != "-":
-            mergeVCFFiles([fileName], options.output, log)
-    else:
-        # Create process manager
-        fileNames = set()
-        processes = []
-        regionsForEachProcess = []
+    for i in range(options.nCPU):
+        regionsForEachProcess.append([])
 
-        # In this case, create all the BAM files here, before splitting into separate processes. The files will be left open until
-        # the end of the parent process, and all child processes will share the same open files via pointers.
-        bamFileNames = None
-        samples = None
-        samplesByID = None
-        samplesByBAM = None
-        bamFiles = None
-        theLocks = None
+    for index,region in enumerate(regions):
+        regionsForEachProcess[index % options.nCPU].append(region)
 
-        for i in range(options.nCPU):
-            regionsForEachProcess.append([])
+    for index in range(options.nCPU):
+        #fileName = options.output + "_temp_%s.gz" %(index)
+        fileName = options.output + "_temp_%s" %(index)
+        fileNames.add(fileName)
+        processes.append(PlatypusMultiProcess(fileName, options, regionsForEachProcess[index]))
 
-        for index,region in enumerate(regions):
-            regionsForEachProcess[index % options.nCPU].append(region)
+    for process in processes:
+        process.start()
 
-        for index in range(options.nCPU):
-            #fileName = options.output + "_temp_%s.gz" %(index)
-            fileName = options.output + "_temp_%s" %(index)
-            fileNames.add(fileName)
-            processes.append(PlatypusMultiProcess(fileName, options, regionsForEachProcess[index]))
+    # listen for signals while any process is alive
+    while True in [process.is_alive() for process in processes]:
+        try:
+            time.sleep(1)
+        except KeyboardInterrupt:
+            print "KeyboardInterrupt detected, terminating all processes..."
+            for process in processes:
+                process.terminate()
+            log.error("Variant calling aborted due to keyboard interrupt")
+            sys.exit(1)
 
-        for process in processes:
-            process.start()
+    # make sure all processes are finished
+    for process in processes:
+        process.join()
 
-        for process in processes:
-            process.join()
-
-        # Final output file
-        mergeVCFFiles(fileNames, options.output, log)
+    # Final output file
+    mergeVCFFiles(fileNames, options.output, log)
 
     # All done. Write a message to the log, so that it's clear when the
     # program has actually finished, and not crashed.

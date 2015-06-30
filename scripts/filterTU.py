@@ -19,5 +19,5 @@ for line in sys.stdin:
             if name == "TU" and len(value) != threshold:
                 print line.strip()
 
-    except:
+    except Exception:
         continue

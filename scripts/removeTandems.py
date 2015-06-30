@@ -27,5 +27,5 @@ for line in sys.stdin:
 
         print line.strip()
 
-    except:
+    except Exception:
         continue

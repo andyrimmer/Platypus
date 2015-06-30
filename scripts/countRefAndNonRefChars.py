@@ -9,5 +9,5 @@ for line in sys.stdin:
         nRef = chars.count(".") + chars.count(",")
         nNonRef = chars.count("A") + chars.count("C") + chars.count("T") + chars.count("G")
         print "N ref = %s (%s %%). N non-ref = %s (%s %%)" %(nRef, 100.0*(nRef/lenChars), nNonRef, 100.0*(nNonRef/lenChars))
-    except:
+    except Exception:
         continue

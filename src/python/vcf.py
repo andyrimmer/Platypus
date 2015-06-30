@@ -74,7 +74,7 @@ def parse_regions( string ):
                 ielts = elts[1].split('-')
                 if len(ielts) != 2: ValueError("Don't understand region string '%s'" % r)
                 try:    start, end = int(ielts[0])-1, int(ielts[1])
-                except: raise ValueError("Don't understand region string '%s'" % r)
+                except Exception: raise ValueError("Don't understand region string '%s'" % r)
         else:
             raise ValueError("Don't understand region string '%s'" % r)
         result.append( (chrom,start,end) )
@@ -413,7 +413,7 @@ class VCF:
             try:
                 if GTstring[0] == '.' or GTstring[2] == '.': return ["."]
                 return [int(GTstring[0]),GTstring[1],int(GTstring[2])]
-            except:
+            except Exception:
                 # hack, to accept "0" genotypes
                 return [int(GTstring[0])]
         try:
@@ -453,7 +453,7 @@ class VCF:
                 for idx,v in enumerate(values):
                     if v == ".": values[idx] = f.missingvalue
                     else:        values[idx] = int(v)
-            except:
+            except Exception:
                 self.error(line,self.ERROR_FORMAT_NOT_NUMERICAL,values)
                 return [0] * len(values)
             return values
@@ -470,7 +470,7 @@ class VCF:
                 for idx,v in enumerate(values):
                     if v == ".":  values[idx] = f.missingvalue
                     else:         values[idx] = float(values[idx])
-            except:
+            except Exception:
                 self.error(line,self.ERROR_FORMAT_NOT_NUMERICAL,values)
                 return [0.0] * len(values)
             return values
@@ -501,7 +501,7 @@ class VCF:
 
         # get 0-based position
         try:    pos = int(cols[1])-1
-        except: self.error(line,self.POS_NOT_NUMERICAL)
+        except Exception: self.error(line,self.POS_NOT_NUMERICAL)
         if pos < 0: self.error(line,self.POS_NOT_POSITIVE)
 
         # implement filtering
@@ -537,7 +537,7 @@ class VCF:
         if cols[5] == ".": qual = -1
         else:
             try:    qual = float(cols[5])
-            except: self.error(line,self.QUAL_NOT_NUMERICAL)
+            except Exception: self.error(line,self.QUAL_NOT_NUMERICAL)
 
         # postpone checking that filters exist.  Encode missing filter or no filtering as empty list
         if cols[6] == "." or cols[6] == "PASS" or cols[6] == "0": filter = []
