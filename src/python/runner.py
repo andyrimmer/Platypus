@@ -472,12 +472,14 @@ def runVariantCaller(options, continuing=False):
 
     for index,region in enumerate(regions):
         regionsForEachProcess[index % options.nCPU].append(region)
-
-    for index in range(options.nCPU):
-        #fileName = options.output + "_temp_%s.gz" %(index)
-        fileName = options.output + "_temp_%s" %(index)
-        fileNames.add(fileName)
-        processes.append(PlatypusMultiProcess(fileName, options, regionsForEachProcess[index]))
+    
+    if options.nCPU == 1 and options.output == "-":
+        processes.append(PlatypusMultiProcess("-", options, regionsForEachProcess[index]))
+    else:
+        for index in range(options.nCPU):
+            fileName = options.output + "_temp_%s" %(index)
+            fileNames.add(fileName)
+            processes.append(PlatypusMultiProcess(fileName, options, regionsForEachProcess[index]))
 
     for process in processes:
         process.start()
@@ -498,7 +500,8 @@ def runVariantCaller(options, continuing=False):
         process.join()
 
     # Final output file
-    mergeVCFFiles(fileNames, options.output, log)
+    if options.output != "-":
+        mergeVCFFiles(fileNames, options.output, log)
 
     # All done. Write a message to the log, so that it's clear when the
     # program has actually finished, and not crashed.
@@ -511,7 +514,7 @@ def callVariants(args):
     Run the Platypus variant-caller, with the specified arguments
     """
     parser = extendedoptparse.OptionParser()
-
+    
     # Input data and miscellaneous
     parser.add_option("-o", "--output", dest="output",  help="Output SNP data file", action='store', type='string', default="AllVariants.vcf")
     parser.add_option("--refFile",dest="refFile", help="Fasta file of reference. Index must be in same directory", action='store', type='string', required=True)
@@ -533,7 +536,7 @@ def callVariants(args):
     parser.add_option("--compressReads", dest="compressReads", help="If this is set to 1, then all reads will be compressed, and decompressd on demand. This will slow things down, but reduce memory usage.", type='int', action='store', default=0)
     parser.add_option("--qualBinSize", dest="qualBinSize", help="This sets the granularity used when compressing quality scores. If > 1 then quality compression is lossy", type='int', action='store', default=1)
     parser.add_option("--fileCaching", dest="fileCaching", help="Sets file caching level. 0: BAM/CRAM files cached. 1: CRAM files cached. 2: No file caching.", type=int, action='store', default=0)
-
+    
     # Calling Parameters
     parser.add_option("--maxSize", dest="maxSize", help="Largest variant to consider", action='store', type='int', default=1500)
     parser.add_option("--largeWindows", dest="largeWindows", help="If set to 1, window size can be up to 'maxSize'", action='store', type='int', default=0)
@@ -563,7 +566,7 @@ def callVariants(args):
     parser.add_option("--assemblerKmerSize", dest="assemblerKmerSize", help="Kmer size to use for cortex assembly'.", action='store', type='int', default=15)
     parser.add_option("--assembleBrokenPairs", dest="assembleBrokenPairs", help="If 1, then use broken read pairs for local assembly", action='store', type='int', default=0)
     parser.add_option("--noCycles", dest="noCycles", help="If 1, then don't allow cycles in the graph", action='store', type='int', default=0)
-
+    
     # QC Parameters
     parser.add_option("--minMapQual", dest="minMapQual", help="Minimum mapping quality of read. Any reads with map qual below this are ignored", action='store', type = 'int', default=20, required=False)
     parser.add_option("--minBaseQual", dest="minBaseQual", help="Minimum allowed base-calling quality. Any bases with qual below this are ignored in SNP-calling", action='store', type = 'int', default=20, required=False)
@@ -575,7 +578,7 @@ def callVariants(args):
     parser.add_option("--trimOverlapping", dest="trimOverlapping", help="If set to 1, overlapping paired reads have overlap set to qual 0", action='store', type = 'int', default=1, required=False)
     parser.add_option("--trimAdapter", dest="trimAdapter", help="If set to 1, then sets to qual 0 any part of read which exceeds the mapped fragment length. This is mainly useful for trimming adapter sequences", action='store', type = 'int', default=1, required=False)
     parser.add_option("--trimSoftClipped", dest="trimSoftClipped", help="If set to 1, then sets to qual 0 any soft clipped parts of the read.", action='store', type = 'int', default=1, required=False)
-
+    
     # Variant-calling Filter Parameters
     parser.add_option("--maxGOF", dest="maxGOF", help="Max allowed value for goodness-of-fit test. Higher than this triggers GOF filter (Phred-scaled).", action='store', type='int', default=30)
     parser.add_option("--minPosterior", dest="minPosterior", help="Only variants with posterior >= this will be outpu to the VCF. Value is a Phred-score.", action='store', type='int', default=5)
@@ -588,7 +591,7 @@ def callVariants(args):
     parser.add_option("--rmsmqThreshold", dest="rmsmqThreshold", help="RMSMQ filter triggers when root-mean-square mapping quality across region containing variant is below this.", action='store', type='int', default=40)
     parser.add_option("--qdThreshold", dest="qdThreshold", help="QD filter triggers quality/depth for variant is below this.", action='store', type='int', default=10)
     parser.add_option("--hapScoreThreshold", dest="hapScoreThreshold", help="HapScore filter triggers HapScore for variant is above this.", action='store', type='int', default=4)
-
+    
     # Genome VCF parameters
     parser.add_option("--outputRefCalls", dest="outputRefCalls", help="If 1, output block reference calls.", action='store', type='int', default=0)
     parser.add_option("--refCallBlockSize", dest="refCallBlockSize", help="Max size of reference call block.", action='store', type='int', default=1000)

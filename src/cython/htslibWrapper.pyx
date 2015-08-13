@@ -326,9 +326,9 @@ cdef class ReadIterator:
     
     cdef cAlignedRead* get(self, int storeRgID, char** rgID):
         cdef bam1_core_t *c = &self.b.core
-        cdef uint8_t *s = bam_get_seq(self.b)
-        cdef uint8_t *q = bam_get_qual(self.b)
-        cdef int lenSeq = c.l_qseq
+        cdef uint8_t *s     = bam_get_seq(self.b)
+        cdef uint8_t *q     = bam_get_qual(self.b)
+        cdef int lenSeq     = c.l_qseq
         
         if lenSeq == 0:
             return NULL
@@ -350,14 +350,17 @@ cdef class ReadIterator:
         cdef int lenRgID    = 0
         if storeRgID:
             v = bam_aux_get(self.b, "RG")
-            tempRgID = bam_aux2Z(v)
-            lenRgID = strlen(tempRgID)
-            rgID[0] = <char*>(calloc(lenRgID + 1, sizeof(char)))
-            strcpy(rgID[0], tempRgID)
+            if (v != NULL):
+                tempRgID = bam_aux2Z(v)
+                lenRgID  = strlen(tempRgID)
+                rgID[0]  = <char*>(calloc(lenRgID + 1, sizeof(char)))
+                strcpy(rgID[0], tempRgID)
+            else:
+                rgID[0] = NULL
         
         cdef int i = 0
         for i from 0 <= i < lenSeq:
-            seq[i] = self._getBase(s, i)
+            seq[i]  = self._getBase(s, i)
             qual[i] = q[i]
             assert qual[i] <= 93
             assert qual[i] >= 0
@@ -369,8 +372,8 @@ cdef class ReadIterator:
         assert cigarOps != NULL
         cdef uint32_t *cigar = bam_get_cigar(self.b)
         for i from 0 <= i < c.n_cigar:
-            cigarFlag     = bam_cigar_op(cigar[i])
-            cigarFlagLen  = bam_cigar_oplen(cigar[i])
+            cigarFlag             = bam_cigar_op(cigar[i])
+            cigarFlagLen          = bam_cigar_oplen(cigar[i])
             cigarOps[2 * i]       = cigarFlag
             cigarOps[(2 * i) + 1] = cigarFlagLen
             
