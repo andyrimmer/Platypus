@@ -474,7 +474,7 @@ def runVariantCaller(options, continuing=False):
         regionsForEachProcess[index % options.nCPU].append(region)
     
     if options.nCPU == 1 and options.output == "-":
-        processes.append(PlatypusMultiProcess("-", options, regionsForEachProcess[index]))
+        processes.append(PlatypusMultiProcess("-", options, regionsForEachProcess[0]))
     else:
         for index in range(options.nCPU):
             fileName = options.output + "_temp_%s" %(index)
