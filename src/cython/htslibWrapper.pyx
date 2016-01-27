@@ -4,6 +4,7 @@ import itertools
 import logging
 cimport cython
 import zlib
+#import zlib
 
 ###################################################################################################
 
@@ -348,6 +349,7 @@ cdef class ReadIterator:
         cdef uint8_t* v     = NULL
         cdef char* tempRgID = NULL
         cdef int lenRgID    = 0
+        
         if storeRgID:
             v = bam_aux_get(self.b, "RG")
             if (v != NULL):
