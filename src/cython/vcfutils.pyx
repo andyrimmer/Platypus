@@ -1439,23 +1439,23 @@ cdef dict vcfINFO(double* haplotypeFrequencies, dict variantPosteriors, list gen
         INFO[variant]['HapScore'] = [HapScore]
 
         listOfMinBaseQuals.sort()
-
+        
         if len(listOfMinBaseQuals) > 0:
             INFO[variant]['MMLQ'] = [listOfMinBaseQuals[ len(listOfMinBaseQuals) // 2 ]]
         else:
             INFO[variant]['MMLQ'] = [100]
-
+        
         INFO[variant]["Source"] = []
-
+        
         if variant.varSource & PLATYPUS_VAR:
             INFO[variant]["Source"].append("Platypus")
-
+        
         if variant.varSource & ASSEMBLER_VAR:
             INFO[variant]["Source"].append("Assembler")
-
+        
         if variant.varSource & FILE_VAR:
             INFO[variant]["Source"].append("File")
-
+    
     return INFO
 
 ###################################################################################################
