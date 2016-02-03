@@ -12,10 +12,6 @@
   #endif
 #endif
 
-#ifndef DL_IMPORT
-  #define DL_IMPORT(_T) _T
-#endif
-
 __PYX_EXTERN_C DL_IMPORT(int) PLATYPUS_VAR;
 __PYX_EXTERN_C DL_IMPORT(int) FILE_VAR;
 __PYX_EXTERN_C DL_IMPORT(int) ASSEMBLER_VAR;

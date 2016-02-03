@@ -719,44 +719,4 @@ cdef class Population:
             self.computeVariantINFO()
             self.computeVariantFILTER()
 
-        if self.options.alignScoreFile == "":
-            return
-
-        # Print alignment scores of reads against haplotypes to file
-        cdef bamReadBuffer theBuffer
-        cdef double* arr
-        cdef Haplotype hap
-        cdef cAlignedRead** pStartRead
-        cdef cAlignedRead** pEndRead
-
-        fo = open(self.options.alignScoreFile, "a")
-
-        for individualIndex from 0 <= individualIndex < self.nIndividuals:
-            theBuffer = self.readBuffers[individualIndex]
-            nReadsThisInd = theBuffer.reads.windowEnd - theBuffer.reads.windowStart
-            windowStart =  theBuffer.startBase
-            windowEnd   =  theBuffer.endBase
-            fo.write("Individual\t%d\t%d\t%d\n" %(individualIndex, len(self.haplotypes), nReadsThisInd))
-
-            for hapIdx, hap in enumerate(self.haplotypes):
-                thisStr = hap.getMutatedSequence()
-                thisLen = len(thisStr)
-                fo.write("%d %d %s %f\n" %(hap.startPos, hap.endPos, thisStr[hap.endBufferSize:thisLen-hap.endBufferSize+1], self.frequencies[hapIdx]))
-
-            for hap in self.haplotypes:
-                arr = hap.alignReads(individualIndex, theBuffer.reads.windowStart, theBuffer.reads.windowEnd, theBuffer.badReads.windowStart, theBuffer.badReads.windowEnd, theBuffer.brokenMates.windowStart, theBuffer.brokenMates.windowEnd, self.verbosity)
-                arrP = []
-                for readIndex from 0 <= readIndex < nReadsThisInd:
-                    arrP.append("%1.3E" %(-10*arr[readIndex]))
-                fo.write("%s\n" %("\t".join(arrP)))
-            mappingQual = []
-            pStartRead = theBuffer.reads.windowStart
-            pEndRead = theBuffer.reads.windowEnd
-            while pStartRead != pEndRead:
-                pRead = pStartRead[0]
-                mappingQual.append(pRead.mapq)
-                pStartRead +=1
-            fo.write("%s\n" %("\t".join(map(str,mappingQual))))
-        fo.close()
-
 ###################################################################################################

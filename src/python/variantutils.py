@@ -184,12 +184,14 @@ def isValidVcfLine(line):
     invalidBasesInReference = set(reference) - validBases
     if len(invalidBasesInReference) > 0:
         logger.warning("Invalid reference sequence at chromosome " + chromosome)
+
         return False
 
     for variant in variants:
         invalidBasesInVariant = set(variant) - validBases
         if len(invalidBasesInVariant) > 0:
             logger.warning("Invalid alternative at chromosome " + chromosome)
+            logger.warning(line)
             return False
 
     return True
