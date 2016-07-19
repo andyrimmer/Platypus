@@ -25,14 +25,14 @@ setup(name="Platypus", py_modules=['python/Platypus'])
 extModules = []
 corMods = ['cython/chaplotype.pxd', 'cython/variant.pxd', 'cython/fastafile.pxd', 'cython/calign.pxd', 'cython/htslibWrapper.pxd']
 incDirs = ["./", "c"]
-libaryDirs = ["./htslib"]
+libraryDirs = ["./lib"]
 
 # Debug for Valgrind
 cFlags = ["-msse2", "-msse3", "-funroll-loops", "-D_LARGEFILE64_SOURCE", "-D_FILE_OFFSET_BITS=64" ,"-g", "-Wno-unused-function"]
 tabixFlags = ["-Wno-incompatible-pointer-types-discards-qualifiers","-Wno-unused-function","-Wno-unneeded-internal-declaration"]
 tabproxiesFlags = ["-Wno-unused-function"]
 
-extModules.append(Extension(name='htslibWrapper', sources=['cython/htslibWrapper.pyx'], language='c',libraries=['hts'], extra_compile_args=cFlags))
+extModules.append(Extension(name='htslibWrapper', sources=['cython/htslibWrapper.pyx'], language='c',libraries=['hts'], extra_compile_args=cFlags, include_dirs=incDirs, library_dirs=libraryDirs))
 extModules.append(Extension(name='arrays', sources=['cython/arrays.pyx'], include_dirs=incDirs, language='c', extra_compile_args=cFlags))
 extModules.append(Extension(name='fastafile', sources=['cython/fastafile.pyx'], include_dirs=incDirs,  extra_compile_args=cFlags))
 extModules.append(Extension(name='variant', sources=['cython/variant.pyx', 'cython/htslibWrapper.pxd'], include_dirs=incDirs, extra_compile_args=cFlags))
