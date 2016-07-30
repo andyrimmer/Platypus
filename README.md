@@ -1,3 +1,4 @@
+![Build Status](https://travis-ci.org/IvantheDugtrio/Platypus.svg?branch=master)
 
 The Platypus variant caller. To build Platypus, do the following:
 
