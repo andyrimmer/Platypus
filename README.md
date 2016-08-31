@@ -17,12 +17,12 @@ To build and install htslib, cd into htslib source and type 'make install'. This
 NOTE: htslib should be installed in a standard location (e.g. /usr/local/). If not installed in a standard location, you will need to set your library paths:
 
 For linux:
-    
+
     export C_INCLUDE_PATH=/path/to/dir/include
     export LIBRARY_PATH=/path/to/dir/lib (only for making)
     export LD_LIBRARY_PATH=/path/to/dir/lib
 
-Note the '/include' and '/lib' sub-directories. e.g. if you installed htslib under /Users/me/htslib then set 
+Note the '/include' and '/lib' sub-directories. e.g. if you installed htslib under /Users/me/htslib then set
 
     export C_INCLUDE_PATH=/Users/me/htslib/include
     export LIBRARY_PATH=/Users/me/htslib/lib
