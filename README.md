@@ -19,7 +19,7 @@ to build.
 
 ### Prerequisites ###
 
-Platypus requires HTSlib 1.2.1 or greater. HTSlib can be downloaded from the HTSlib Web site http://www.htslib.org/download/.
+Platypus requires HTSlib 1.2.1 or greater. HTSlib can be downloaded from the [HTSlib Web site](http://www.htslib.org/download/).
 
 To build and install HTSlib, cd into HTSlib source and type `make install`. This will install HTSlib under `/usr/local/` (see note below). To install HTSlib in any other directory use `make install prefix=/path/to/dir`.
 
