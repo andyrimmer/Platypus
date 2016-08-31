@@ -19,11 +19,11 @@ to build.
 
 ### Prerequisites ###
 
-Platypus requires htslib 1.2.1 or greater. htslib can be downloaded from the htslib website http://www.htslib.org/download/.
+Platypus requires HTSlib 1.2.1 or greater. HTSlib can be downloaded from the HTSlib website http://www.htslib.org/download/.
 
-To build and install htslib, cd into htslib source and type `make install`. This will install htslib under `/usr/local/` (see note below). To install htslib in any other directory use `make install prefix=/path/to/dir`.
+To build and install HTSlib, cd into HTSlib source and type `make install`. This will install HTSlib under `/usr/local/` (see note below). To install HTSlib in any other directory use `make install prefix=/path/to/dir`.
 
-NOTE: htslib should be installed in a standard location (e.g. `/usr/local/`). If not installed in a standard location, you will need to set your library paths:
+NOTE: HTSlib should be installed in a standard location (e.g. `/usr/local/`). If not installed in a standard location, you will need to set your library paths:
 
 For linux:
 
@@ -31,13 +31,13 @@ For linux:
     export LIBRARY_PATH=/path/to/dir/lib (only for making)
     export LD_LIBRARY_PATH=/path/to/dir/lib
 
-Note the `/include` and `/lib` sub-directories. e.g. if you installed htslib under `/Users/me/htslib` then set
+Note the `/include` and `/lib` sub-directories. e.g. if you installed HTSlib under `/Users/me/htslib` then set
 
     export C_INCLUDE_PATH=/Users/me/htslib/include
     export LIBRARY_PATH=/Users/me/htslib/lib
     export LD_LIBRARY_PATH=/Users/me/htslib/lib
 
-htslib will automatically make the `include` and `lib` directories on install.
+HTSlib will automatically make the `include` and `lib` directories on install.
 
 For OSX:
 
