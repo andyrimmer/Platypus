@@ -1,7 +1,7 @@
 Platypus
 ========
 
-The Platypus variant caller.
+The Platypus variant caller. The main Web site is https://github.com/andyrimmer/Platypus.
 
 Installation and execution
 --------------------------
