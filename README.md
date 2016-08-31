@@ -1,7 +1,12 @@
 Platypus
 ========
 
-The Platypus variant caller. To build Platypus, do the following:
+The Platypus variant caller.
+
+Installation and execution
+--------------------------
+
+To build Platypus, do the following:
 
     make
 
@@ -12,7 +17,9 @@ Then to run do
 Platypus has been tested with Python 2.6 and 2.7, and requires Cython 0.20.2 or later
 to build.
 
-PREREQUISITES: Platypus requires htslib 1.2.1 or greater. htslib can be downloaded from the htslib website http://www.htslib.org/download/.
+### Prerequisites ###
+
+Platypus requires htslib 1.2.1 or greater. htslib can be downloaded from the htslib website http://www.htslib.org/download/.
 
 To build and install htslib, cd into htslib source and type `make install`. This will install htslib under `/usr/local/` (see note below). To install htslib in any other directory use `make install prefix=/path/to/dir`.
 
