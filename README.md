@@ -1,3 +1,6 @@
+Platypus
+========
+
 The Platypus variant caller. To build Platypus, do the following:
 
     make
