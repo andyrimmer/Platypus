@@ -1,0 +1,15 @@
+language: cpp
+sudo: required
+compiler:
+    - gcc
+before_install:
+    - sudo apt-get install cython
+    - wget https://github.com/samtools/htslib/releases/download/1.3.1/htslib-1.3.1.tar.bz2
+    - tar -xjvf htslib-1.3.1.tar.bz2
+    - cd htslib-1.3.1/ && make && sudo make install
+    - export C_INCLUDE_PATH=/home/travis/build/IvantheDugtrio/Platypus/htslib-1.3.1:$C_INCLUDE_PATH
+    - export LIBRARY_PATH=/home/travis/build/IvantheDugtrio/Platypus/htslib-1.3.1:$LIBRARY_PATH
+    - export LD_LIBRARY_PATH=/home/travis/build/IvantheDugtrio/Platypus/htslib-1.3.1:$LD_LIBRARY_PATH
+    - cd ../
+os: linux
+script: make

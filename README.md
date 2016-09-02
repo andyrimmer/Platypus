@@ -1,10 +1,10 @@
 Platypus
-========
+
+![Build Status](https://travis-ci.org/IvantheDugtrio/Platypus.svg?branch=master)
 
 The Platypus variant caller. The main Web site is https://github.com/andyrimmer/Platypus.
 
 Installation and execution
---------------------------
 
 To build Platypus, do the following:
 
