@@ -5,7 +5,11 @@
  It may not be distributed, made public, or used in other software without the permission of the copyright holder
 ******************************************************************************************************************/
 
+#ifdef __PPC64__
+#include "vec128int.h"
+#else
 #include <emmintrin.h>
+#endif
 #include <stdio.h>
 #include <assert.h>
 
@@ -15,6 +19,32 @@ const short n_score = 0*4;
 // define the DEBUG symbol to print the DP table and various running variables
 //#define DEBUG 1
 
+#ifdef __PPC64__
+#define printxmm_0(label,var) \
+printf(" %s [0]=%4x %5i [1]=%4x %5i [2]=%4x %5i [3]=%4x %5i [4]=%4x %5i [5]=%4x %5i [6]=%4x %5i [7]=%4x %5i\n", \
+    label, \
+    vec_extract8sh(var,0),((vec_extract8sh(var,0))&0xffff) >> 2, \
+    vec_extract8sh(var,1),((vec_extract8sh(var,1))&0xffff) >> 2, \
+    vec_extract8sh(var,2),((vec_extract8sh(var,2))&0xffff) >> 2, \
+    vec_extract8sh(var,3),((vec_extract8sh(var,3))&0xffff) >> 2, \
+    vec_extract8sh(var,4),((vec_extract8sh(var,4))&0xffff) >> 2, \
+    vec_extract8sh(var,5),((vec_extract8sh(var,5))&0xffff) >> 2, \
+    vec_extract8sh(var,6),((vec_extract8sh(var,6))&0xffff) >> 2, \
+    vec_extract8sh(var,7),((vec_extract8sh(var,7))&0xffff) >> 2);
+
+#define printxmm(label,var) \
+printf(" %s [0]=%4x %5i [1]=%4x %5i [2]=%4x %5i [3]=%4x %5i [4]=%4x %5i [5]=%4x %5i [6]=%4x %5i [7]=%4x %5i\n", \
+    label, \
+    vec_extract8sh(var,0),((vec_extract8sh(var,0)-32768)&0xffff) >> 2, \
+    vec_extract8sh(var,1),((vec_extract8sh(var,1)-32768)&0xffff) >> 2, \
+    vec_extract8sh(var,2),((vec_extract8sh(var,2)-32768)&0xffff) >> 2, \
+    vec_extract8sh(var,3),((vec_extract8sh(var,3)-32768)&0xffff) >> 2, \
+    vec_extract8sh(var,4),((vec_extract8sh(var,4)-32768)&0xffff) >> 2, \
+    vec_extract8sh(var,5),((vec_extract8sh(var,5)-32768)&0xffff) >> 2, \
+    vec_extract8sh(var,6),((vec_extract8sh(var,6)-32768)&0xffff) >> 2, \
+    vec_extract8sh(var,7),((vec_extract8sh(var,7)-32768)&0xffff) >> 2);
+
+#else
 #define printxmm_0(label,var) \
   printf(" %s [0]=%4x %5i [1]=%4x %5i [2]=%4x %5i [3]=%4x %5i [4]=%4x %5i [5]=%4x %5i [6]=%4x %5i [7]=%4x %5i\n", \
     label, \
@@ -39,12 +69,13 @@ const short n_score = 0*4;
     _mm_extract_epi16(var,6),((_mm_extract_epi16(var,6)-32768)&0xffff) >> 2, \
     _mm_extract_epi16(var,7),((_mm_extract_epi16(var,7)-32768)&0xffff) >> 2);
 
+#endif
 
 //_________________________________________________________________________________________________
 
 
 int fastAlignmentRoutine(const char* seq1, const char* seq2, const char* qual2, int len1, int len2, int gapextend, int nucprior,
-			 const char* localgapopen, char* aln1, char* aln2, int* firstpos) {
+             const char* localgapopen, char* aln1, char* aln2, int* firstpos) {
 
   // seq2 is the read; the shorter of the sequences
   // no checks for overflow are done
@@ -79,13 +110,31 @@ int fastAlignmentRoutine(const char* seq1, const char* seq2, const char* qual2, 
   __m128i _qual2win;
   __m128i _seq1nqual;   // 1 if N, pos_inf if not
 
+#ifdef __PPC64__
+  __m128i _gap_extend = vec_splat8sh( gap_extend );
+  __m128i _nuc_prior = vec_splat8sh( nuc_prior );
+  __m128i _three = vec_splat8sh( 3 );
+  __m128i _initmask = vec_set8sh( 0,0,0,0,0,0,0,-1 );
+  __m128i _initmask2 = vec_set8sh( 0,0,0,0,0,0,0,-0x8000 );
+  __m128i _backpointers[ 2*(len1+8) ];
+#else
   __m128i _gap_extend = _mm_set1_epi16( gap_extend );
   __m128i _nuc_prior = _mm_set1_epi16( nuc_prior );
   __m128i _three = _mm_set1_epi16( 3 );
   __m128i _initmask = _mm_set_epi16( 0,0,0,0,0,0,0,-1 );
   __m128i _initmask2 = _mm_set_epi16( 0,0,0,0,0,0,0,-0x8000 );
   __m128i _backpointers[ 2*(len1+8) ];
+#endif
 
+#ifdef __PPC64__
+  // initialization
+  _m1 = vec_splat8sh( pos_inf );
+  _i1 = _m1;
+  _d1 = _m1;
+  _m2 = _m1;
+  _i2 = _m1;
+  _d2 = _m1;
+#else
   // initialization
   _m1 = _mm_set1_epi16( pos_inf );
   _i1 = _m1;
@@ -93,27 +142,50 @@ int fastAlignmentRoutine(const char* seq1, const char* seq2, const char* qual2, 
   _m2 = _m1;
   _i2 = _m1;
   _d2 = _m1;
+#endif
 
+#ifdef __PPC64__
+  // sequence 1 is initialized with the n-long prefix, in forward direction
+  // sequence 2 is initialized as empty; reverse direction
+  _seq1win = vec_set8sh( seq1[7], seq1[6], seq1[5], seq1[4], seq1[3], seq1[2], seq1[1], seq1[0] );
+  _seq2win = _m1;
+  _qual2win = vec_splat8sh(64*4);
+
+#else
   // sequence 1 is initialized with the n-long prefix, in forward direction
   // sequence 2 is initialized as empty; reverse direction
   _seq1win = _mm_set_epi16( seq1[7], seq1[6], seq1[5], seq1[4], seq1[3], seq1[2], seq1[1], seq1[0] );
   _seq2win = _m1;
   _qual2win = _mm_set1_epi16(64*4);
+#endif
 
+#ifdef __PPC64__
   // if N, make n_score; if != N, make pos_inf
-  _seq1nqual = _mm_add_epi16( _mm_and_si128( _mm_cmpeq_epi16( _seq1win, 
-							      _mm_set1_epi16( 'N' ) ), 
-					     _mm_set1_epi16( n_score - pos_inf ) ), 
-			      _mm_set1_epi16( pos_inf ) );
+  _seq1nqual = vec_add8sh( vec_bitand1q( vec_compareeq8sh( _seq1win,
+                                  vec_splat8sh( 'N' ) ),
+                         vec_splat8sh( n_score - pos_inf ) ),
+                  vec_splat8sh( pos_inf ) );
+
+
+  __m128i _gap_open = vec_set8sh(4*localgapopen[7],4*localgapopen[6],4*localgapopen[5],4*localgapopen[4],
+                    4*localgapopen[3],4*localgapopen[2],4*localgapopen[1],4*localgapopen[0]);
+
+#else
+  // if N, make n_score; if != N, make pos_inf
+  _seq1nqual = _mm_add_epi16( _mm_and_si128( _mm_cmpeq_epi16( _seq1win,
+                                  _mm_set1_epi16( 'N' ) ),
+                         _mm_set1_epi16( n_score - pos_inf ) ),
+                  _mm_set1_epi16( pos_inf ) );
 
 
   __m128i _gap_open = _mm_set_epi16(4*localgapopen[7],4*localgapopen[6],4*localgapopen[5],4*localgapopen[4],
-				    4*localgapopen[3],4*localgapopen[2],4*localgapopen[1],4*localgapopen[0]);
+                    4*localgapopen[3],4*localgapopen[2],4*localgapopen[1],4*localgapopen[0]);
+#endif
 
   short _score = 0;
   short minscore = pos_inf;
   short minscoreidx = -1;
-  
+
   // main loop.  Do one extra iteration, with nucs from sequence 2 just moved out
   // of the seq2win/qual arrays, to simplify getting back pointers
   int s;
@@ -123,13 +195,25 @@ int fastAlignmentRoutine(const char* seq1, const char* seq2, const char* qual2, 
   for(s=0;s<len2;s++) printf("%c",seq2[s]); printf("\n");
   printxmm_0("gapextend ",_gap_extend);
 #endif
-  
+
   for (s=0; s<2*(len2+8-1 + 1); s+=2) {
 
 #ifdef DEBUG
     printf("--(even)---- s = %u ------\n", s);
 #endif
-    
+
+#ifdef __PPC64__
+    // seq1 is current; seq2 needs updating
+    _seq2win = vec_shiftleftbytes1q( _seq2win, 2 );
+    _qual2win = vec_shiftleftbytes1q( _qual2win, 2 );
+    if (s/2 < len2) {
+      _seq2win = vec_insert8sh( _seq2win, seq2[ s/2 ], 0 );
+      _qual2win = vec_insert8sh( _qual2win, 4*qual2[ s/2 ], 0 );
+    } else {
+      _seq2win = vec_insert8sh( _seq2win, '0', 0 );
+      _qual2win = vec_insert8sh( _qual2win, 64*4, 0 );
+    }
+#else
     // seq1 is current; seq2 needs updating
     _seq2win = _mm_slli_si128( _seq2win, 2 );
     _qual2win = _mm_slli_si128( _qual2win, 2 );
@@ -140,6 +224,7 @@ int fastAlignmentRoutine(const char* seq1, const char* seq2, const char* qual2, 
       _seq2win = _mm_insert_epi16( _seq2win, '0', 0 );
       _qual2win = _mm_insert_epi16( _qual2win, 64*4, 0 );
     }
+#endif
 
     //
     // S even
@@ -153,21 +238,38 @@ int fastAlignmentRoutine(const char* seq1, const char* seq2, const char* qual2, 
     printxmm_0("qual2win u",_qual2win);
     printxmm_0("gapopen u ",_gap_open);
 #endif
-    
+
+#ifdef __PPC64__
+    // initialize to -0x8000
+    _m1 = vec_bitor1q( _initmask2, vec_bitandnotleft1q( _initmask, _m1 ) );
+    _m2 = vec_bitor1q( _initmask2, vec_bitandnotleft1q( _initmask, _m2 ) );
+    _m1 = vec_min8sh( _m1, vec_min8sh( _i1, _d1 ) );
+#else
     // initialize to -0x8000
     _m1 = _mm_or_si128( _initmask2, _mm_andnot_si128( _initmask, _m1 ) );
     _m2 = _mm_or_si128( _initmask2, _mm_andnot_si128( _initmask, _m2 ) );
     _m1 = _mm_min_epi16( _m1, _mm_min_epi16( _i1, _d1 ) );
+#endif
 
 #ifdef DEBUG
     printxmm("min m1    ",_m1);
 #endif
-    
+
     // at this point, extract minimum score.  Referred-to position must
     // be y==len2-1, so that current position has y==len2; i==0 so d=0 and y=s/2
 
     if (s/2 >= len2) {
       switch (s/2 - len2) {
+#ifdef __PPC64__
+      case 0: _score = vec_extract8sh( _m1, 0 ); break;
+      case 1: _score = vec_extract8sh( _m1, 1 ); break;
+      case 2: _score = vec_extract8sh( _m1, 2 ); break;
+      case 3: _score = vec_extract8sh( _m1, 3 ); break;
+      case 4: _score = vec_extract8sh( _m1, 4 ); break;
+      case 5: _score = vec_extract8sh( _m1, 5 ); break;
+      case 6: _score = vec_extract8sh( _m1, 6 ); break;
+      case 7: _score = vec_extract8sh( _m1, 7 ); break;
+#else
       case 0: _score = _mm_extract_epi16( _m1, 0 ); break;
       case 1: _score = _mm_extract_epi16( _m1, 1 ); break;
       case 2: _score = _mm_extract_epi16( _m1, 2 ); break;
@@ -176,6 +278,7 @@ int fastAlignmentRoutine(const char* seq1, const char* seq2, const char* qual2, 
       case 5: _score = _mm_extract_epi16( _m1, 5 ); break;
       case 6: _score = _mm_extract_epi16( _m1, 6 ); break;
       case 7: _score = _mm_extract_epi16( _m1, 7 ); break;
+#endif
       }
 
       if (_score < minscore) {
@@ -184,45 +287,81 @@ int fastAlignmentRoutine(const char* seq1, const char* seq2, const char* qual2, 
       }                        // have to store the state at s-2
     }
 
-    _m1 = _mm_add_epi16( _m1, 
-			 _mm_min_epi16( _mm_andnot_si128( _mm_cmpeq_epi16( _seq2win, 
-									   _seq1win ), 
-							  _qual2win ),
-					_seq1nqual ) );
+#ifdef __PPC64__
+    _m1 = vec_add8sh( _m1,
+             vec_min8sh( vec_bitandnotleft1q( vec_compareeq8sh( _seq2win,
+                                       _seq1win ),
+                              _qual2win ),
+                    _seq1nqual ) );
+
+    _d1 = vec_min8sh( vec_add8sh( _d2,
+                    _gap_extend ),
+             vec_add8sh( vec_min8sh( _m2,
+                               _i2 ),                // allow I->D
+                    vec_shiftrightbytes1q( _gap_open, 2 ) ) );
+
+    _d1 = vec_insert8sh( vec_shiftleftbytes1q( _d1,
+                        2 ),
+                pos_inf,
+                0 );
+
+    _i1 = vec_add8sh( vec_min8sh( vec_add8sh( _i2,
+                               _gap_extend ),
+                    vec_add8sh( _m2,
+                               _gap_open ) ),
+            _nuc_prior );
+#else
+    _m1 = _mm_add_epi16( _m1,
+             _mm_min_epi16( _mm_andnot_si128( _mm_cmpeq_epi16( _seq2win,
+                                       _seq1win ),
+                              _qual2win ),
+                    _seq1nqual ) );
 
     _d1 = _mm_min_epi16( _mm_add_epi16( _d2,
-					_gap_extend ),
-			 _mm_add_epi16( _mm_min_epi16( _m2,
-						       _i2 ),                // allow I->D
-					_mm_srli_si128( _gap_open, 2 ) ) );
+                    _gap_extend ),
+             _mm_add_epi16( _mm_min_epi16( _m2,
+                               _i2 ),                // allow I->D
+                    _mm_srli_si128( _gap_open, 2 ) ) );
 
-    _d1 = _mm_insert_epi16( _mm_slli_si128( _d1, 
-					    2 ), 
-			    pos_inf, 
-			    0 );
+    _d1 = _mm_insert_epi16( _mm_slli_si128( _d1,
+                        2 ),
+                pos_inf,
+                0 );
 
     _i1 = _mm_add_epi16( _mm_min_epi16( _mm_add_epi16( _i2,
-						       _gap_extend ),
-					_mm_add_epi16( _m2,
-						       _gap_open ) ),
-			 _nuc_prior );
+                               _gap_extend ),
+                    _mm_add_epi16( _m2,
+                               _gap_open ) ),
+             _nuc_prior );
+#endif
 
 #ifdef DEBUG
-    printxmm("m1 &ptr   ",_m1);    
-    printxmm("d1 &ptr   ",_d1);    
-    printxmm("i1 &ptr   ",_i1);    
+    printxmm("m1 &ptr   ",_m1);
+    printxmm("d1 &ptr   ",_d1);
+    printxmm("i1 &ptr   ",_i1);
 #endif
-    
+
     // get back-pointers and store
     if (traceback) {
+#ifdef __PPC64__
+      _backpointers[ s ] = vec_bitor1q( vec_bitor1q( vec_bitand1q( _three, _m1 ),
+                               vec_shiftleftimmediate8sh( vec_bitand1q( _three, _i1 ), 2*insert_label ) ),
+                     vec_shiftleftimmediate8sh( vec_bitand1q( _three, _d1 ), 2*delete_label ) );
+
+      // set state labels
+      _m1 = vec_bitandnotleft1q( _three, _m1 );
+      _i1 = vec_bitor1q( vec_bitandnotleft1q( _three, _i1 ), vec_shiftrightimmediate8sh( _three, 1 ) );
+      _d1 = vec_bitor1q( vec_bitandnotleft1q( _three, _d1 ), _three );
+#else
       _backpointers[ s ] = _mm_or_si128( _mm_or_si128( _mm_and_si128( _three, _m1 ),
-						       _mm_slli_epi16( _mm_and_si128( _three, _i1 ), 2*insert_label ) ),
-					 _mm_slli_epi16( _mm_and_si128( _three, _d1 ), 2*delete_label ) );
-    
+                               _mm_slli_epi16( _mm_and_si128( _three, _i1 ), 2*insert_label ) ),
+                     _mm_slli_epi16( _mm_and_si128( _three, _d1 ), 2*delete_label ) );
+
       // set state labels
       _m1 = _mm_andnot_si128( _three, _m1 );
-      _i1 = _mm_or_si128( _mm_andnot_si128( _three, _i1 ), _mm_srli_epi16( _three, 1 ) );           
-      _d1 = _mm_or_si128( _mm_andnot_si128( _three, _d1 ), _three );                                
+      _i1 = _mm_or_si128( _mm_andnot_si128( _three, _i1 ), _mm_srli_epi16( _three, 1 ) );
+      _d1 = _mm_or_si128( _mm_andnot_si128( _three, _d1 ), _three );
+#endif
     }
 
     //
@@ -232,14 +371,22 @@ int fastAlignmentRoutine(const char* seq1, const char* seq2, const char* qual2, 
 #ifdef DEBUG
     printf("--(odd)----- s = %u ------\n", s+1);
 #endif
-    
+
     // seq1 needs updating; seq2 is current
     char c = (8 + s/2 < len1) ? seq1[ 8+(s/2) ] : 'N';
+#ifdef __PPC64__
+    _seq1win   = vec_insert8sh( vec_shiftrightbytes1q( _seq1win,   2 ), c, 8-1 );
+    _seq1nqual = vec_insert8sh( vec_shiftrightbytes1q( _seq1nqual, 2 ), (c=='N') ? n_score : pos_inf, 8-1 );
+    _gap_open  = vec_insert8sh( vec_shiftrightbytes1q( _gap_open, 2 ),
+                   4*localgapopen[ 8 + s/2 < len1 ? 8 + s/2 : len1-1 ],
+                   8-1 );
+#else
     _seq1win   = _mm_insert_epi16( _mm_srli_si128( _seq1win,   2 ), c, 8-1 );
     _seq1nqual = _mm_insert_epi16( _mm_srli_si128( _seq1nqual, 2 ), (c=='N') ? n_score : pos_inf, 8-1 );
     _gap_open  = _mm_insert_epi16( _mm_srli_si128( _gap_open, 2 ),
-				   4*localgapopen[ 8 + s/2 < len1 ? 8 + s/2 : len1-1 ],
-				   8-1 );
+                   4*localgapopen[ 8 + s/2 < len1 ? 8 + s/2 : len1-1 ],
+                   8-1 );
+#endif
 
 #ifdef DEBUG
     printxmm("initmask  ",_initmask);
@@ -249,19 +396,35 @@ int fastAlignmentRoutine(const char* seq1, const char* seq2, const char* qual2, 
     printxmm_0("qual2win  ",_qual2win);
     printxmm_0("gapopen u ",_gap_open);
 #endif
-    
+
+#ifdef __PPC64__
+    _initmask = vec_shiftleftbytes1q( _initmask, 2 );
+    _initmask2 = vec_shiftleftbytes1q( _initmask2, 2 );
+    _m2 = vec_min8sh( _m2, vec_min8sh( _i2, _d2 ) );
+#else
     _initmask = _mm_slli_si128( _initmask, 2 );
     _initmask2 = _mm_slli_si128( _initmask2, 2 );
     _m2 = _mm_min_epi16( _m2, _mm_min_epi16( _i2, _d2 ) );
+#endif
 
 #ifdef DEBUG
     printxmm("min m2    ",_m2);
 #endif
-    
+
     // at this point, extract minimum score.  Referred-to position must
     // be y==len2-1, so that current position has y==len2; i==0 so d=0 and y=s/2
     if (s/2 >= len2) {
       switch (s/2 - len2) {
+#ifdef __PPC64__
+      case 0: _score = vec_extract8sh( _m2, 0 ); break;
+      case 1: _score = vec_extract8sh( _m2, 1 ); break;
+      case 2: _score = vec_extract8sh( _m2, 2 ); break;
+      case 3: _score = vec_extract8sh( _m2, 3 ); break;
+      case 4: _score = vec_extract8sh( _m2, 4 ); break;
+      case 5: _score = vec_extract8sh( _m2, 5 ); break;
+      case 6: _score = vec_extract8sh( _m2, 6 ); break;
+      case 7: _score = vec_extract8sh( _m2, 7 ); break;
+#else
       case 0: _score = _mm_extract_epi16( _m2, 0 ); break;
       case 1: _score = _mm_extract_epi16( _m2, 1 ); break;
       case 2: _score = _mm_extract_epi16( _m2, 2 ); break;
@@ -270,6 +433,7 @@ int fastAlignmentRoutine(const char* seq1, const char* seq2, const char* qual2, 
       case 5: _score = _mm_extract_epi16( _m2, 5 ); break;
       case 6: _score = _mm_extract_epi16( _m2, 6 ); break;
       case 7: _score = _mm_extract_epi16( _m2, 7 ); break;
+#endif
       }
 
       if (_score < minscore) {
@@ -278,44 +442,77 @@ int fastAlignmentRoutine(const char* seq1, const char* seq2, const char* qual2, 
       }
     }
 
-    _m2 = _mm_add_epi16( _m2, 
-			 _mm_min_epi16( _mm_andnot_si128( _mm_cmpeq_epi16( _seq2win, 
-									   _seq1win ), 
-							  _qual2win ),
-					_seq1nqual ) );
+#ifdef __PPC64__
+    _m2 = vec_add8sh( _m2,
+             vec_min8sh( vec_bitandnotleft1q( vec_compareeq8sh( _seq2win,
+                                       _seq1win ),
+                              _qual2win ),
+                    _seq1nqual ) );
+
+    _d2 = vec_min8sh( vec_add8sh( _d1,
+                    _gap_extend ),
+             vec_add8sh( vec_min8sh( _m1,
+                               _i1 ),  // allow I->D
+                    _gap_open ) );
+
+    _i2 = vec_insert8sh( vec_add8sh( vec_min8sh( vec_add8sh( vec_shiftrightbytes1q( _i1, 2 ),
+                                     _gap_extend ),
+                              vec_add8sh( vec_shiftrightbytes1q( _m1, 2 ),
+                                     _gap_open ) ),
+                       _nuc_prior ),
+                pos_inf,
+                8-1 );
+#else
+    _m2 = _mm_add_epi16( _m2,
+             _mm_min_epi16( _mm_andnot_si128( _mm_cmpeq_epi16( _seq2win,
+                                       _seq1win ),
+                              _qual2win ),
+                    _seq1nqual ) );
 
     _d2 = _mm_min_epi16( _mm_add_epi16( _d1,
-					_gap_extend ),
-			 _mm_add_epi16( _mm_min_epi16( _m1,
-						       _i1 ),  // allow I->D 
-					_gap_open ) );
+                    _gap_extend ),
+             _mm_add_epi16( _mm_min_epi16( _m1,
+                               _i1 ),  // allow I->D
+                    _gap_open ) );
 
     _i2 = _mm_insert_epi16( _mm_add_epi16( _mm_min_epi16( _mm_add_epi16( _mm_srli_si128( _i1, 2 ),
-									 _gap_extend ),
-							  _mm_add_epi16( _mm_srli_si128( _m1, 2 ),
-									 _gap_open ) ),
-					   _nuc_prior ),
-			    pos_inf,
-			    8-1 );
+                                     _gap_extend ),
+                              _mm_add_epi16( _mm_srli_si128( _m1, 2 ),
+                                     _gap_open ) ),
+                       _nuc_prior ),
+                pos_inf,
+                8-1 );
+#endif
 
 #ifdef DEBUG
-    printxmm("m2 &ptr   ",_m2);    
-    printxmm("d2 &ptr   ",_d2);    
-    printxmm("i2 &ptr   ",_i2);    
+    printxmm("m2 &ptr   ",_m2);
+    printxmm("d2 &ptr   ",_d2);
+    printxmm("i2 &ptr   ",_i2);
 #endif
 
     // get back-pointers and store
     if (traceback) {
+#ifdef __PPC64__
+      _backpointers[ s+1 ] = vec_bitor1q( vec_bitor1q( vec_bitand1q( _three, _m2 ),
+                             vec_shiftleftimmediate8sh( vec_bitand1q( _three, _i2 ), 2*insert_label ) ),
+                       vec_shiftleftimmediate8sh( vec_bitand1q( _three, _d2 ), 2*delete_label ) );
+#else
       _backpointers[ s+1 ] = _mm_or_si128( _mm_or_si128( _mm_and_si128( _three, _m2 ),
-							 _mm_slli_epi16( _mm_and_si128( _three, _i2 ), 2*insert_label ) ),
-					   _mm_slli_epi16( _mm_and_si128( _three, _d2 ), 2*delete_label ) );
-      
-      // set state labels
-      _m2 = _mm_andnot_si128( _three, _m2 );
-      _i2 = _mm_or_si128( _mm_andnot_si128( _three, _i2 ), _mm_srli_epi16( _three, 1 ) );          
-      _d2 = _mm_or_si128( _mm_andnot_si128( _three, _d2 ), _three );                               
-    }
+                             _mm_slli_epi16( _mm_and_si128( _three, _i2 ), 2*insert_label ) ),
+                       _mm_slli_epi16( _mm_and_si128( _three, _d2 ), 2*delete_label ) );
+#endif
 
+      // set state labels
+#ifdef __PPC64__
+      _m2 = vec_bitandnotleft1q( _three, _m2 );
+      _i2 = vec_bitor1q( vec_bitandnotleft1q( _three, _i2 ), vec_shiftrightimmediate8sh( _three, 1 ) );
+      _d2 = vec_bitor1q( vec_bitandnotleft1q( _three, _d2 ), _three );
+#else
+      _m2 = _mm_andnot_si128( _three, _m2 );
+      _i2 = _mm_or_si128( _mm_andnot_si128( _three, _i2 ), _mm_srli_epi16( _three, 1 ) );
+      _d2 = _mm_or_si128( _mm_andnot_si128( _three, _d2 ), _three );
+#endif
+    }
   }
 
   // Backtrace.
@@ -384,7 +581,7 @@ int fastAlignmentRoutine(const char* seq1, const char* seq2, const char* qual2, 
   printf("aln2 %s\n", aln2);
   printf("score %u\n", (minscore + 0x8000) >> 2 );
 #endif
-  
+
   return (minscore + 0x8000) >> 2;
 }
 
@@ -394,7 +591,7 @@ int fastAlignmentRoutine(const char* seq1, const char* seq2, const char* qual2, 
 
 
 int calculateFlankScore(int hapLen, int hapFlank, const char* quals, const char* localgapopen, int gapextend, int nucprior,
-			int firstpos, const char* aln1, const char* aln2) {
+            int firstpos, const char* aln1, const char* aln2) {
 
   char prevstate = 'M';
   int x = firstpos;     // index into haplotype
@@ -408,34 +605,34 @@ int calculateFlankScore(int hapLen, int hapFlank, const char* quals, const char*
     switch (newstate) {
     case 'M':
       if ( (aln1[i] != aln2[i]) &&
-	   (x < hapFlank || x >= hapLen - hapFlank) ) {
-	if (aln1[i] == 'N') {
-	  score += n_score / 4;
-	} else {
-	  score += quals[y];
-	}
+       (x < hapFlank || x >= hapLen - hapFlank) ) {
+    if (aln1[i] == 'N') {
+      score += n_score / 4;
+    } else {
+      score += quals[y];
+    }
       }
       ++x;
       ++y;
       break;
     case 'I':
       if (x < hapFlank || x >= hapLen - hapFlank) {
-	if (prevstate == 'I') {
-	  score += gapextend + nucprior;
-	} else {
-	  // gap open score is charged for insertions just after the corresponding base, hence the -1
-	  score += localgapopen[x-1] + nucprior;
-	}
+    if (prevstate == 'I') {
+      score += gapextend + nucprior;
+    } else {
+      // gap open score is charged for insertions just after the corresponding base, hence the -1
+      score += localgapopen[x-1] + nucprior;
+    }
       }
       ++y;
       break;
     case 'D':
       if (x < hapFlank || x >= hapLen - hapFlank) {
-	if (prevstate == 'D') {
-	  score += gapextend;
-	} else {
-	  score += localgapopen[x];
-	}
+    if (prevstate == 'D') {
+      score += gapextend;
+    } else {
+      score += localgapopen[x];
+    }
       }
       ++x;
       break;
