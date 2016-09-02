@@ -1,10 +1,10 @@
-Platypus
+#Platypus
 
 ![Build Status](https://travis-ci.org/IvantheDugtrio/Platypus.svg?branch=master)
 
 The Platypus variant caller. The main Web site is https://github.com/andyrimmer/Platypus.
 
-Installation and execution
+##Installation and execution
 
 To build Platypus, do the following:
 
@@ -17,7 +17,7 @@ Then to run do
 Platypus has been tested with Python 2.6 and 2.7, and requires Cython 0.20.2 or later
 to build.
 
-### Prerequisites ###
+####Prerequisites
 
 Platypus requires HTSlib 1.2.1 or greater. HTSlib can be downloaded from the [HTSlib Web site](http://www.htslib.org/download/).
 
