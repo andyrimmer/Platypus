@@ -367,3 +367,7 @@ Released on 25 Jan 2013.
 - Released on 3 March 2015
 - CRAM support 
 - Various bug fixes.
+
+0.8.1.1
+=======
+- Support hg38 BAM files with AH alternative locus header in @SQ sequence dictionary
