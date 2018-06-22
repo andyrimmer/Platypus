@@ -712,7 +712,7 @@ cdef void callHLAVariantsInRegion(bytes chrom, int start, int end, bamFiles, Fas
             ref = refFile.getSequence(chrom, start, end)
             format = 'GT:GL:NR:NV1:NV2'
             infoLine = "WS=" + str(start) + ";WE=" + str(end) + ";Size=" + str(end - start + 1)
-            theLine = "\t".join([chrom, str(start),'.', ref, ".", "100", "REFCALL", infoLine, format]) 
+            theLine = "\t".join([chrom, str(start+1),'.', ref, ".", "100", "REFCALL", infoLine, format])
             for i from 0 <= i < options.nInd:
                 readBuffer = readBuffers[i]
                 nReads = readBuffer.reads.windowEnd - readBuffer.reads.windowStart
