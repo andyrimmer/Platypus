@@ -43,6 +43,9 @@ clean:
 
 .PHONY:
 releasedir: platypus
+	export C_INCLUDE_PATH=/usr/local/include
+	export LIBRARY_PATH=/usr/local/lib
+	export LD_LIBRARY_PATH=/usr/local/lib
 	echo ''
 	echo 'Building new Platypus release'
 	rm -rf ${TARGET}
