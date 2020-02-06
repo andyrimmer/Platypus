@@ -75,7 +75,7 @@ static const int GZIP_WINDOW_BITS = -15; // no zlib header
 static const int Z_DEFAULT_MEM_LEVEL = 8;
 
 
-inline
+extern inline
 void
 packInt16(uint8_t* buffer, uint16_t value)
 {
@@ -83,14 +83,14 @@ packInt16(uint8_t* buffer, uint16_t value)
     buffer[1] = value >> 8;
 }
 
-inline
+extern inline
 int
 unpackInt16(const uint8_t* buffer)
 {
     return (buffer[0] | (buffer[1] << 8));
 }
 
-inline
+extern inline
 void
 packInt32(uint8_t* buffer, uint32_t value)
 {

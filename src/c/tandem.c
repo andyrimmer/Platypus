@@ -57,7 +57,7 @@ unsigned char* twobit(char* sequence, int length, int offset)
 
 //=================================================================================================
 
-inline int approximate_indel_rate_inline(int size, int displacement)
+extern inline int approximate_indel_rate_inline(int size, int displacement)
 {
     // Helper -- returns guess of indel rate, in -10*phred units
     switch (displacement) {
@@ -77,7 +77,7 @@ int approximate_indel_rate(int size, int displacement)
 
 //=================================================================================================
 
-inline int min(int i, int j)
+extern inline int min(int i, int j)
 {
     // Helper -- minimum
     if (i<j) return i;
@@ -86,7 +86,7 @@ inline int min(int i, int j)
 
 //=================================================================================================
 
-inline void foundmatch(char* sizes, char* displacements, int pos, int size, int displacement, int length)
+extern inline void foundmatch(char* sizes, char* displacements, int pos, int size, int displacement, int length)
 {
     // Helper -- decides whether to accept (and store) a match
     char markfull = (length < 0);
