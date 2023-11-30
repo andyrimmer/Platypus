@@ -26,5 +26,5 @@ for line in theFile:
             elif len(theAlt) != len(ref):
                 break
         else:
-            print "Error in VCF. Need to trim leading alt and ref allele sequence"
-            print "Line is %s" %(line)
+            print("Error in VCF. Need to trim leading alt and ref allele sequence")
+            print("Line is %s" %(line))

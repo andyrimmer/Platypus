@@ -138,7 +138,7 @@ class VCF:
 
     def __init__(self, _copy=None, reference=None, regions=None, lines=None, leftalign=False, _fastGT=False):
         # make error identifiers accessible by name
-        for id in self._errors.keys(): self.__dict__[self._errors[id].split(':')[0]] = id
+        for id in list(self._errors.keys()): self.__dict__[self._errors[id].split(':')[0]] = id
         self._header = []         # tag-value pairs; tags are not unique; does not include fileformat, INFO, FILTER or FORMAT fields
         self._version = 40        # version number; 33=v3.3; 40=v4.0
         self._info = {}           # info, filter and format data
@@ -310,7 +310,7 @@ class VCF:
             if k != 'GT': sdata.append( (k,data[k]) )
         sdata.sort()
         if 'GT' in data:
-            sdata = [('GT',map(self.convertGTback,data['GT']))] + sdata
+            sdata = [('GT',list(map(self.convertGTback,data['GT'])))] + sdata
         for k,v in sdata:
             if v == []: v = None
             if key and value:
@@ -352,7 +352,7 @@ class VCF:
             elif value == "VCFv4.1":
                 self._version = 41
             else:
-                print value
+                print(value)
                 self.error(line,self.UNKNOWN_FORMAT_STRING)
         elif key == "INFO":
             f = self.parse_format(line, value)
@@ -372,7 +372,7 @@ class VCF:
         stream.write("##fileformat=VCFv%s.%s\n" % (self._version // 10, self._version % 10))
         for key,value in self._header: stream.write("##%s=%s\n" % (key,value))
         for var,label in [(self._info,"INFO"),(self._filter,"FILTER"),(self._format,"FORMAT")]:
-            for f in var.itervalues(): stream.write("##%s=%s\n" % (label,self.format_format(f,filter=(label=="FILTER"))))
+            for f in var.values(): stream.write("##%s=%s\n" % (label,self.format_format(f,filter=(label=="FILTER"))))
 
 
     def parse_heading( self, line ):
@@ -459,7 +459,7 @@ class VCF:
             return values
         elif f.type == "String":
             self._line = line
-            if f.id == "GT": values = map( self.convertGT, values )
+            if f.id == "GT": values = list(map( self.convertGT, values ))
             return values
         elif f.type == "Character":
             for v in values:
@@ -634,7 +634,7 @@ class VCF:
         if alt == []:
             pass
         else:
-            for i in range(1,min(len(ref),min(map(len,alt)))):
+            for i in range(1,min(len(ref),min(list(map(len,alt))))):
                 if len(set(allele[-1].upper() for allele in alt)) > 1 or ref[-1].upper() != alt[0][-1].upper():
                     break
                 ref, alt = ref[:-1], [allele[:-1] for allele in alt]
@@ -898,7 +898,7 @@ class sortedVCF(VCF):
             line_data = self.parse_data( line.strip(), lineparse=True, parseGenotypes=True)
             if line_data: self._sorted_lines[ line_data[0] ].append( (line_data[1],line_data[2]) )
 
-        for key in self._sorted_lines.iterkeys():
+        for key in self._sorted_lines.keys():
             self._sorted_lines[key].sort()
 
     def chr_tag(self, chrom):
@@ -923,10 +923,10 @@ class sortedVCF(VCF):
         number then by letter i.e 1-21, M, X, Y... etc.
         If a list of chromosomes is provided, this list is sorted instead.
         """
-        if chroms == None: chroms = self._sorted_lines.keys()
-        chrs = map(self.chr_tag, chroms)
+        if chroms == None: chroms = list(self._sorted_lines.keys())
+        chrs = list(map(self.chr_tag, chroms))
         chrs.sort(key=itemgetter(1))
-        return map(itemgetter(0), chrs)
+        return list(map(itemgetter(0), chrs))
 
     def _parse(self, region=None):
         if region != None:
@@ -1004,35 +1004,35 @@ M\t1230237\t.\tT\t.\t47\tPASS\tNS=3;DP=13;AA=T\tGT:GQ:DP:HQ\t0|0:54:7:56,60\t0|0
 20\t1110696\trs6040355\tA\tG,T\t67\tPASS\tNS=2;DP=10;AF=0.333,0.667;AA=T;DB\tGT:GQ:DP:HQ\t1|2:21:6:23,27\t2|1:2:0:18,2\t2/2:35:4"""
 
     if False:
-        print "Parsing v3.3 file:"
-        print vcf33
+        print("Parsing v3.3 file:")
+        print(vcf33)
         vcf = VCF()
         lines = [data for data in vcf.parse( (line+"\n" for line in vcf33.split('\n') ) )]
-        print "Writing v3.3 file:"
+        print("Writing v3.3 file:")
         vcf.write( sys.stdout, lines )
 
     if False:
-        print "Parsing v4.0 file:"
-        print vcf40
+        print("Parsing v4.0 file:")
+        print(vcf40)
         vcf = VCF()
         lines = [data for data in vcf.parse( (line+"\n" for line in vcf40.split('\n') ) )]
-        print "Writing v4.0 file:"
+        print("Writing v4.0 file:")
         vcf.write( sys.stdout, lines )
 
     if True:
-        print "Parsing v3.3 file:"
-        print vcf33
+        print("Parsing v3.3 file:")
+        print(vcf33)
         vcf = sortedVCF()
         lines = [data for data in vcf.parse( (line+"\n" for line in vcf33.split('\n') ) )]
-        print "Writing v3.3 file:"
+        print("Writing v3.3 file:")
         vcf.write( sys.stdout, lines )
 
     if True:
-        print "Parsing v4.0 file:"
-        print vcf40
+        print("Parsing v4.0 file:")
+        print(vcf40)
         vcf = sortedVCF()
         lines = [data for data in vcf.parse( (line+"\n" for line in vcf40.split('\n') ) )]
-        print "Writing v4.0 file:"
+        print("Writing v4.0 file:")
         vcf.write( sys.stdout, lines )
 
 if __name__ == "__main__":

@@ -18,8 +18,8 @@ for chrom in [str(x) for x in range(20,21)]:
             nBroken += 1
 
         if index % 1000000 == 0:
-            print "N broken pairs for chrom %s = %s out of %s reads" %(chrom, nBroken,nReads)
+            print("N broken pairs for chrom %s = %s out of %s reads" %(chrom, nBroken,nReads))
 
-    print "List of chroms with broken pairs that map to chrom %s" %(chrom)
+    print("List of chroms with broken pairs that map to chrom %s" %(chrom))
     for theChrom in sorted(chromsWithBrokenPairs.keys()):
-        print theChrom, chromsWithBrokenPairs[theChrom]
+        print(theChrom, chromsWithBrokenPairs[theChrom])

@@ -3,3 +3,6 @@ build/
 src/cython/*.c
 .project
 .pydevproject
+*.bak
+*.log
+nohup.out

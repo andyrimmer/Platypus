@@ -1,4 +1,4 @@
-from __future__ import division
+
 import sys
 
 for line in sys.stdin:
@@ -6,7 +6,7 @@ for line in sys.stdin:
     try:
 
         if line[0] == "#":
-            print line.strip()
+            print(line.strip())
             continue
 
         cols = line.strip().split("\t")
@@ -24,7 +24,7 @@ for line in sys.stdin:
                TCR = int(value)
 
         if TR/TCR > 0.3:
-            print line.strip()
+            print(line.strip())
 
     except Exception:
         continue

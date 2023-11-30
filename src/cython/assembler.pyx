@@ -592,7 +592,7 @@ cdef void EdgeStack_Push(EdgeStack* theStack, Edge* element):
         temp = <Edge**>(realloc(theStack.elements, 2*sizeof(Edge*)*theStack.capacity))
 
         if temp == NULL:
-            raise StandardError, "Could not re-allocate EdgeStack"
+            raise Exception("Could not re-allocate EdgeStack")
         else:
             theStack.elements = temp
             theStack.capacity *= 2
@@ -724,7 +724,7 @@ cdef int NodeDict_FindOrInsert(NodeDict* theDict, Node** theNode, int keyLen, No
     cdef Node** temp = <Node**>(realloc(theDict.buckets[hashValue], sizeof(Node*)*newBucketSize))
 
     if temp == NULL:
-        raise StandardError, "Could not re-allocate bucket"
+        raise Exception("Could not re-allocate bucket")
     else:
         # Set new entries to NULL
         for i in range(oldBucketSize, newBucketSize):

@@ -10,6 +10,6 @@ for line in sys.stdin:
     try:
         cols = line.strip().split("\t")
         if int(cols[9].split(":")[-4]) >= threshold:
-            print line.strip()
+            print(line.strip())
     except Exception:
-        print line.strip()
+        print(line.strip())

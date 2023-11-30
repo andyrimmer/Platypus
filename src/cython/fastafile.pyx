@@ -142,7 +142,7 @@ cdef class FastaFile:
         """
         """
         if seqName not in self.refs:
-            raise StandardError, "Invalid contig name %s. Make sure your FASTA reference file and query regions have the same naming convention" %(seqName)
+            raise Exception("Invalid contig name %s. Make sure your FASTA reference file and query regions have the same naming convention" %(seqName))
 
         cdef sequenceTuple seqTuple = self.refs[seqName]
         cdef long long int seqLength = seqTuple.SeqLength

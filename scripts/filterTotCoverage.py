@@ -1,4 +1,4 @@
-from __future__ import division
+
 import sys
 
 for line in sys.stdin:
@@ -11,7 +11,7 @@ for line in sys.stdin:
     nTot = int(cols[9].split(":")[-1])
 
     if nTot >= 15 and nTot <= 50:
-        print line.strip()
+        print(line.strip())
     #except Exception:
     #    print line.strip()
     #    continue

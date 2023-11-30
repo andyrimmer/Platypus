@@ -210,19 +210,19 @@ cdef class Population:
             logger.error("nInd != len(readBuffers). Something is very wrong here. Quitting now.")
             logger.info("Variants = %s" %(variants))
             logger.info("nVariants = %s. nHaplotypes = %s. nGenotypes = %s" %(len(variants), self.nHaplotypes, self.nGenotypes))
-            raise StandardError, "Error in cPopulation.setup"
+            raise Exception("Error in cPopulation.setup")
 
         if not self.nGenotypes <= self.options.maxGenotypes:
             logger.error("nGenotypes > options.maxGenotypes. (%s > %s). Something is very wrong here. Quitting now." %(self.nGenotypes, self.options.maxGenotypes))
             logger.info("Variants = %s" %(variants))
             logger.info("nVariants = %s. nHaplotypes = %s. nGenotypes = %s" %(len(variants), self.nHaplotypes, self.nGenotypes))
-            raise StandardError, "Error in cPopulation.setup"
+            raise Exception("Error in cPopulation.setup")
 
         if not self.nHaplotypes <= self.options.maxHaplotypes:
             logger.error("nHaplotypes > options.maxHaplotypes. (%s > %s). Something is very wrong here. Quitting now." %(self.nHaplotypes, self.options.maxHaplotypes))
             logger.info("Variants = %s" %(variants))
             logger.info("nVariants = %s. nHaplotypes = %s. nGenotypes = %s" %(len(variants), self.nHaplotypes, self.nGenotypes))
-            raise StandardError, "Error in cPopulation.setup"
+            raise Exception("Error in cPopulation.setup")
 
         self.variants = variants
         self.haplotypes = haplotypes

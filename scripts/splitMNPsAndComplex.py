@@ -46,7 +46,7 @@ def splitMAVariant(chrom, pos, theId, ref, alts, qual, filters, info, theRest):
 for line in sys.stdin:
 
     if line.startswith("#"):
-        print line.strip()
+        print(line.strip())
         continue
     else:
         col = line.strip().split("\t")
@@ -63,12 +63,12 @@ for line in sys.stdin:
         # Multi-allelic sites and length-changing variants are not further processed,
         # and go straight to output. Also, don't split complex variants/MNPs of length < 4
         if len(ref) != len(alts[0]) or len(ref) < 2 or (len(alts) > 1 and len(alts[1]) != len(ref)) or (len(alts) > 2 and len(alts[2]) != len(ref)) or len(alts) > 3:
-            print line.strip()
+            print(line.strip())
         # Special treatment for multi-allelic sites
         elif len(alts) > 1:
             for newLine in splitMAVariant(chrom, pos, theId, ref, alts, qual, filters, info, theRest):
-                print newLine
+                print(newLine)
         # Otherwise, split the variant into SNPs
         else:
             for newLine in splitVariant(chrom, pos, theId, ref, alts[0], qual, filters, info, theRest):
-                print newLine
+                print(newLine)

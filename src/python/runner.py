@@ -3,7 +3,7 @@ Code for identifying variants in illumina reads, based on Gerton's haplotype rea
 algorithm and initial implementation.
 """
 
-from __future__ import division
+
 
 import multiprocessing
 import variantcaller
@@ -55,7 +55,7 @@ class FileForQueueing(object):
         while not self.finishedReadingFile and len(self.heap) < 100:
 
             try:
-                line = self.theFile.next()
+                line = next(self.theFile)
                 cols = line.strip().split("\t")
                 chrom = cols[0]
 
@@ -88,7 +88,7 @@ class FileForQueueing(object):
         self.theFile.close()
         os.remove(self.theFile.name)
 
-    def next(self):
+    def __next__(self):
         """
         Increment the iterator and yield the new value. Also, store the
         current value for use in the comparison function.
@@ -96,7 +96,7 @@ class FileForQueueing(object):
         if not self.finishedReadingFile:
 
             try:
-                line = self.theFile.next()
+                line = next(self.theFile)
                 cols = line.strip().split("\t")
                 chrom = cols[0]
 
@@ -259,7 +259,7 @@ def continueCalling(args):
             theIndex = index + 1
 
     if theIndex == -1:
-        raise StandardError, "Could not find region which was unfinished in input VCF"
+        raise Exception("Could not find region which was unfinished in input VCF")
 
     logger.info("Platypus will continue calling. Output will go to file %s." %(options.vcfFile))
 
@@ -341,7 +341,7 @@ def mergeVCFFiles(tempFileNames, finalFileName, log):
 
         # Put file back on heap
         try:
-            nextFile.next()
+            next(nextFile)
             heapq.heappush(theHeap, nextFile)
         except StopIteration:
             continue
@@ -434,7 +434,7 @@ def runVariantCaller(options, continuing=False):
         ch.setLevel(logging.INFO)
         fh.setLevel(logging.DEBUG)
     else:
-        raise StandardError, "Value of 'verbosity' input parameter must be between 0 and 3 inclusive"
+        raise Exception("Value of 'verbosity' input parameter must be between 0 and 3 inclusive")
 
     log.addHandler(ch)
     log.addHandler(fh)
@@ -489,7 +489,7 @@ def runVariantCaller(options, continuing=False):
         try:
             time.sleep(1)
         except KeyboardInterrupt:
-            print "KeyboardInterrupt detected, terminating all processes..."
+            print("KeyboardInterrupt detected, terminating all processes...")
             for process in processes:
                 process.terminate()
             log.error("Variant calling aborted due to keyboard interrupt")

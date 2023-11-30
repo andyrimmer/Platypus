@@ -104,7 +104,7 @@ def getSampleNamesAndLoadIterators(bamFileNames, regions, options):
         
         if not isIndexable(fileName):
             logger.error("Input file %s is not a BAM/CRAM file" %(fileName))
-            raise StandardError, "Input file %s is not a BAM/CRAM file" %(fileName)
+            raise Exception("Input file %s is not a BAM/CRAM file" %(fileName))
         
         bamFile = Samfile(fileName)
         bamFile._open('r', True)
@@ -767,7 +767,7 @@ cdef int isHaplotypeValid(tuple variants):
         # This should never happen
         if thisVar.minRefPos > nextVar.minRefPos:
             logger.error("Variants %s and %s are out of order. This should never happen." %(thisVar, nextVar))
-            raise StandardError, "Variants out of order in haplotype!"
+            raise Exception("Variants out of order in haplotype!")
 
         # If this occurs then the haplotype is invalid. This will only happen if a deletion deletes the ref pos
         # of the next variant.
@@ -835,7 +835,7 @@ cdef Variant leftNormaliseIndel(Variant variant, FastaFile refFile, int maxReadL
     
     # This will invariably happen at the end of chromosomes, e.g. MT
     if bytesHapSeq[-1] != bytesRefSeq[-1] and windowMax != seqMax:
-        raise StandardError, "Variant %s not correctly normalised. \nRef = %s\nHap = %s" %(variant, bytesRefSeq, bytesHapSeq)
+        raise Exception("Variant %s not correctly normalised. \nRef = %s\nHap = %s" %(variant, bytesRefSeq, bytesHapSeq))
 
     cdef char* refSequence = bytesRefSeq
     cdef char* hapSequence = bytesHapSeq
@@ -917,7 +917,7 @@ cdef Variant leftNormaliseIndel(Variant variant, FastaFile refFile, int maxReadL
                 logger.error("Original variant was %s" %(variant))
                 logger.error(refSequence)
                 logger.error(hapSequence)
-                raise StandardError, "Error in variant conversion to standard format"
+                raise Exception("Error in variant conversion to standard format")
 
             return newVar
 
@@ -956,7 +956,7 @@ def getRegions(options):
     
     if not isIndexable(fileName):
         logger.error("Input file %s is not a BAM/CRAM file" %(fileName))
-        raise StandardError, "Input file %s is not a BAM/CRAM file" %(fileName)
+        raise Exception("Input file %s is not a BAM/CRAM file" %(fileName))
     
     file = htslibWrapper.Samfile(fileName)
     file._open('r', loadIndex=True)
@@ -1020,7 +1020,7 @@ def getRegions(options):
 
                 if regions[-1][2] - regions[-1][1] > 1e9:
                     logger.error("Input region (%s) is too long. Try again" %(region))
-                    raise StandardError, "Invalid input region: %s" (region)
+                    raise Exception("Invalid input region: %s" (region))
 
             elif len(split) == 1:
                 start = 1

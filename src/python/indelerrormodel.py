@@ -172,7 +172,7 @@ def PreprocessBam( bamFileName, fastaFileName, orphanBamFileName=None,
         num_reads += 1
 
         if num_reads % 100000 == 0:
-            print "Processed %s reads" % num_reads
+            print("Processed %s reads" % num_reads)
             if num_reads > maxNumReads:
                 break
 
@@ -327,7 +327,7 @@ def PreprocessBam( bamFileName, fastaFileName, orphanBamFileName=None,
         coveragebuf.enter( read, minAnchor )
 
     # Done        
-    print "Processed",num_reads,"reads"
+    print("Processed",num_reads,"reads")
     indelhistogram.computeModels()
     indelhistogram.output()
 
@@ -351,14 +351,14 @@ class Readbuffer():
         self._lastrname = -2  # -1 is used for unmapped reads
         self._resetbuf = False
         try:
-            self.next()
+            next(self)
         except StopIteration:
             pass
 
     def __iter__(self):
         return self
 
-    def next(self):
+    def __next__(self):
         current = self._current
         if self._resetbuf:
             self._buffer = [self._firstread]
@@ -366,7 +366,7 @@ class Readbuffer():
             self._lastrname = self._firstread.tid
             self._resetbuf = False
         try:
-            self._current = self.generator.next()
+            self._current = next(self.generator)
         except StopIteration:
             self._current = None
         if current:
@@ -527,7 +527,7 @@ class Repeatqueue:
         seq = self.fastafile.fetch( chrom, start, end )
         if len(seq) == 0 and chrom not in self._warn_chromosomes:
             if len(self.fastafile.fetch( chrom, 0, 1 )) == 0:
-                print "*** Warning: chromosome '%s' appears to be absent from reference file '%s'" % (chrom, self.fastafile.filename)
+                print("*** Warning: chromosome '%s' appears to be absent from reference file '%s'" % (chrom, self.fastafile.filename))
                 self._warn_chromosomes[chrom] = 1
         if len(seq) < end-start:
             seq += "N"*(end-start-len(seq))
@@ -615,10 +615,10 @@ class IndelHistogram:
             return
 
         # remove units with fewer than minErrCount ticks
-        for unit in self.histograms.keys():
+        for unit in list(self.histograms.keys()):
             if not self.histograms[unit]: 
                 continue
-            ticks = sum( sum( sum(hist[0]) for hist in self.histograms[unit][replen].values() ) for replen in self.histograms[unit] )
+            ticks = sum( sum( sum(hist[0]) for hist in list(self.histograms[unit][replen].values()) ) for replen in self.histograms[unit] )
             if ticks < self.minErrCount:
                 self.histograms[unit] = None
                 self.numNoData += 1
@@ -630,15 +630,15 @@ class IndelHistogram:
         except Exception:
             self.i = 0
         if self.i % 10000 == 0:
-            print "Histogram report:"
-            print "Num units: ",len(self.histograms) - self.numNoData
-            print "Num deleted:",self.numNoData
-            print "Num unit/replens: ", sum( len(self.histograms[repeatunit]) 
+            print("Histogram report:")
+            print("Num units: ",len(self.histograms) - self.numNoData)
+            print("Num deleted:",self.numNoData)
+            print("Num unit/replens: ", sum( len(self.histograms[repeatunit]) 
                                              for repeatunit in self.histograms 
-                                             if self.histograms[repeatunit] != None )
-            print "Num unit/replen/coverage:", sum( sum( len( hist_unit[replen] ) for replen in hist_unit ) 
-                                                    for hist_unit in self.histograms.values()
-                                                    if hist_unit != None )
+                                             if self.histograms[repeatunit] != None ))
+            print("Num unit/replen/coverage:", sum( sum( len( hist_unit[replen] ) for replen in hist_unit ) 
+                                                    for hist_unit in list(self.histograms.values())
+                                                    if hist_unit != None ))
                 
 
     def add( self, coverage, repeatunit, repeatlength, alleles ):
@@ -747,26 +747,26 @@ class IndelHistogram:
 
         if len(haps)>2:
             # aggregate the minor alleles
-            alleles = sorted( [(count,hap) for hap,count in haps.iteritems()] )
+            alleles = sorted( [(count,hap) for hap,count in haps.items()] )
             minors = sum( count for (count,hap) in alleles[:-1] )
             haps = { alleles[-2][1]: minors, 
                      alleles[-1][1]: alleles[-1][0] }
 
         # if two alleles are present, but not the reference allele, map the major allele to the reference
         if len(haps)==2 and 0 not in haps:
-            alleles = sorted( [(count,hap) for hap,count in haps.iteritems()] )
+            alleles = sorted( [(count,hap) for hap,count in haps.items()] )
             minorallele = alleles[1][1]
             haps = { alleles[0][1]: alleles[0][0], 
                      0: alleles[1][0] }
             annotations[ 0 ] = annotations[ alleles[1][1] ]
                 
         # calculate non-ref allele count
-        count = sum( count for hap,count in haps.iteritems() if hap != 0 )
+        count = sum( count for hap,count in haps.items() if hap != 0 )
 
         if count != 1:
             return count, None, None
 
-        nonrefallele = [ hap for hap,count in haps.iteritems() if hap != 0 ][0]
+        nonrefallele = [ hap for hap,count in haps.items() if hap != 0 ][0]
         return count, annotations[nonrefallele][0], annotations[nonrefallele][1]
 
 
@@ -808,7 +808,7 @@ class IndelHistogram:
                             if neighbour_hurc != None: 
                                 self._rescale_data( newcounts, cov, neighbour_hurc, rescaled_cov )
 
-                    err_counts = sum( newcounts[cov][0][1] for cov in newcounts.keys() )
+                    err_counts = sum( newcounts[cov][0][1] for cov in list(newcounts.keys()) )
 
                     if err_counts < self.minErrCount:
                         # low counts -- add counts of neighbouring repeat lengths and try again;
@@ -848,7 +848,7 @@ class IndelHistogram:
                 het_estimates[ (repeat_unit, repeat_length) ] = N01/(N00+N01+N11+1e-10)
 
                 ##DEBUG
-                counts = sum( sum( hist_unit_replen[cov][0] ) for cov in hist_unit_replen.keys() )
+                counts = sum( sum( hist_unit_replen[cov][0] ) for cov in list(hist_unit_replen.keys()) )
                 output = (repeat_unit, repeat_length, "%s\t%s\t%s\t%s\t%s\t%1.6f\t%1.6f\t%1.6f" % (repeat_unit,
                                                                                                    repeat_length,
                                                                                                    observations,
@@ -857,7 +857,7 @@ class IndelHistogram:
                                                                                                    het_estimates[ (repeat_unit, repeat_length) ],
                                                                                                    beta,
                                                                                                    epsilon ) )
-                print output[2]
+                print(output[2])
 
         # build models
         models = {}
@@ -881,26 +881,26 @@ class IndelHistogram:
                         model.append( model[-1] )
                     else:
                         ##DEBUG
-                        print " -- (repunit %s replen %s: extrapolating without data)" % (repeat_unit, len(model))
+                        print(" -- (repunit %s replen %s: extrapolating without data)" % (repeat_unit, len(model)))
                         model.append( model[-1] + extrapolate_exp )
                 # we have data; but extrapolate when the error rate or heterozygosity become too high
                 if (het_estimates[ (repeat_unit, repeat_length) ] > EXTRAPOLATION_HET_THRESHOLD or
                     results[repeat_unit][repeat_length] < -10.0*math.log(EXTRAPOLATION_RATE_THRESHOLD) / math.log(10.0)):
-                    print " -- repunit %s replen %s: prepare to extrapolating with data" % (repeat_unit, repeat_length)
+                    print(" -- repunit %s replen %s: prepare to extrapolating with data" % (repeat_unit, repeat_length))
                     extrapolated_rate = model[-1] + extrapolate_exp
                 else:
                     extrapolated_rate = model[-1]
                 model.append( min( extrapolated_rate, results[repeat_unit][repeat_length] ) )
                 ##DEBUG
                 if model[-1] == extrapolated_rate:
-                    print " -- repunit %s replen %s: extrapolating with data" % (repeat_unit, repeat_length)
+                    print(" -- repunit %s replen %s: extrapolating with data" % (repeat_unit, repeat_length))
             while model[-1] > 0:
                 model.append( model[-1] + extrapolate_exp )
             # convert to a string
             models[ repeat_unit ] = ''.join( chr(BASEQ + max(0,int(phred + 0.5))) for phred in model[1:] )
 
         # prune superfluous models
-        for repeat_unit in models.keys():
+        for repeat_unit in list(models.keys()):
             if type(repeat_unit) == type(""):
                 unit_len = len(repeat_unit)
                 generic_model = models[ unit_len ]
@@ -909,14 +909,14 @@ class IndelHistogram:
                         break
                 else:
                     # specific model isn't predicting substantially larger indel rates -- superfluous
-                    print " Removing model for ",repeat_unit
+                    print(" Removing model for ",repeat_unit)
                     del models[repeat_unit]
 
         self.models = models
 
 
     def output(self):
-        print self.models
+        print(self.models)
 
 
 #########################################################################################
@@ -1136,9 +1136,9 @@ def model( pars, counts ):
     # likelihood
     ll = 0
     if cov < 10:
-        rnge = range(0,cov+1)
+        rnge = list(range(0,cov+1))
     else:
-        rnge = range(0,cov-2) + [cov]
+        rnge = list(range(0,cov-2)) + [cov]
         # do not include cov-1 and cov-2; these are often populated by mismapped reads in a high-coverage
         # region, rather than true errors mutating alt to ref
     for k in rnge:
@@ -1179,7 +1179,7 @@ def fitmodel( countdict, errorguess = 0.001, usebfgs=False ):
                                                fprime=None, 
                                                args=(countdict,), 
                                                approx_grad=True, 
-                                               bounds=zip(minpars, maxpars),
+                                               bounds=list(zip(minpars, maxpars)),
                                                m=25, 
                                                factr=1e12,
                                                pgtol=1e-04, 
@@ -1259,7 +1259,7 @@ if __name__ == "__main__":
     import sys
 
     if len(sys.argv) != 4:
-        print "Usage: %s bamfile fastafile orphanfile" % sys.argv[0]
+        print("Usage: %s bamfile fastafile orphanfile" % sys.argv[0])
         sys.exit(1)
 
     bamname = sys.argv[1]
