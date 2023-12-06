@@ -36,9 +36,9 @@ if __name__ == "__main__":
         print("For a list of possible options for a specific command, type 'python Platypus.py Command -h'")
         print("\n")
         sys.exit(0)
-    if sys.version_info[0] != 2 or sys.version_info[1] < 6:
+    if sys.version_info[0] != 3 or sys.version_info[1] < 5:
         print("\n\n")
-        print("Platypus works only with Python versions 2.6 and greater. Python 3.X is not yet supported.")
+        print("Platypus works only with Python versions 3.6 and greater. Python 2.X is now depreciated.")
         print("\n\n")
         sys.exit(0)
     else:
