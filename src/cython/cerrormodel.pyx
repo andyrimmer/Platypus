@@ -45,11 +45,11 @@ cdef bytes normalize_repunit_fast( bytes unit ):
     cdef int both
     for i in range(length):
         cunit[i] &= 0xDF
-        if cunit[i] == 'N':
+        if cunit[i] == b'N':
             return <bytes>("N" * length)
     if length == 1:
-        if cunit[0] <= 'C': return unit
-        if cunit[0] == 'G': return bytes('c')
+        if cunit[0] <= b'C': return unit
+        if cunit[0] == b'G': return bytes('c')
         return bytes('a')
     elif length == 2:
         both = <int>cunit[0]+<int>cunit[1]
@@ -144,10 +144,10 @@ cdef tuple try_microsat( char* seq, int seqlen, int start, int replen, int direc
     cdef int length
     cdef bytes character
 
-    while minpos >= 0 and 0 <= minpos+replen*direction < seqlen and seq[minpos] == seq[minpos + replen*direction] and seq[minpos] != 'N':
+    while minpos >= 0 and 0 <= minpos+replen*direction < seqlen and seq[minpos] == seq[minpos + replen*direction] and seq[minpos] != b'N':
         minpos -= 1
 
-    while maxpos < seqlen and maxpos+replen*direction < seqlen and seq[maxpos] == seq[maxpos + replen*direction] and seq[maxpos] != 'N':
+    while maxpos < seqlen and maxpos+replen*direction < seqlen and seq[maxpos] == seq[maxpos + replen*direction] and seq[maxpos] != b'N':
         maxpos += 1
 
     length = maxpos - minpos + replen - 1
@@ -434,17 +434,17 @@ cpdef testAnnotate():
     indelq_fast = annotate_sequence(seq1, model, ord('!'))
     asr_fw = annotate_sequence_read(seq1, model, ord('!'), False)
     asr_bw = annotate_sequence_read(seq1, model, ord('!'), True)
-    print seq1
-    print indelq
-    print indelq_fast
-    print asr_fw
-    print asr_bw
+    print(seq1)
+    print(indelq)
+    print(indelq_fast)
+    print(asr_fw)
+    print(asr_bw)
 
     # test speed
     seq2 = seq1*10
     for i in range(10000):
         indelq = annotate_sequence(seq1, model, ord('!'))
 
-    print time.clock()-t
+    print(time.clock()-t)
 
 

@@ -69,16 +69,15 @@ cdef class FastaIndex:
 
         for theLine in self.theFile:
 
-            line = theLine.strip().split("\t")
+            line = theLine.decode().strip().split("\t")
             seqName = line[0].split()[0]
 
             if seqName.startswith('gi|') and parseNCBI:       # NCBI-formatted line
                 ids = seqName.split('|')
                 if len(ids)>=4 and ids[2] == "ref":
                     seqName = ids[3]
-
-            theDict[seqName] = sequenceTuple(line[0], atoll(line[1]), atoll(line[2]), atoll(line[3]), atoll(line[4]))
-
+            theDict[seqName.encode()] = sequenceTuple(line[0].encode(), atoll(line[1].encode()), atoll(line[2].encode()), atoll(line[3].encode()), atoll(line[4].encode()))
+            
         return theDict
 
 ###################################################################################################

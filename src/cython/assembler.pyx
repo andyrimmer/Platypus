@@ -188,7 +188,7 @@ cdef Node* createNode(char* sequence, int colour, int position, int kmerSize, do
     theNode.sequence = sequence
     theNode.weight = weight
     theNode.colours = colour
-    theNode.dfsColour = 'N'
+    theNode.dfsColour = b'N'
     theNode.kmerSize = kmerSize
     theNode.position = position
     theNode.nEdges = 0
@@ -257,7 +257,7 @@ cdef inline char* Node_GetPrefix(Node* theNode):
 ###################################################################################################
 
 @cython.profile(False)
-cdef inline int nodePosComp(const void* x, const void* y):
+cdef inline int nodePosComp(const void* x, const void* y) noexcept nogil:
     """
     Comparison function for Node structs, for use in qsort, to sort Nodes by their
     positions.
@@ -836,7 +836,7 @@ cdef int dfsVisit(Node* theNode, double minWeight):
     cdef Node* nextNode = NULL
     cdef Edge* edge = NULL
 
-    theNode.dfsColour = 'g'
+    theNode.dfsColour = b'g'
 
     for i in range(nEdges):
         edge = theNode.edges[i]
@@ -847,7 +847,7 @@ cdef int dfsVisit(Node* theNode, double minWeight):
 
         nextNode = edge.endNode
 
-        if nextNode.dfsColour == 'w':
+        if nextNode.dfsColour == b'w':
 
             # Found cycle in this path
             if dfsVisit(nextNode, minWeight) == 1:
@@ -855,7 +855,7 @@ cdef int dfsVisit(Node* theNode, double minWeight):
             # This path ok. Go to next edge
             else:
                 continue
-        elif nextNode.dfsColour == 'g':
+        elif nextNode.dfsColour == b'g':
             # Found cycle
             #logger.debug("Found cycle. From %s to %s" %(theNode.position, nextNode.position))
             return 1
@@ -865,7 +865,7 @@ cdef int dfsVisit(Node* theNode, double minWeight):
             continue
 
     # No cycles in any path reachable from this node.
-    theNode.dfsColour = 'b'
+    theNode.dfsColour = b'b'
     return 0
 
 ###################################################################################################
@@ -883,12 +883,12 @@ cdef int detectCyclesInGraph_Recursive(DeBruijnGraph* theGraph, double minWeight
 
     for i in range(nNodes):
         thisNode = allNodes[i]
-        thisNode.dfsColour = 'w'
+        thisNode.dfsColour = b'w'
 
     for i in range(nNodes):
         thisNode = allNodes[i]
 
-        if thisNode.dfsColour == 'w':
+        if thisNode.dfsColour == b'w':
             # Found cycle
             foundCycle = dfsVisit(thisNode, minWeight)
 
@@ -928,7 +928,7 @@ cdef int detectCyclesInGraph(DeBruijnGraph* theGraph, double minWeight):
 
     for i in range(nNodes):
         thisNode = allNodes[i]
-        thisNode.dfsColour = 'w'
+        thisNode.dfsColour = b'w'
 
     cdef Node* sourceNode = allNodes[0]
     cdef Node* endNode = allNodes[nNodes-1]
@@ -941,10 +941,10 @@ cdef int detectCyclesInGraph(DeBruijnGraph* theGraph, double minWeight):
 
         thisNode = NodeStack_Pop(theStack)
 
-        if thisNode.dfsColour == 'w':
-            thisNode.dfsColour = 'g'
-        elif thisNode.dfsColour == 'g':
-            thisNode.dfsColour = 'b'
+        if thisNode.dfsColour == b'w':
+            thisNode.dfsColour = b'g'
+        elif thisNode.dfsColour == b'g':
+            thisNode.dfsColour = b'b'
         else:
             pass
 
@@ -959,11 +959,11 @@ cdef int detectCyclesInGraph(DeBruijnGraph* theGraph, double minWeight):
             if Node_Equal(nextNode, endNode):
                 reachedEnd = True
 
-            if nextNode.dfsColour == 'w':
+            if nextNode.dfsColour == b'w':
                 NodeStack_Push(theStack, nextNode)
 
             # Found a cycle
-            elif nextNode.dfsColour == 'g':
+            elif nextNode.dfsColour == b'g':
                 destroyNodeStack(theStack)
                 return True
 
@@ -1007,14 +1007,14 @@ cdef int checkPathForCycles(Path* thePath):
 
     # Set all dfs colours to white
     for i in range(nNodes):
-        thePath.nodes.elements[i].dfsColour = 'w'
+        thePath.nodes.elements[i].dfsColour = b'w'
 
     # Check all nodes in order. If we see the same node twice, then
     # there is a cycle. If we get to the end without seeing any nodes twice,
     # then no cycle.
     for i in range(nNodes):
-        if thePath.nodes.elements[i].dfsColour == 'w':
-            thePath.nodes.elements[i].dfsColour = 'g'
+        if thePath.nodes.elements[i].dfsColour == b'w':
+            thePath.nodes.elements[i].dfsColour = b'g'
         else:
             #logger.debug("Found cycle")
             return 1
@@ -1329,14 +1329,14 @@ cdef char* createReverseComplementSequence(char* theSeq, int seqLen):
     cdef int i = 0
 
     for i in range(seqLen):
-        if theSeq[i] == 'A':
-            newSeq[seqLen - i - 1] = 'T'
-        elif theSeq[i] == 'T':
-            newSeq[seqLen - i - 1] = 'A'
-        elif theSeq[i] == 'C':
-            newSeq[seqLen - i - 1] = 'G'
-        elif theSeq[i] == 'G':
-            newSeq[seqLen - i - 1] = 'C'
+        if theSeq[i] == b'A':
+            newSeq[seqLen - i - 1] = b'T'
+        elif theSeq[i] == b'T':
+            newSeq[seqLen - i - 1] = b'A'
+        elif theSeq[i] == b'C':
+            newSeq[seqLen - i - 1] = b'G'
+        elif theSeq[i] == b'G':
+            newSeq[seqLen - i - 1] = b'C'
         else:
             newSeq[seqLen - i - 1] = theSeq[i]
 
@@ -1367,7 +1367,7 @@ cdef void loadReadIntoGraph(cAlignedRead* theRead, DeBruijnGraph* theGraph, int 
 
             thisMinQual = min(thisMinQual, theQuals[j])
 
-            if theSeq[j] == 'N':
+            if theSeq[j] == b'N':
                 NsInKmer = 1
 
         if thisMinQual >= minQual and NsInKmer == 0:

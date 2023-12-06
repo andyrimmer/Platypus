@@ -366,8 +366,8 @@ cdef class ReadIterator:
             qual[i] = q[i]
             assert qual[i] <= 93
             assert qual[i] >= 0
-        seq[lenSeq]  = '\0'
-        qual[lenSeq] = '\0'
+        seq[lenSeq]  = b'\0'
+        qual[lenSeq] = b'\0'
         
         readStart = c.pos
         cdef short* cigarOps = <short*>malloc(2 * c.n_cigar * sizeof(short))
@@ -504,7 +504,7 @@ cdef void compressQual(cAlignedRead* read, int qualBinSize):
 
     if qualBinSize > 1:
         for i in range(read.rlen):
-            qual[i] = (qual[i]/qualBinSize)*qualBinSize
+            qual[i] = bytes((qual[i]/qualBinSize)*qualBinSize)
 
     for i in range(read.rlen):
 

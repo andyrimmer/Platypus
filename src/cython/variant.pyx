@@ -565,7 +565,7 @@ cdef class VariantCandidateGenerator(object):
             assert baseQual <= 93, "Something is very wrong. Base qual is %s" %(baseQual)
 
             if readChar != refChar:
-                if readChar != 'N' and refChar != 'N' and baseQual >= self.minBaseQual:
+                if readChar != b'N' and refChar != b'N' and baseQual >= self.minBaseQual:
                     if misMatchStartRef == -1:
                         misMatchStartRef  = refIndex
                         misMatchEndRef    = refIndex

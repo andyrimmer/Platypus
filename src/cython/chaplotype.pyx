@@ -64,7 +64,7 @@ cdef extern from "stdlib.h":
 cdef list per_base_indel_errors = [2.9e-5, 2.9e-5, 2.9e-5, 2.9e-5, 4.3e-5, 1.1e-4, 2.4e-4, 5.7e-4, 1.0e-3, 1.4e-3] + [ 1.4e-3 + 4.3e-4*(n-10) for n in range(11,50) ]
 
 # homopolymer indel error model
-cdef bytes homopolq = bytes(''.join([chr(int(33.5 + 10*log( (idx+1)*q )/log(0.1) )) for idx,q in enumerate(per_base_indel_errors)]))
+cdef bytes homopolq = bytes(''.join([chr(int(33.5 + 10*log( (idx+1)*q )/log(0.1))) for idx,q in enumerate(per_base_indel_errors)]).encode('ascii'))
 
 ###################################################################################################
 
@@ -580,13 +580,13 @@ cdef class Haplotype:
             else:
                 homopollen = 0
                     
-            self.localGapOpen[index] = <char>( <int>(errorModel[homopollen]) - (<int>'!') )
+            self.localGapOpen[index] = <char>( <int>(errorModel[homopollen]) - (<int>b'!') )
 
             if self.localGapOpen[index] < 0:
                 raise ValueError("Internal error: encountered negative gap open score (%s, at position %s)" % (self.localGapOpen[index], index))
 
             homopol = seq[index];
-            if homopol == 'N':
+            if homopol == b'N':
                 homopol = 0
 
 ##################################################################################################

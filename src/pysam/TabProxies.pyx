@@ -1,11 +1,11 @@
 import types
-from cpython cimport PyString_FromStringAndSize, PyString_AsString, PyString_AS_STRING
+from cpython cimport PyUnicode_FromStringAndSize, PyBytes_AsString, PyString_AS_STRING
 
 cdef char * nextItem( char * buffer ):
     cdef char * pos
-    pos = strchr( buffer, '\t' )
+    pos = strchr( buffer, b'\t' )
     if pos == NULL: raise ValueError( "malformatted entry at %s" % buffer )
-    pos[0] = '\0'
+    pos[0] = b'\0'
     pos += 1
     return pos
 
@@ -81,7 +81,7 @@ cdef class TupleProxy:
 
     cdef int getMaxFields( self, size_t nbytes ):
         '''initialize fields.'''
-        return nbytes / 2
+        return nbytes // 2
 
     cdef update( self, char * buffer, size_t nbytes ):
         '''update internal data.
@@ -127,9 +127,9 @@ cdef class TupleProxy:
         
         while 1:
 
-            pos = <char*>memchr( pos, '\t', nbytes )
+            pos = <char*>memchr( pos, b'\t', nbytes )
             if pos == NULL: break
-            pos[0] = '\0'
+            pos[0] = b'\0'
             pos += 1
             self.fields[field] = pos
             field += 1
@@ -177,7 +177,7 @@ cdef class TupleProxy:
             return
 
         # conversion with error checking
-        cdef char * tmp = PyString_AsString( value )
+        cdef char * tmp = PyBytes_AsString( value )
         self.fields[idx] = <char*>malloc( (strlen( tmp ) + 1) * sizeof(char) )
         if self.fields[idx] == NULL:
             raise ValueError("out of memory" )
@@ -220,8 +220,8 @@ cdef class TupleProxy:
                 raise ValueError("out of memory" )
             memcpy( cpy, self.data, self.nbytes+1)
             for x from 0 <= x < self.nbytes:
-                if cpy[x] == '\0': cpy[x] = '\t'
-            result = PyString_FromStringAndSize(cpy, self.nbytes)
+                if cpy[x] == b'\0': cpy[x] = b'\t'
+            result = PyUnicode_FromStringAndSize(cpy, self.nbytes)
             free(cpy)
             return result
 
@@ -270,7 +270,9 @@ cdef class GTFProxy( TupleProxy ):
         nbytes does not include the terminal '\0'.
         '''
         cdef int end
-        cdef char * cstart, * cend, * cscore
+        cdef char * cstart
+        cdef char * cend
+        cdef char * cscore
         self.contig = buffer
         cdef char * pos
 
@@ -328,7 +330,7 @@ cdef class GTFProxy( TupleProxy ):
     property score:
        '''feature score.'''
        def __get__( self ): 
-           if self.score[0] == '.' and self.score[1] == '\0' :
+           if self.score[0] == b'.' and self.score[1] == b'\0' :
                return None
            else:
                return atof(self.score)
@@ -376,7 +378,7 @@ cdef class GTFProxy( TupleProxy ):
             n,v = d[0], d[1]
             if len(d) > 2: v = d[1:]
 
-            if v[0] == '"' and v[-1] == '"':
+            if v[0] == b'"' and v[-1] == b'"':
                 v = v[1:-1]
             else:
                 ## try to convert to a value
@@ -409,7 +411,7 @@ cdef class GTFProxy( TupleProxy ):
                 aa.append( '%s %s' % (k,str(v)) )
 
         a = "; ".join( aa ) + ";"
-        p = a
+        p = <bytes> a
         l = len(a)
         self.attributes = <char *>calloc( l + 1, sizeof(char) )
         if self.attributes == NULL:
@@ -443,7 +445,7 @@ cdef class GTFProxy( TupleProxy ):
         This method will only act if the feature is on the
         negative strand.'''
 
-        if self.strand[0] == '-':
+        if self.strand[0] == b'-':
             start = min(self.start, self.end)
             end = max(self.start, self.end)
             self.start, self.end = lcontig - end, lcontig - start
@@ -473,13 +475,13 @@ cdef class GTFProxy( TupleProxy ):
 
         start += strlen(query) + 1
         # skip gaps before
-        while start[0] == ' ': start += 1
-        if start[0] == '"':
+        while start[0] == b' ': start += 1
+        if start[0] == b'"':
             start += 1
             end = start
-            while end[0] != '\0' and end[0] != '"': end += 1
+            while end[0] != b'\0' and end[0] != b'"': end += 1
             l = end - start
-            result = PyString_FromStringAndSize( start, l )
+            result = PyUnicode_FromStringAndSize( start, l )
             return result
         else:
             return start

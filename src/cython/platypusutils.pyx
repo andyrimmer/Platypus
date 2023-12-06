@@ -130,7 +130,7 @@ def getSampleNamesAndLoadIterators(bamFileNames, regions, options):
                 samples.extend(samplesInBAM)
             
             elif len(samplesInBAM) == 0:
-                raise StandardError, "No sample information in RG tag in file %s" %(fileName)
+                raise Exception("No sample information in RG tag in file %s" %(fileName))
             
             else:
                 sampleName = theHeader['RG'][0]['SM']
@@ -139,7 +139,7 @@ def getSampleNamesAndLoadIterators(bamFileNames, regions, options):
             
             del(theHeader)
         
-        except StandardError, e:
+        except Exception as e:
             logger.debug("Error in BAM header sample parsing. Error was \n%s\n" %(e))
             sampleName = fileName.split("/")[-1][0:-4]
             samples.append(sampleName)
@@ -939,7 +939,7 @@ def getRegions(options):
     """
     if options.refFile.endswith(".gz") or options.refFile.endswith(".bz2") or options.refFile.endswith(".bgz"):
         logger.error("Reference file-name (%s) looks like a compressed file-name. Please un-compress the reference FASTA file before running Platypus" %(options.refFile))
-        raise StandardError, "Invalid reference FASTA file supplied"
+        raise Exception("Invalid reference FASTA file supplied")
 
     cdef FastaFile refFile = FastaFile(options.refFile, options.refFile + ".fai", parseNCBI = options.parseNCBI)
     

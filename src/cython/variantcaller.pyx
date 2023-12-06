@@ -523,8 +523,9 @@ cdef list generateVariantsInRegion(bytes chrom, int start, int end, bamFiles, Fa
     cdef list filteredVariants = filterVariants(leftNormVars, refFile, maxReadLength, options.minReads, options.maxSize, options.verbosity, options)
     
     # Need to work out how to consistently report these.
-    logger.debug("There are %s filtered variant candidates in reads which overlap the region %s:%s-%s" %(len(filteredVariants), chrom, start, end))
-    return filteredVariants
+    if(len(filteredVariants)>0):
+        logger.debug("There are %s filtered variant candidates in reads which overlap the region %s:%s-%s" %(len(filteredVariants), chrom, start, end))
+        return filteredVariants
 
     cdef list paddedVariants = padVariants(filteredVariants, refFile, chrom)
     
@@ -908,7 +909,7 @@ class PlatypusSingleProcess(object):
 
         if options.refFile.endswith(".gz") or options.refFile.endswith(".bz2") or options.refFile.endswith(".bgz"):
             logger.error("Reference file-name (%s) looks like a compressed file-name. Please un-compress the reference FASTA file before running Platypus" %(options.refFile))
-            raise StandardError, "Invalid reference FASTA file supplied"
+            raise Exception("Invalid reference FASTA file supplied")
 
         self.refFile = fastafile.FastaFile(options.refFile, options.refFile + ".fai")
 
