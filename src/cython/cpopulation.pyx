@@ -12,6 +12,7 @@ import math
 import cwindow
 import chaplotype
 import random
+import operator
 
 cimport variant
 cimport chaplotype
@@ -151,7 +152,7 @@ cdef class Population:
         my_free(self.maxLogLikelihoods)
         my_free(self.EMLikelihoods)
         my_free(self.freqsPrimeByHapIndex)
-    
+
     cdef void computeVariantINFO(self):
         """
         """
@@ -345,7 +346,7 @@ cdef class Population:
 
                     topGenotypes.append( (int(0.5+(logLikelihood/mLTOT)), genotype) )
 
-                topGenotypes = sorted(topGenotypes)[0:10]
+                topGenotypes = sorted(topGenotypes, key = operator.itemgetter(0))[0:10]
 
                 for phred,genotype in topGenotypes:
                     logger.debug("%s\t%s\t%s\t%s" %(theBuffer.sample, phred, nReadsThisInd, genotype))
