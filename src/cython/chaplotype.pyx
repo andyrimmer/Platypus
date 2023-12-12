@@ -444,7 +444,7 @@ cdef class Haplotype:
             if currentPos < self.endPos:
                 bitsOfMutatedSeq.append(self.refFile.getSequence(self.refName, currentPos, self.endPos))
 
-            self.haplotypeSequence = bytes(''.join(bitsOfMutatedSeq))
+            self.haplotypeSequence = b''.join(bitsOfMutatedSeq)
 
         return self.haplotypeSequence
 

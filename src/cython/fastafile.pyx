@@ -68,7 +68,7 @@ cdef class FastaIndex:
         cdef dict theDict = {}
 
         for theLine in self.theFile:
-
+            # decode bytes into str for string methods like strip(), split(), startswith(),...
             line = theLine.decode().strip().split("\t")
             seqName = line[0].split()[0]
 
@@ -76,6 +76,7 @@ cdef class FastaIndex:
                 ids = seqName.split('|')
                 if len(ids)>=4 and ids[2] == "ref":
                     seqName = ids[3]
+            # Convert all the str back to bytes for the class members
             theDict[seqName.encode()] = sequenceTuple(line[0].encode(), atoll(line[1].encode()), atoll(line[2].encode()), atoll(line[3].encode()), atoll(line[4].encode()))
             
         return theDict
@@ -164,7 +165,7 @@ cdef class FastaFile:
             raise IndexError, "Cannot return sequence from %s to %s. Ref seq length = %s" %(beginPos, endPos, seqLength)
 
         self.theFile.seek(desiredSequenceStartPos)
-        self.cache = self.theFile.read(desiredSequenceLengthInFile).replace("\n", "").upper()
+        self.cache = self.theFile.read(desiredSequenceLengthInFile).replace(b"\n", b"").upper()
         self.cacheRefName = seqName
         self.cacheStartPos = beginPos
         self.cacheEndPos = endPos
@@ -203,6 +204,6 @@ cdef class FastaFile:
 
         self.theFile.seek(desiredSequenceStartPos)
         cdef bytes seq = self.theFile.read(desiredSequenceLengthInFile)
-        return seq.replace("\n", "").upper()
+        return seq.replace(b"\n", b"").upper()
 
 ###################################################################################################

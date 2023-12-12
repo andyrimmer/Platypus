@@ -133,7 +133,7 @@ cdef class Samfile:
         """
         """
         if os.path.exists(self.filename):
-            self.samfile   = sam_open(self.filename, mode)
+            self.samfile   = sam_open(self.filename.encode(), mode.encode())
             self.theHeader = bam_hdr_init()
             self.theHeader = sam_hdr_read(self.samfile);
         else:
@@ -168,7 +168,7 @@ cdef class Samfile:
         if self._isBam() or self._isCram():
             # returns NULL if there is no index or index could not be opened
             if loadIndex and self.index == NULL:
-                self.index = sam_index_load(self.samfile, self.filename)
+                self.index = sam_index_load(self.samfile, self.filename.encode())
                 if self.index == NULL:
                     raise IOError("Error while opening index for file `%s`. Check that index exists " % self.filename)
     
@@ -253,7 +253,7 @@ cdef class Samfile:
 
             if self.theHeader.text != NULL:
                 # convert to python string (note: call self.text to create 0-terminated string)
-                t = self.text
+                t = self.text.decode()
                 for line in t.split("\n"):
                     if not line.strip(): continue
 

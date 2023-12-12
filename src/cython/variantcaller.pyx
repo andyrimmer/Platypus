@@ -429,7 +429,7 @@ cdef list generateVariantsInRegion(bytes chrom, int start, int end, bamFiles, Fa
 
     if options.verbosity >= 3:
         totalReadsInRegion,totalBufferSizeInRegion,totalSeqQualSize = countTotalReadsInRegion(readBuffers)
-        logger.debug("There are %s reads (buffer size = %s. Total reads size = %s bytes) in the region %s:%s-%s" %(totalReadsInRegion, totalBufferSizeInRegion, totalSeqQualSize, chrom, start, end))
+        logger.debug("There are %s reads (buffer size = %s. Total reads size = %s bytes) in the region %s:%s-%s" %(totalReadsInRegion, totalBufferSizeInRegion, totalSeqQualSize, chrom.decode(), start, end))
 
 
     # Generate initial variant candidate list from BAM files. Do this always, so we
@@ -524,7 +524,7 @@ cdef list generateVariantsInRegion(bytes chrom, int start, int end, bamFiles, Fa
     
     # Need to work out how to consistently report these.
     if(len(filteredVariants)>0):
-        logger.debug("There are %s filtered variant candidates in reads which overlap the region %s:%s-%s" %(len(filteredVariants), chrom, start, end))
+        logger.debug("There are %s filtered variant candidates in reads which overlap the region %s:%s-%s" %(len(filteredVariants), chrom.decode(), start, end))
         return filteredVariants
 
     cdef list paddedVariants = padVariants(filteredVariants, refFile, chrom)
@@ -551,12 +551,12 @@ cdef void callVariantsInRegion(bytes chrom, int start, int end, bamFiles, FastaF
         readBuffers = loadBAMData(bamFiles, chrom, start, end, options, samples, samplesByID, samplesByBAM, refSequence)
     
     except Exception, e:
-        logger.error('Exception in region %s:%s-%s. Error was %s' %(chrom, start, end, e))
-        logger.warning("Region %s:%s-%s will be skipped" %(chrom, start, end))
+        logger.error('Exception in region %s:%s-%s. Error was %s' %(chrom.decode(), start, end, e))
+        logger.warning("Region %s:%s-%s will be skipped" %(chrom.decode(), start, end))
         return
 
     if readBuffers is None:
-        logger.info("Skipping region %s:%s-%s as data could not be loaded" %(chrom, start, end))
+        logger.info("Skipping region %s:%s-%s as data could not be loaded" %(chrom.decode(), start, end))
         return
     
     cdef list allSortedVariants = generateVariantsInRegion(chrom, start, end, bamFiles, refFile, options, windowGenerator, outputFile, vcf, readBuffers)
@@ -639,12 +639,12 @@ cdef void callHLAVariantsInRegion(bytes chrom, int start, int end, bamFiles, Fas
         readBuffers = loadBAMData(bamFiles, chrom, start, end, options, samples, samplesByID, samplesByBAM, refSequence)
 
     except Exception, e:
-        logger.error('Exception in region %s:%s-%s. Error was %s' %(chrom, start, end, e))
-        logger.warning("Region %s:%s-%s will be skipped" %(chrom, start, end))
+        logger.error('Exception in region %s:%s-%s. Error was %s' %(chrom.decode(), start, end, e))
+        logger.warning("Region %s:%s-%s will be skipped" %(chrom.decode(), start, end))
         return
 
     if readBuffers is None:
-        logger.info("Skipping region %s:%s-%s as data could not be loaded" %(chrom, start, end))
+        logger.info("Skipping region %s:%s-%s as data could not be loaded" %(chrom.decode(), start, end))
         return
     
 
@@ -966,9 +966,9 @@ class PlatypusSingleProcess(object):
         for index,(chrom,start,end) in enumerate(self.regions):
 
             if index % 10 == 0:
-                logger.info("Processing region %s:%s-%s. (Only printing this message every 10 regions of size %s)" %(chrom, start, end, self.options.bufferSize))
+                logger.info("Processing region %s:%s-%s. (Only printing this message every 10 regions of size %s)" %(chrom.decode(), start, end, self.options.bufferSize))
             elif self.options.verbosity >= 3:
-                logger.info("Processing region %s:%s-%s" %(chrom, start, end))
+                logger.info("Processing region %s:%s-%s" %(chrom.decode(), start, end))
             else:
                 pass
 

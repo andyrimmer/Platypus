@@ -65,30 +65,30 @@ cdef extern from "math.h":
 
 ###################################################################################################
 
-cdef dict indel_prior_model = {1: "LIGC@:62/-*'&%$", 
-                               2: "LIGDB@><9630.,+**)(''&&%%%$$$", 
-                               3: "LIGA@B@><;8763220/.-,+++)*))(((''''&&&&&&%%%%%%%%$$$$$$$", 
-                               4: "LIGA@???=<886533210/.--,+**))))((('''''&&&&&&&&%%%%%%%%%%%$$$$$$$$", 
-                               5: 'LIGA@??>=>=;966543210///-,,++*', 
-                               6: 'LIGA@??>>=<=;:764532210/----,++', 
-                               7: 'LIGA@??>>==<;;987543210/....-,,,++++', 
-                               8: 'LIGA@??>>==<<;9876432200/..--,,,+++', 
-                               9: 'LIGA@??>>==<<;;9966432100//../..----,,,,,++++++', 
-                               10: 'LIGA@??>>==<<;;:986432110//..----,,,,++++', 
-                               11: 'LIGA@??>>==<<<;;:87642210////..--,,,,,+++', 
-                               12: 'LIGA@??>>==<<<;;;:986532110000/...-----,,,,,+++++', 
-                               13: 'LIGA@??>>==<<<;;;::987543111000/////.......--------,,,,,,,,,,,,,+++++++++', 
-                               14: 'LIGA@??>>==<<<;;;::987642210/0/.....-------,,,,,,,,+++++++', 
-                               15: 'LIGA@??>>==<<<;;;;::988754322110000////////.......------------,,,,,,,,,,,,,,,,,++++++++++', 
-                               16: 'LIGA@??>>==<<<;;;;:::98765321110////........-------,,,,,,,,,,,,,,+++++++++', 
-                               17: 'LIGA@??>>==<<<;;;;::::988764433211110000000///////.............-----------------,,,,,,,,,,,,,,,,,,,', 
-                               18: 'LIGA@??>>==<<<;;;:::::998875433221111000000///////.............-----------------,,,,,,,,,,,,,,,,,,,', 
-                               19: 'LIGA@??>>==<<<;;;;::::999887654433222221111111100000000//////////////..................------------', 
-                               20: 'LIGA@??>>==<<<;;;;::::9999876543322111000000///////............-----------------,,,,,,,,,,,,,,,,,,,', 
-                               21: 'LIGA@??>>==<<<;;;;::::9999988765544433322222221111111100000000000000//////////////////.............', 
-                               22: 'LIGA@??>>==<<<;;;;::::9999987765432221000000////////...........-----------------,,,,,,,,,,,,,,,,,,,', 
-                               23: 'LIGA@??>>==<<<;;;;::::9999998776543322111100000000////////................-------------------,,,,,,', 
-                               24: 'LIGA@??>>==<<<;;;;::::9999998887654433322111111100000000/////////////...................-----------'}
+cdef dict indel_prior_model = {1: b"LIGC@:62/-*'&%$", 
+                               2: b"LIGDB@><9630.,+**)(''&&%%%$$$", 
+                               3: b"LIGA@B@><;8763220/.-,+++)*))(((''''&&&&&&%%%%%%%%$$$$$$$", 
+                               4: b"LIGA@???=<886533210/.--,+**))))((('''''&&&&&&&&%%%%%%%%%%%$$$$$$$$", 
+                               5: b'LIGA@??>=>=;966543210///-,,++*', 
+                               6: b'LIGA@??>>=<=;:764532210/----,++', 
+                               7: b'LIGA@??>>==<;;987543210/....-,,,++++', 
+                               8: b'LIGA@??>>==<<;9876432200/..--,,,+++', 
+                               9: b'LIGA@??>>==<<;;9966432100//../..----,,,,,++++++', 
+                               10: b'LIGA@??>>==<<;;:986432110//..----,,,,++++', 
+                               11: b'LIGA@??>>==<<<;;:87642210////..--,,,,,+++', 
+                               12: b'LIGA@??>>==<<<;;;:986532110000/...-----,,,,,+++++', 
+                               13: b'LIGA@??>>==<<<;;;::987543111000/////.......--------,,,,,,,,,,,,,+++++++++', 
+                               14: b'LIGA@??>>==<<<;;;::987642210/0/.....-------,,,,,,,,+++++++', 
+                               15: b'LIGA@??>>==<<<;;;;::988754322110000////////.......------------,,,,,,,,,,,,,,,,,++++++++++', 
+                               16: b'LIGA@??>>==<<<;;;;:::98765321110////........-------,,,,,,,,,,,,,,+++++++++', 
+                               17: b'LIGA@??>>==<<<;;;;::::988764433211110000000///////.............-----------------,,,,,,,,,,,,,,,,,,,', 
+                               18: b'LIGA@??>>==<<<;;;:::::998875433221111000000///////.............-----------------,,,,,,,,,,,,,,,,,,,', 
+                               19: b'LIGA@??>>==<<<;;;;::::999887654433222221111111100000000//////////////..................------------', 
+                               20: b'LIGA@??>>==<<<;;;;::::9999876543322111000000///////............-----------------,,,,,,,,,,,,,,,,,,,', 
+                               21: b'LIGA@??>>==<<<;;;;::::9999988765544433322222221111111100000000000000//////////////////.............', 
+                               22: b'LIGA@??>>==<<<;;;;::::9999987765432221000000////////...........-----------------,,,,,,,,,,,,,,,,,,,', 
+                               23: b'LIGA@??>>==<<<;;;;::::9999998776543322111100000000////////................-------------------,,,,,,', 
+                               24: b'LIGA@??>>==<<<;;;;::::9999998887654433322111111100000000/////////////...................-----------'}
 
 # Currently hard-coded insertion/deletion priors
 cdef double complex_deletion_prior = 5e-5
@@ -156,7 +156,7 @@ cdef class Variant(object):
         cdef bytes sizes
         cdef bytes displacements
         cdef char qbase = 33
-        cdef char prior = (<char*>indel_prior_model[1][0])[0] - qbase
+        cdef char prior = indel_prior_model[1][0] - qbase
         cdef char newprior
         cdef unsigned char size
         cdef unsigned char prior_tractlength = -1
@@ -367,11 +367,10 @@ cdef class Variant(object):
         Another way of printing the variant.
         """
         string = "%s(%s:%s-%s" %(varTypes[self.varType], self.refName,self.minRefPos,self.maxRefPos)
-
         if self.nRemoved > 0:
-            string += (' -' + self.removed)
+            string += (' -' + self.removed.decode())
         if self.nAdded > 0:
-            string += (' +' + self.added)
+            string += (' +' + self.added.decode())
 
         string += " nReads = %s, Source= %s" %(self.nSupportingReads, self.varSource)
         string += ")"
@@ -391,9 +390,9 @@ cdef class Variant(object):
         string = "%s(%s:%s-%s" %(varTypes[self.varType], self.refName,self.minRefPos,self.maxRefPos)
 
         if self.nRemoved > 0:
-            string += (' -' + self.removed)
+            string += (' -' + self.removed.decode())
         if self.nAdded > 0:
-            string += (' +' + self.added)
+            string += (' +' + self.added.decode())
 
         string += ")"
         return string
@@ -649,9 +648,9 @@ cdef class VariantCandidateGenerator(object):
 
                 insertedSequence = readSeq[readOffset : readOffset+length]
 
-                if insertedSequence.count('N') == 0 and self.genIndels:
+                if insertedSequence.count(b'N') == 0 and self.genIndels:
                     #logger.info("Adding insertion. Length = %s. Added = %s. removed = %s. pos = %s" %(length, insertedSequence, "", readStart + refOffset -1))
-                    self.addVariantToList(Variant(self.rname, readStart+refOffset-1, "", insertedSequence, 1, PLATYPUS_VAR))
+                    self.addVariantToList(Variant(self.rname, readStart+refOffset-1, b"", insertedSequence, 1, PLATYPUS_VAR))
 
                 readOffset += length
 
@@ -669,9 +668,9 @@ cdef class VariantCandidateGenerator(object):
                 deletedSequence = self.refFile.getSequence(self.rname, readStart+refOffset, (readStart+refOffset+length))
 
                 # Don't look at deletions with Ns in them
-                if deletedSequence.count("N") == 0 and self.genIndels:
+                if deletedSequence.count(b'N') == 0 and self.genIndels:
                     #logger.info("Adding deletion. Length = %s. Added = %s. removed = %s. pos = %s" %("", len(deletedSequence), deletedSequence, readStart + refOffset -1))
-                    self.addVariantToList(Variant(self.rname, readStart+refOffset-1, deletedSequence, "", 1, PLATYPUS_VAR))
+                    self.addVariantToList(Variant(self.rname, readStart+refOffset-1, deletedSequence, b"", 1, PLATYPUS_VAR))
 
                 refOffset += length
 

@@ -439,8 +439,8 @@ cdef void outputCallToVCF(dict varsByPos, dict vcfInfo, dict vcfFilter, list hap
             logger.debug("Unfiltered variant info is %s" %([info[v] for v in sorted(variants)]))
             logger.debug("NVariants = %s" %(nVariants))
 
-        chrom = variants[0].refName
-        ref,alt = refAndAlt(chrom, POS, variants, refFile)
+        chrom = variants[0].refName.decode()
+        ref,alt = refAndAlt(chrom.encode(), POS, variants, refFile)
         theId = "."
         #id = "."#str(-1)
         qual = -1
@@ -495,7 +495,7 @@ cdef void outputCallToVCF(dict varsByPos, dict vcfInfo, dict vcfFilter, list hap
 
             # Missing genotype call. Probably due to zero coverage for this individual.
             if theBuffer.reads.windowEnd - theBuffer.reads.windowStart == 0:
-                vcfDataLine[thisSample] = dict(GT=[[".", "/", "."]], GL=[0,0,0], GQ=[0],GOF=[0],NR=[0], NV=[0])
+                vcfDataLine[thisSample.decode()] = dict(GT=[[".", "/", "."]], GL=[0,0,0], GQ=[0],GOF=[0],NR=[0], NV=[0])
                 continue
 
             # Have genotype. Need to construct call string ("0/1" etc), and compute likelihoods
@@ -543,9 +543,9 @@ cdef void outputCallToVCF(dict varsByPos, dict vcfInfo, dict vcfFilter, list hap
 
                 # Actual nReads covering variant locus
                 if nVariants == 1 and readsPerSample[0] < options.minReads:
-                    vcfDataLine[thisSample] = dict(GT=[[".", "/", "."]], GL=normalisedGLs, GQ=[phredPosterior],GOF=[int(gofValue)],NR=readsPerSample, NV=varReadsPerSample)
+                    vcfDataLine[thisSample.decode()] = dict(GT=[[".", "/", "."]], GL=normalisedGLs, GQ=[phredPosterior],GOF=[int(gofValue)],NR=readsPerSample, NV=varReadsPerSample)
                 else:
-                    vcfDataLine[thisSample] = dict(GT=[GT], GL=normalisedGLs, GQ=[phredPosterior], GOF=[int(gofValue)],NR=readsPerSample, NV=varReadsPerSample)
+                    vcfDataLine[thisSample.decode()] = dict(GT=[GT], GL=normalisedGLs, GQ=[phredPosterior], GOF=[int(gofValue)],NR=readsPerSample, NV=varReadsPerSample)
 
                 if gofValue > maxGofValue:
                     maxGofValue = gofValue
@@ -867,8 +867,9 @@ cdef tuple refAndAlt(char* chrom, int POS, list variants, FastaFile refFile):
     if not nonSnpPresent:
         # Just SNPs
         REF = refFile.getCharacter(chrom, POS)
-        ALT = [ v.added for v in variants ]
-        return REF,ALT
+        # Decoding Bytes to String for output VCF
+        ALT = [ v.added.decode() for v in variants ]
+        return REF.decode(),ALT
     else:
         # If there are indels around, then the reference base is the base before the insertion
         # or the base before the first deleted base. This means that the alternative allele for
@@ -883,18 +884,18 @@ cdef tuple refAndAlt(char* chrom, int POS, list variants, FastaFile refFile):
             REF = refFile.getSequence(chrom, POS, (POS+rlen))
 
         ALT = []
-
+        # Decoding Bytes to String for output VCF
         for v in variants:
-            seq = list(REF)
+            seq = list(REF.decode())
 
             if v.nRemoved == v.nAdded:
-                seq[0: len(v.added)] = v.added
+                seq[0: len(v.added)] = v.added.decode()
             else:
-                seq[1:1+v.nRemoved] = v.added
+                seq[1:1+v.nRemoved] = v.added.decode()
 
             ALT.append("".join(seq))
 
-        return REF,ALT
+        return REF.decode(),ALT
 
 ###################################################################################################
 
@@ -1140,7 +1141,9 @@ cdef dict getHaplotypeInfo(list haplotypes, dict variantPosteriors, double* hapl
             # Skip low-posterior variants
             if var not in variantPosteriors:
                 continue
-
+            # Convert SC values to string
+            if 'SC' in value:
+                value['SC'] = [x.decode() for x in value['SC']]
             if var not in INFO:
                 posteriorProbThisVar = variantPosteriors[var]
                 PP = "%.0f" %(posteriorProbThisVar)

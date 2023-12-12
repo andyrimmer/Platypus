@@ -488,13 +488,13 @@ cdef list loadBAMData(list bamFiles, bytes chrom, int start, int end, options, l
                 reader.lock.acquire()
             
             theReadBuffer = bamReadBuffer(chrom, start, end, options)
-            theReadBuffer.sample = bytes(sample)
+            theReadBuffer.sample = bytes(sample, encoding = "utf-8")
             
             try:
-                region = "%s:%s-%s" %(chrom, start, end)
-                readIterator = reader.fetch(region)
+                region = "%s:%s-%s" %(chrom.decode(), start, end)
+                readIterator = reader.fetch(region.encode())
             except Exception, e:
-                logger.warning(e.message)
+                logger.warning("Error Message %s" % (e))
                 logger.debug("No data could be retrieved for sample %s in file %s in region %s" %(sample, reader.filename, "%s:%s-%s" %(chrom, start, end)))
                 readBuffers.append(theReadBuffer)
                 if options.fileCaching == 2:
@@ -862,8 +862,8 @@ cdef Variant leftNormaliseIndel(Variant variant, FastaFile refFile, int maxReadL
     cdef int hapIndex = 0
     cdef int refIndex = 0
 
-    cdef bytes newAdded   = bytes("")
-    cdef bytes newRemoved = bytes("")
+    cdef bytes newAdded   = b''
+    cdef bytes newRemoved = b''
 
     cdef int effecctSize   = 0
     cdef int insStart      = 0
@@ -976,7 +976,7 @@ def getRegions(options):
                     start = int(region.split("-")[0])-1
                     end = int(region.split("-")[1])
 
-                    regions.append( (chrom,start,end) )
+                    regions.append( (chrom.encode(),start,end) )
         
         # BED file with regions in format chr\start\tend
         elif options.regions[0].endswith(".bed"):
@@ -990,7 +990,7 @@ def getRegions(options):
                         chrom = cols[0]
                         start = int(cols[1])
                         end = int(cols[2])
-                        regions.append( (chrom,start,end) )
+                        regions.append( (chrom.encode(),start,end) )
                     except Exception:
                         logger.debug("Could not parse line in regions file (%s). Skipping..." %(options.regions[0]))
                         logger.debug("Line was %s" %(line))
