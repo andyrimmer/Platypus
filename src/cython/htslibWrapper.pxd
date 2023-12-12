@@ -212,8 +212,8 @@ cdef class Samfile:
     cdef char* getrname(self, int tid)
     cpdef ReadIterator fetch(self, const char *region)
     cpdef close(self)
-    
-    cdef char* filename
+    # Using Object to easily convert between str for python and bytes for c 
+    cdef object filename
     cdef samFile* samfile
     cdef bam_hdr_t* theHeader
     cdef hts_idx_t* index
