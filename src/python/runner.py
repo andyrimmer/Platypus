@@ -90,14 +90,15 @@ class FileForQueueing(object):
         the AlignedRead class.
         Python Equivalent of __cmp__(Py2) is __lt__(Py3)
         """
-        return cmp(self.chrom, other.chrom) or cmp(self.pos, other.pos)
+        return (self.chrom < other.chrom) or ((self.chrom == other.chrom) and (self.pos < other.pos))
 
     def __del__(self):
         """
         Destructor
         """
         self.theFile.close()
-        os.remove(self.theFile.name)
+        if(os.path.isfile(self.theFile.name)):
+            os.remove(self.theFile.name)
 
     def __next__(self):
         """
@@ -151,7 +152,7 @@ def regionSort(x, y):
     except ValueError:
         pass
 
-    return cmp(chrom1, chrom2) or cmp(pos1, pos2)
+    return cmp(chrom1, chrom2) or ((chrom1 == chrom2) and cmp(pos1, pos2))
 
 ###################################################################################################
 
@@ -172,7 +173,7 @@ def chromAndPosSort(x, y):
     except ValueError:
         pass
 
-    return cmp(xChrom, yChrom) or cmp(xStart, yStart)
+    return cmp(xChrom, yChrom) or ((xChrom == yChrom) and cmp(xStart, yStart))
 
 ###################################################################################################
 
@@ -344,7 +345,7 @@ def mergeVCFFiles(tempFileNames, finalFileName, log):
         else:
             theFile.close()
             os.remove(fileName)
-    
+
     # Merge-sort the output using a priority queue
     while len(theHeap) != 0:
         # Get file from heap in right order
