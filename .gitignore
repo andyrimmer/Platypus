@@ -6,3 +6,4 @@ src/cython/*.c
 *.bak
 *.log
 nohup.out
+.Rproj.user

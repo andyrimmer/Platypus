@@ -1000,13 +1000,13 @@ def getRegions(options):
 
         try:
             header = file.header
-            regions = [ (d['SN'], 0, d['LN']) for d in header['SQ'] ]
+            regions = [ (d['SN'].encode(), 0, d['LN']) for d in header['SQ'] ]
             logger.debug("Loaded regions from BAM header, SQ tags")
         except Exception:
             logger.debug("Loading regions from FASTA index datas")
 
             for region,regionTuple in refFile.refs.iteritems():
-                regions.append((region, 0, regionTuple.SeqLength))
+                regions.append((region.encode(), 0, regionTuple.SeqLength))
 
     else:
         for region in options.regions:
@@ -1033,7 +1033,7 @@ def getRegions(options):
                     regions = []
                     for region,regionTuple in refFile.refs.iteritems():
                         if region == chrom:
-                            regions.append((region, 0, regionTuple.SeqLength))
+                            regions.append((region.encode(), 0, regionTuple.SeqLength))
             else:
                 regions.append((chrom,None,None))
     

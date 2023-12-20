@@ -29,13 +29,14 @@ from past.builtins import cmp
 class FileForQueueing(object):
     """
     """
-    def __init__(self, theFile, line):
+    def __init__(self, theFile, line, chromOrder):
         """
         Store the file, and initialise the current value
         """
         self.theFile = theFile
         self.finishedReadingFile = False
         self.heap = []
+        self.chromOrder = chromOrder
         heapq.heapify(self.heap)
         line = line
         cols = line.strip().split(b"\t")
@@ -45,15 +46,17 @@ class FileForQueueing(object):
             pos = int(cols[1])
         else:
             pos = None
-
+        
         # Where possible, convert chromosome names into
         # integers for sorting. If not possible, use
         # original names.
         try:
             chrom = int(chrom.upper().strip(b"CHR")) # Depreciation of this logic as int chromosome creates confusion in decoding ascii to string and visa-versa
-            #chrom = chrom.upper().strip(b"CHR")
         except Exception:
-            pass
+            if(chrom in self.chromOrder):
+                chrom = self.chromOrder[chrom]
+            else:
+                pass
 
         heapq.heappush(self.heap, (chrom, pos, line))
 
@@ -71,9 +74,11 @@ class FileForQueueing(object):
                
                 try:
                     chrom = int(chrom.upper().strip(b"CHR")) # Depreciation of this logic as int chromosome creates confusion in decoding ascii to string and visa-versa
-                    #chrom = chrom.upper().strip(b"CHR")
                 except Exception:
-                    pass
+                    if(chrom in self.chromOrder):
+                        chrom = self.chromOrder[chrom]
+                    else:
+                        pass
 
             except StopIteration:
                 self.finishedReadingFile = True
@@ -123,7 +128,10 @@ class FileForQueueing(object):
                 try:
                     chrom = int(chrom.upper().strip(b"CHR"))
                 except Exception:
-                    pass
+                    if(chrom in self.chromOrder):
+                        chrom = self.chromOrder[chrom]
+                    else:
+                        pass
 
                 heapq.heappush(self.heap, (chrom, pos, line))
 
@@ -313,10 +321,18 @@ def continueCalling(args):
 
 ###################################################################################################
 
-def mergeVCFFiles(tempFileNames, finalFileName, log):
+def mergeVCFFiles(tempFileNames, finalFileName, log, regions):
     """
     """
     log.info("Merging output VCF file(s) into final file %s" %(finalFileName))
+    
+    # Creating Chromosome sort-order from region list
+    chromOrder = dict()
+    i = 0
+    for region in regions:
+        if(region[0] not in chromOrder):
+            chromOrder[region[0]] = i
+            i = i + 1
 
     # Final output file
     if finalFileName == "-":
@@ -337,7 +353,7 @@ def mergeVCFFiles(tempFileNames, finalFileName, log):
                 else:
                     pass
             else:
-                theFileForQueueing = FileForQueueing(theFile, line)
+                theFileForQueueing = FileForQueueing(theFile, line, chromOrder)
                 heapq.heappush(theHeap, theFileForQueueing)
                 break
         # If there are no calls in the temp file, we still want to
@@ -513,7 +529,7 @@ def runVariantCaller(options, continuing=False):
 
     # Final output file
     if options.output != "-":
-        mergeVCFFiles(fileNames, options.output, log)
+        mergeVCFFiles(fileNames, options.output, log, regions)
 
     # All done. Write a message to the log, so that it's clear when the
     # program has actually finished, and not crashed.
