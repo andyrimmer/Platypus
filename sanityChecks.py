@@ -1,4 +1,4 @@
-from __future__ import division
+
 import sys
 import os
 from collections import defaultdict
@@ -130,33 +130,33 @@ def checkVCF(vcfName):
     totalGenotypes = sum(genotypes.values())
     nInconsistentGenotypes = sum(inconsistentGenotypes.values())
 
-    print ""
-    print "Filters:"
+    print("")
+    print("Filters:")
 
-    for theFilter,count in filters.iteritems():
-        print "%s : %s" %(theFilter, count)
+    for theFilter,count in filters.items():
+        print("%s : %s" %(theFilter, count))
 
-    print ""
-    print "varTypes:"
+    print("")
+    print("varTypes:")
 
-    for theType,count in varTypes.iteritems():
-        print "%s : %s" %(theType, count)
+    for theType,count in varTypes.items():
+        print("%s : %s" %(theType, count))
 
-    print ""
-    print "passVarTypes:"
+    print("")
+    print("passVarTypes:")
 
-    for theType,count in passVarTypes.iteritems():
-        print "%s : %s" %(theType, count)
+    for theType,count in passVarTypes.items():
+        print("%s : %s" %(theType, count))
 
-    print ""
-    print "Genotype Summary:"
-    for key,val in genotypes.iteritems():
-        print "%s = %s (%1.2f %%)" %(key,val,100*val/totalGenotypes)
+    print("")
+    print("Genotype Summary:")
+    for key,val in genotypes.items():
+        print("%s = %s (%1.2f %%)" %(key,val,100*val/totalGenotypes))
 
-    print ""
-    print "Genotype Consistency Summary:"
-    for key,val in inconsistentGenotypes.iteritems():
-        print "%s = %s (%1.2f %%)" %(key,val,100*val/nInconsistentGenotypes)
+    print("")
+    print("Genotype Consistency Summary:")
+    for key,val in inconsistentGenotypes.items():
+        print("%s = %s (%1.2f %%)" %(key,val,100*val/nInconsistentGenotypes))
 
     #print ""
     #print "1Kg Membership:"
@@ -169,13 +169,13 @@ def checkVCF(vcfName):
 ###################################################################################################
 
 if len(sys.argv) < 5:
-    print ""
-    print "Invalid usage."
-    print ""
-    print "Correct usage as follows:"
-    print "python sanityChecks.py PATH/Platypus.py data.bam ref.fa output.vcf OTHER_ARGS"
-    print ""
-    print ""
+    print("")
+    print("Invalid usage.")
+    print("")
+    print("Correct usage as follows:")
+    print("python sanityChecks.py PATH/Platypus.py data.bam ref.fa output.vcf OTHER_ARGS")
+    print("")
+    print("")
     sys.exit(1)
 
 platypus = sys.argv[1]

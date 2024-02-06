@@ -11,4 +11,4 @@ for line in sys.stdin:
     nr = int(cols[-1].split(":")[-1])
 
     if nr == 0:
-        print line.strip()
+        print(line.strip())

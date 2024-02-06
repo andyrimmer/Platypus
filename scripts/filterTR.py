@@ -5,7 +5,7 @@ threshold = int(sys.argv[1])
 for line in sys.stdin:
 
     if line[0] == "#":
-        print line.strip()
+        print(line.strip())
         continue
 
     cols = line.strip().split("\t")
@@ -18,4 +18,4 @@ for line in sys.stdin:
         name,value = infoVal.split("=")[0:2]
 
         if name == "TR" and int(value) >= threshold:
-            print line.strip()
+            print(line.strip())

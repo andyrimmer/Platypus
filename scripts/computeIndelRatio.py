@@ -3,7 +3,7 @@ This script produces summary plots and tables of the Platypus SNP and indel
 calls, and comparison plots of Platypus calls with the validated 1000 genomes
 calls.
 """
-from __future__ import division
+
 
 from math import sqrt,pow,log,exp,pi,log10
 
@@ -47,7 +47,7 @@ def summariseVariantCalls():
             continue
             #raise
 
-    print "nSNP = %s. \t TsTv = %s" %(nSNPs,nTransitionSnps/nTransversionSnps)
+    print("nSNP = %s. \t TsTv = %s" %(nSNPs,nTransitionSnps/nTransversionSnps))
 
 ###################################################################################################
 

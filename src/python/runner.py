@@ -3,8 +3,6 @@ Code for identifying variants in illumina reads, based on Gerton's haplotype rea
 algorithm and initial implementation.
 """
 
-from __future__ import division
-
 import multiprocessing
 import variantcaller
 import extendedoptparse
@@ -19,52 +17,69 @@ import filez
 import logging.handlers
 import platypusutils
 import time
+import functools
 
 from variantcaller import PlatypusSingleProcess
 from variantcaller import PlatypusMultiProcess
 from platypusutils import Open
+from past.builtins import cmp
 
 ###################################################################################################
 
 class FileForQueueing(object):
     """
     """
-    def __init__(self, theFile, line):
+    def __init__(self, theFile, line, chromOrder):
         """
         Store the file, and initialise the current value
         """
         self.theFile = theFile
         self.finishedReadingFile = False
         self.heap = []
-
+        self.chromOrder = chromOrder
+        heapq.heapify(self.heap)
         line = line
-        cols = line.strip().split("\t")
+        cols = line.strip().split(b"\t")
         chrom = cols[0]
 
+        if not chrom.startswith(b"#"):
+            pos = int(cols[1])
+        else:
+            pos = None
+        
         # Where possible, convert chromosome names into
         # integers for sorting. If not possible, use
         # original names.
         try:
-            chrom = int(chrom.upper().strip("CHR"))
+            chrom = int(chrom.upper().strip(b"CHR")) # Depreciation of this logic as int chromosome creates confusion in decoding ascii to string and visa-versa
         except Exception:
-            pass
+            if(chrom in self.chromOrder):
+                chrom = self.chromOrder[chrom]
+            else:
+                pass
 
-        pos = int(cols[1])
         heapq.heappush(self.heap, (chrom, pos, line))
 
         while not self.finishedReadingFile and len(self.heap) < 100:
 
             try:
-                line = self.theFile.next()
-                cols = line.strip().split("\t")
+                line = next(self.theFile)
+                cols = line.strip().split(b"\t")
                 chrom = cols[0]
 
+                if not chrom.startswith(b"#"):
+                    pos = int(cols[1])
+                else:
+                    pos = None
+               
                 try:
-                    chrom = int(chrom.upper().strip("CHR"))
+                    chrom = int(chrom.upper().strip(b"CHR")) # Depreciation of this logic as int chromosome creates confusion in decoding ascii to string and visa-versa
                 except Exception:
-                    pass
+                    if(chrom in self.chromOrder):
+                        chrom = self.chromOrder[chrom]
+                    else:
+                        pass
 
-                pos = int(cols[1])
             except StopIteration:
                 self.finishedReadingFile = True
                 break
@@ -74,21 +89,23 @@ class FileForQueueing(object):
         # Now take the top line
         self.chrom, self.pos, self.line = heapq.heappop(self.heap)
 
-    def __cmp__(self, other):
+    def __lt__(self, other):
         """
         Comparison function. Utilises the comparison function defined in
         the AlignedRead class.
+        Python Equivalent of __cmp__(Py2) is __lt__(Py3)
         """
-        return cmp(self.chrom, other.chrom) or cmp(self.pos, other.pos)
+        return (self.chrom < other.chrom) or ((self.chrom == other.chrom) and (self.pos < other.pos))
 
     def __del__(self):
         """
         Destructor
         """
         self.theFile.close()
-        os.remove(self.theFile.name)
+        if(os.path.isfile(self.theFile.name)):
+            os.remove(self.theFile.name)
 
-    def next(self):
+    def __next__(self):
         """
         Increment the iterator and yield the new value. Also, store the
         current value for use in the comparison function.
@@ -96,19 +113,26 @@ class FileForQueueing(object):
         if not self.finishedReadingFile:
 
             try:
-                line = self.theFile.next()
-                cols = line.strip().split("\t")
+                line = next(self.theFile)
+                cols = line.strip().split(b"\t")
                 chrom = cols[0]
+
+                if not chrom.startswith(b"#"):
+                    pos = int(cols[1])
+                else:
+                    pos = None
 
                 # Where possible, convert chromosome names into
                 # integers for sorting. If not possible, use
                 # original names.
                 try:
-                    chrom = int(chrom.upper().strip("CHR"))
+                    chrom = int(chrom.upper().strip(b"CHR"))
                 except Exception:
-                    pass
+                    if(chrom in self.chromOrder):
+                        chrom = self.chromOrder[chrom]
+                    else:
+                        pass
 
-                pos = int(cols[1])
                 heapq.heappush(self.heap, (chrom, pos, line))
 
             except StopIteration:
@@ -121,7 +145,6 @@ class FileForQueueing(object):
             raise StopIteration
 
 ###################################################################################################
-
 def regionSort(x, y):
     """
     Sort chromosomal regions
@@ -132,12 +155,12 @@ def regionSort(x, y):
     pos2 = int(y[1])
 
     try:
-        chrom1 = int(chrom1.replace("chr", ""))
-        chrom2 = int(chrom2.replace("chr", ""))
+        chrom1 = int(chrom1.replace(b"chr", b""))
+        chrom2 = int(chrom2.replace(b"chr", b""))
     except ValueError:
         pass
 
-    return cmp(chrom1, chrom2) or cmp(pos1, pos2)
+    return cmp(chrom1, chrom2) or ((chrom1 == chrom2) and cmp(pos1, pos2))
 
 ###################################################################################################
 
@@ -153,12 +176,12 @@ def chromAndPosSort(x, y):
     yStart = int(y.split(":")[1].split("-")[0])
 
     try:
-        xChrom = int(xChrom.replace("chr", ""))
-        yChrom = int(yChrom.replace("chr", ""))
+        xChrom = int(xChrom.replace(b"chr", b""))
+        yChrom = int(yChrom.replace(b"chr", b""))
     except ValueError:
         pass
 
-    return cmp(xChrom, yChrom) or cmp(xStart, yStart)
+    return cmp(xChrom, yChrom) or ((xChrom == yChrom) and cmp(xStart, yStart))
 
 ###################################################################################################
 
@@ -251,7 +274,7 @@ def continueCalling(args):
         logger.error("Quitting now.")
 
     logger.info("Previous job failed at %s:%s. Job will be re-run from %s:%s" %(lastChrom,realLastPos,lastChrom,lastPos))
-    allRegions = sorted(platypusutils.getRegions(platypusOptions), cmp=regionSort)
+    allRegions = sorted(platypusutils.getRegions(platypusOptions), key=functools.cmp_to_key(regionSort))
     theIndex = -1
 
     for index,region in enumerate(allRegions):
@@ -259,7 +282,7 @@ def continueCalling(args):
             theIndex = index + 1
 
     if theIndex == -1:
-        raise StandardError, "Could not find region which was unfinished in input VCF"
+        raise Exception("Could not find region which was unfinished in input VCF")
 
     logger.info("Platypus will continue calling. Output will go to file %s." %(options.vcfFile))
 
@@ -298,10 +321,18 @@ def continueCalling(args):
 
 ###################################################################################################
 
-def mergeVCFFiles(tempFileNames, finalFileName, log):
+def mergeVCFFiles(tempFileNames, finalFileName, log, regions):
     """
     """
     log.info("Merging output VCF file(s) into final file %s" %(finalFileName))
+    
+    # Creating Chromosome sort-order from region list
+    chromOrder = dict()
+    i = 0
+    for region in regions:
+        if(region[0] not in chromOrder):
+            chromOrder[region[0]] = i
+            i = i + 1
 
     # Final output file
     if finalFileName == "-":
@@ -309,21 +340,20 @@ def mergeVCFFiles(tempFileNames, finalFileName, log):
     else:
         outputVCF = Open(finalFileName, 'wb')
     theHeap = []
-
+    heapq.heapify(theHeap)
     # Initialise queue
     for index, fileName in enumerate(tempFileNames):
         theFile = Open(fileName, 'rb')
 
         for line in theFile:
-
             # End of this file
-            if line[0] == "#":
+            if line.startswith(b"#"):
                 if index == 0:
                     outputVCF.write(line)
                 else:
-                    continue
+                    pass
             else:
-                theFileForQueueing = FileForQueueing(theFile, line)
+                theFileForQueueing = FileForQueueing(theFile, line, chromOrder)
                 heapq.heappush(theHeap, theFileForQueueing)
                 break
         # If there are no calls in the temp file, we still want to
@@ -334,14 +364,12 @@ def mergeVCFFiles(tempFileNames, finalFileName, log):
 
     # Merge-sort the output using a priority queue
     while len(theHeap) != 0:
-
         # Get file from heap in right order
         nextFile = heapq.heappop(theHeap)
         outputVCF.write(nextFile.line)
-
         # Put file back on heap
         try:
-            nextFile.next()
+            next(nextFile)
             heapq.heappush(theHeap, nextFile)
         except StopIteration:
             continue
@@ -434,7 +462,7 @@ def runVariantCaller(options, continuing=False):
         ch.setLevel(logging.INFO)
         fh.setLevel(logging.DEBUG)
     else:
-        raise StandardError, "Value of 'verbosity' input parameter must be between 0 and 3 inclusive"
+        raise Exception("Value of 'verbosity' input parameter must be between 0 and 3 inclusive")
 
     log.addHandler(ch)
     log.addHandler(fh)
@@ -451,7 +479,7 @@ def runVariantCaller(options, continuing=False):
     if continuing:
         regions = options.unfinishedRegions
     else:
-        regions = sorted(platypusutils.getRegions(options), cmp=regionSort)
+        regions = sorted(platypusutils.getRegions(options), key=functools.cmp_to_key(regionSort))
 
     # Always create process manager even if nCPU=1, so that we can listen for signals from the main thread
     fileNames = set()
@@ -472,7 +500,7 @@ def runVariantCaller(options, continuing=False):
 
     for index,region in enumerate(regions):
         regionsForEachProcess[index % options.nCPU].append(region)
-    
+     
     if options.nCPU == 1 and options.output == "-":
         processes.append(PlatypusMultiProcess("-", options, regionsForEachProcess[0]))
     else:
@@ -489,7 +517,7 @@ def runVariantCaller(options, continuing=False):
         try:
             time.sleep(1)
         except KeyboardInterrupt:
-            print "KeyboardInterrupt detected, terminating all processes..."
+            print("KeyboardInterrupt detected, terminating all processes...")
             for process in processes:
                 process.terminate()
             log.error("Variant calling aborted due to keyboard interrupt")
@@ -501,7 +529,7 @@ def runVariantCaller(options, continuing=False):
 
     # Final output file
     if options.output != "-":
-        mergeVCFFiles(fileNames, options.output, log)
+        mergeVCFFiles(fileNames, options.output, log, regions)
 
     # All done. Write a message to the log, so that it's clear when the
     # program has actually finished, and not crashed.

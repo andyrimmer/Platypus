@@ -4,7 +4,7 @@ variant information, including utilities for generating combinations
 of variants, haplotypes, and genotypes.
 """
 
-from __future__ import division
+
 
 import logging
 import os
@@ -41,7 +41,7 @@ class VariantCandidateReader(object):
                 logger.error("Remember to use the 'tabix -p vcf %s.gz' command to index the compressed file" %(fileName))
                 logger.error("This should create an index file: %s.gz.tbi" %(fileName))
                 logger.error("")
-                raise StandardError, "Input VCF source file %s was not compressed and indexed" %(fileName)
+                raise Exception("Input VCF source file %s was not compressed and indexed" %(fileName))
 
             # Compressed VCF. Tabix will complain if there's no index.
             else:
@@ -65,7 +65,7 @@ class VariantCandidateReader(object):
         for vcfFile in self.vcfFiles:
             try:
                 vcfLines = vcfFile.fetch(chromosome, start, end, parser=ctabix.asVCF())
-            except Exception, e:
+            except Exception as e:
                 logger.warning("Could not retrieve variants from source file in region %s:%s-%s. Error was %s" %(chromosome,start,end,e))
                 continue
 

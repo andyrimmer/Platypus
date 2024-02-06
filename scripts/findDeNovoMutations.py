@@ -72,7 +72,7 @@ threshold = int(sys.argv[4])
 for index,line in enumerate(sys.stdin):
 
     if line[0] == "#":
-        print line.strip()
+        print(line.strip())
         continue
 
     cols = line.strip().split('\t')
@@ -99,4 +99,4 @@ for index,line in enumerate(sys.stdin):
 
     if deNovoPhredPosterior >= threshold:
         cols[5] = str(deNovoPhredPosterior)
-        print "\t".join(cols)
+        print("\t".join(cols))

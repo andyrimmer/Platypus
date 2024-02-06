@@ -23,7 +23,7 @@ def checkList(option, opt, value):
         value = value.strip(" ")
 
         if " " in value:
-            raise OptionValueError, "Option list cannot have spaces. You must supply a comma-separated list."
+            raise OptionValueError("Option list cannot have spaces. You must supply a comma-separated list.")
 
         if "*" in value:
             return glob.glob(value)

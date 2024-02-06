@@ -3,7 +3,7 @@ This script produces summary plots and tables of the Platypus SNP and indel
 calls, and comparison plots of Platypus calls with the validated 1000 genomes
 calls.
 """
-from __future__ import division
+
 
 from math import sqrt,pow,log,exp,pi,log10
 from collections import defaultdict
@@ -57,13 +57,13 @@ def summariseVariantCalls(binSize):
                 else:
                     pass
         except Exception:
-            print "Error. Prob last line..."
-            print line
+            print("Error. Prob last line...")
+            print(line)
             continue
 
-    print "nInsertions = %s. nDeletions = %s. Total = %s. Ins/Dels = %s" %(totalIns,totalDels,totalIndels,totalIns/totalDels)
+    print("nInsertions = %s. nDeletions = %s. Total = %s. Ins/Dels = %s" %(totalIns,totalDels,totalIndels,totalIns/totalDels))
     if binSize == 1:
-        print "HP Length\tnSnp\tnIns/nDel"
+        print("HP Length\tnSnp\tnIns/nDel")
 
     for start in sorted(nInsertions.keys()):
         nIndels = nInsertions[start] + nDeletions[start]
@@ -75,9 +75,9 @@ def summariseVariantCalls(binSize):
             ratio = -1.0
 
         if binSize == 1:
-            print "%s\t%s\t%1.2f" %(start, nIndels,ratio)
+            print("%s\t%s\t%1.2f" %(start, nIndels,ratio))
         else:
-            print "For %s <= HP < %s, nIndels = %s. nIns/nDel = %1.2f" %(start*binSize, (1+start)*binSize, nIndels,ratio)
+            print("For %s <= HP < %s, nIndels = %s. nIns/nDel = %1.2f" %(start*binSize, (1+start)*binSize, nIndels,ratio))
 
 ###################################################################################################
 

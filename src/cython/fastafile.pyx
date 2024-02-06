@@ -68,17 +68,17 @@ cdef class FastaIndex:
         cdef dict theDict = {}
 
         for theLine in self.theFile:
-
-            line = theLine.strip().split("\t")
+            # decode bytes into str for string methods like strip(), split(), startswith(),...
+            line = theLine.decode().strip().split("\t")
             seqName = line[0].split()[0]
 
             if seqName.startswith('gi|') and parseNCBI:       # NCBI-formatted line
                 ids = seqName.split('|')
                 if len(ids)>=4 and ids[2] == "ref":
                     seqName = ids[3]
-
-            theDict[seqName] = sequenceTuple(line[0], atoll(line[1]), atoll(line[2]), atoll(line[3]), atoll(line[4]))
-
+            # Convert all the str back to bytes for the class members
+            theDict[seqName.encode()] = sequenceTuple(line[0].encode(), atoll(line[1].encode()), atoll(line[2].encode()), atoll(line[3].encode()), atoll(line[4].encode()))
+            
         return theDict
 
 ###################################################################################################
@@ -142,7 +142,7 @@ cdef class FastaFile:
         """
         """
         if seqName not in self.refs:
-            raise StandardError, "Invalid contig name %s. Make sure your FASTA reference file and query regions have the same naming convention" %(seqName)
+            raise Exception("Invalid contig name %s. Make sure your FASTA reference file and query regions have the same naming convention" %(seqName))
 
         cdef sequenceTuple seqTuple = self.refs[seqName]
         cdef long long int seqLength = seqTuple.SeqLength
@@ -165,7 +165,7 @@ cdef class FastaFile:
             raise IndexError, "Cannot return sequence from %s to %s. Ref seq length = %s" %(beginPos, endPos, seqLength)
 
         self.theFile.seek(desiredSequenceStartPos)
-        self.cache = self.theFile.read(desiredSequenceLengthInFile).replace("\n", "").upper()
+        self.cache = self.theFile.read(desiredSequenceLengthInFile).replace(b"\n", b"").upper()
         self.cacheRefName = seqName
         self.cacheStartPos = beginPos
         self.cacheEndPos = endPos
@@ -204,6 +204,6 @@ cdef class FastaFile:
 
         self.theFile.seek(desiredSequenceStartPos)
         cdef bytes seq = self.theFile.read(desiredSequenceLengthInFile)
-        return seq.replace("\n", "").upper()
+        return seq.replace(b"\n", b"").upper()
 
 ###################################################################################################

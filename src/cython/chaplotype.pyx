@@ -64,7 +64,7 @@ cdef extern from "stdlib.h":
 cdef list per_base_indel_errors = [2.9e-5, 2.9e-5, 2.9e-5, 2.9e-5, 4.3e-5, 1.1e-4, 2.4e-4, 5.7e-4, 1.0e-3, 1.4e-3] + [ 1.4e-3 + 4.3e-4*(n-10) for n in range(11,50) ]
 
 # homopolymer indel error model
-cdef bytes homopolq = bytes(''.join([chr(int(33.5 + 10*log( (idx+1)*q )/log(0.1) )) for idx,q in enumerate(per_base_indel_errors)]))
+cdef bytes homopolq = bytes(''.join([chr(int(33.5 + 10*log( (idx+1)*q )/log(0.1))) for idx,q in enumerate(per_base_indel_errors)]).encode('ascii'))
 
 ###################################################################################################
 
@@ -180,7 +180,7 @@ cdef class Haplotype:
         if self.hapLen > hash_size:
             logger.error("Haplotype with vars %s has len %s. Start is %s. End is %s. maxReadLen = %s" %(self.variants, self.hapLen, self.startPos, self.endPos, maxReadLength))
             logger.debug(self.haplotypeSequence)
-            raise StandardError, "Haplotype is too long. Max allowed length is %s" %(hash_size)
+            raise Exception("Haplotype is too long. Max allowed length is %s" %(hash_size))
 
         self.cHomopolQ            = homopolq
         self.hapSequenceHash      = NULL
@@ -213,7 +213,7 @@ cdef class Haplotype:
         """
         Make sure this never gets called for haplotypes.
         """
-        raise StandardError, "Oh no! The bridge is gone!"
+        raise Exception("Oh no! The bridge is gone!")
 
     def __richcmp__(Haplotype self, Haplotype other, int opCode):
         """
@@ -284,7 +284,7 @@ cdef class Haplotype:
                 otherSeq = other.haplotypeSequence
                 return thisSeq != otherSeq
         else:
-            raise StandardError, "Op code %s not implemented in haplotype__richcmp__()" %(opCode)
+            raise Exception("Op code %s not implemented in haplotype__richcmp__()" %(opCode))
 
     def __hash__(self):
         """
@@ -324,14 +324,14 @@ cdef class Haplotype:
 
                 if self.likelihoodCache == NULL:
                     logger.error("Could not allocate haplotype cache")
-                    raise StandardError, "Out of memory in cHaplotype.alignReads"
+                    raise Exception("Out of memory in cHaplotype.alignReads")
             else:
                 if totalReads >= self.lenCache:
                     temp = <double*>realloc(self.likelihoodCache, 2*totalReads*sizeof(double))
 
                     if temp == NULL:
                         logger.error("Could not reallocate haplotype cache")
-                        raise StandardError, "Out of memory in cHaplotype.alignReads"
+                        raise Exception("Out of memory in cHaplotype.alignReads")
 
                     self.likelihoodCache = temp
                     self.lenCache = 2*totalReads
@@ -444,7 +444,7 @@ cdef class Haplotype:
             if currentPos < self.endPos:
                 bitsOfMutatedSeq.append(self.refFile.getSequence(self.refName, currentPos, self.endPos))
 
-            self.haplotypeSequence = bytes(''.join(bitsOfMutatedSeq))
+            self.haplotypeSequence = b''.join(bitsOfMutatedSeq)
 
         return self.haplotypeSequence
 
@@ -580,13 +580,13 @@ cdef class Haplotype:
             else:
                 homopollen = 0
                     
-            self.localGapOpen[index] = <char>( <int>(errorModel[homopollen]) - (<int>'!') )
+            self.localGapOpen[index] = <char>( <int>(errorModel[homopollen]) - (<int>b'!') )
 
             if self.localGapOpen[index] < 0:
                 raise ValueError("Internal error: encountered negative gap open score (%s, at position %s)" % (self.localGapOpen[index], index))
 
             homopol = seq[index];
-            if homopol == 'N':
+            if homopol == b'N':
                 homopol = 0
 
 ##################################################################################################

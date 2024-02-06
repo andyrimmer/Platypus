@@ -133,7 +133,7 @@ cdef class Samfile:
         """
         """
         if os.path.exists(self.filename):
-            self.samfile   = sam_open(self.filename, mode)
+            self.samfile   = sam_open(self.filename.encode(), mode.encode())
             self.theHeader = bam_hdr_init()
             self.theHeader = sam_hdr_read(self.samfile);
         else:
@@ -148,7 +148,7 @@ cdef class Samfile:
         closed and a new file will be opened.
         """
         if mode not in ("r", "rb", "rbh"):
-            raise StandardError, "invalid file opening mode `%s`" % mode
+            raise Exception("invalid file opening mode `%s`" % mode)
         
         if self.samfile != NULL:
             if loadIndex and self.index == NULL:
@@ -160,7 +160,7 @@ cdef class Samfile:
         if mode[0] == "r":
             self.openBAMFile(mode)
         else:
-            raise StandardError, "BAM file is read-only"
+            raise Exception("BAM file is read-only")
 
         if self.samfile == NULL:
             raise IOError("Could not open file `%s`. Check that file/path exists." % self.filename)
@@ -168,7 +168,7 @@ cdef class Samfile:
         if self._isBam() or self._isCram():
             # returns NULL if there is no index or index could not be opened
             if loadIndex and self.index == NULL:
-                self.index = sam_index_load(self.samfile, self.filename)
+                self.index = sam_index_load(self.samfile, self.filename.encode())
                 if self.index == NULL:
                     raise IOError("Error while opening index for file `%s`. Check that index exists " % self.filename)
     
@@ -192,7 +192,7 @@ cdef class Samfile:
         if self._isBam() or self._isCram():
             return ReadIterator(self, region)
         else:
-            raise StandardError, "Random access query only allowed for BAM/CRAM files."
+            raise Exception("Random access query only allowed for BAM/CRAM files.")
     
     cpdef close(self):
         '''
@@ -253,12 +253,12 @@ cdef class Samfile:
 
             if self.theHeader.text != NULL:
                 # convert to python string (note: call self.text to create 0-terminated string)
-                t = self.text
+                t = self.text.decode()
                 for line in t.split("\n"):
                     if not line.strip(): continue
 
                     if not line.startswith("@"):
-                        raise StandardError, "Header line without '@': '%s. Total header text is %s'" % (line,t)
+                        raise Exception("Header line without '@': '%s. Total header text is %s'" % (line,t))
 
                     fields = line[1:].split("\t")
                     record = fields[0]
@@ -303,7 +303,7 @@ cdef class ReadIterator:
         self.b           = NULL
         
         if not samfile._isOpen():
-            raise StandardError, "Samfile %s is not open. Cannot read from file." %(samfile.filename)
+            raise Exception("Samfile %s is not open. Cannot read from file." %(samfile.filename))
         
         self.theSamfile = samfile.samfile
         
@@ -311,7 +311,7 @@ cdef class ReadIterator:
         if samfile._hasIndex():
             self.theIterator = sam_itr_querys(samfile.index, samfile.theHeader, region)
         else:
-            raise StandardError, "Cannot retrieve random region from Samfile %s, as it does not have an index" %(samfile.filename)
+            raise Exception("Cannot retrieve random region from Samfile %s, as it does not have an index" %(samfile.filename))
         
         self.b = bam_init1()
     
@@ -366,8 +366,8 @@ cdef class ReadIterator:
             qual[i] = q[i]
             assert qual[i] <= 93
             assert qual[i] >= 0
-        seq[lenSeq]  = '\0'
-        qual[lenSeq] = '\0'
+        seq[lenSeq]  = b'\0'
+        qual[lenSeq] = b'\0'
         
         readStart = c.pos
         cdef short* cigarOps = <short*>malloc(2 * c.n_cigar * sizeof(short))
@@ -504,7 +504,7 @@ cdef void compressQual(cAlignedRead* read, int qualBinSize):
 
     if qualBinSize > 1:
         for i in range(read.rlen):
-            qual[i] = (qual[i]/qualBinSize)*qualBinSize
+            qual[i] = bytes((qual[i]/qualBinSize)*qualBinSize)
 
     for i in range(read.rlen):
 

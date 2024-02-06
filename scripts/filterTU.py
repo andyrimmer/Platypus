@@ -7,7 +7,7 @@ for line in sys.stdin:
     try:
 
         if line[0] == "#":
-            print line.strip()
+            print(line.strip())
             continue
 
         cols = line.strip().split("\t")
@@ -17,7 +17,7 @@ for line in sys.stdin:
             name,value = infoVal.split("=")[0:2]
 
             if name == "TU" and len(value) != threshold:
-                print line.strip()
+                print(line.strip())
 
     except Exception:
         continue

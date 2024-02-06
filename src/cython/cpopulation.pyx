@@ -12,6 +12,7 @@ import math
 import cwindow
 import chaplotype
 import random
+import operator
 
 cimport variant
 cimport chaplotype
@@ -151,7 +152,7 @@ cdef class Population:
         my_free(self.maxLogLikelihoods)
         my_free(self.EMLikelihoods)
         my_free(self.freqsPrimeByHapIndex)
-    
+
     cdef void computeVariantINFO(self):
         """
         """
@@ -210,19 +211,19 @@ cdef class Population:
             logger.error("nInd != len(readBuffers). Something is very wrong here. Quitting now.")
             logger.info("Variants = %s" %(variants))
             logger.info("nVariants = %s. nHaplotypes = %s. nGenotypes = %s" %(len(variants), self.nHaplotypes, self.nGenotypes))
-            raise StandardError, "Error in cPopulation.setup"
+            raise Exception("Error in cPopulation.setup")
 
         if not self.nGenotypes <= self.options.maxGenotypes:
             logger.error("nGenotypes > options.maxGenotypes. (%s > %s). Something is very wrong here. Quitting now." %(self.nGenotypes, self.options.maxGenotypes))
             logger.info("Variants = %s" %(variants))
             logger.info("nVariants = %s. nHaplotypes = %s. nGenotypes = %s" %(len(variants), self.nHaplotypes, self.nGenotypes))
-            raise StandardError, "Error in cPopulation.setup"
+            raise Exception("Error in cPopulation.setup")
 
         if not self.nHaplotypes <= self.options.maxHaplotypes:
             logger.error("nHaplotypes > options.maxHaplotypes. (%s > %s). Something is very wrong here. Quitting now." %(self.nHaplotypes, self.options.maxHaplotypes))
             logger.info("Variants = %s" %(variants))
             logger.info("nVariants = %s. nHaplotypes = %s. nGenotypes = %s" %(len(variants), self.nHaplotypes, self.nGenotypes))
-            raise StandardError, "Error in cPopulation.setup"
+            raise Exception("Error in cPopulation.setup")
 
         self.variants = variants
         self.haplotypes = haplotypes
@@ -345,7 +346,7 @@ cdef class Population:
 
                     topGenotypes.append( (int(0.5+(logLikelihood/mLTOT)), genotype) )
 
-                topGenotypes = sorted(topGenotypes)[0:10]
+                topGenotypes = sorted(topGenotypes, key = operator.itemgetter(0))[0:10]
 
                 for phred,genotype in topGenotypes:
                     logger.debug("%s\t%s\t%s\t%s" %(theBuffer.sample, phred, nReadsThisInd, genotype))

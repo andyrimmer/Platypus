@@ -3,7 +3,7 @@ This script produces summary plots and tables of the Platypus SNP and indel
 calls, and comparison plots of Platypus calls with the validated 1000 genomes
 calls.
 """
-from __future__ import division
+
 
 from math import sqrt,pow,log,exp,pi,log10
 from collections import defaultdict
@@ -49,12 +49,12 @@ def summariseVariantCalls(binSize):
             else:
                 nTv[pal//binSize] += 1
         except Exception:
-            print "Error. Prob last line..."
-            print line
+            print("Error. Prob last line...")
+            print(line)
             continue
 
     if binSize == 1:
-        print "Max Palindrome Size\tnSnp\tTsTv"
+        print("Max Palindrome Size\tnSnp\tTsTv")
 
     for start in sorted(nTs.keys()):
         nSnp = nTs[start] + nTv[start]
@@ -66,9 +66,9 @@ def summariseVariantCalls(binSize):
             TsTv = -1.0
 
         if binSize == 1:
-            print "%s\t%s\t%1.2f" %(start, nSnp,TsTv)
+            print("%s\t%s\t%1.2f" %(start, nSnp,TsTv))
         else:
-            print "For %s <= PAL < %s, nSNP = %s. TsTv = %1.2f" %(start*binSize, (1+start)*binSize, nSnp,TsTv)
+            print("For %s <= PAL < %s, nSNP = %s. TsTv = %1.2f" %(start*binSize, (1+start)*binSize, nSnp,TsTv))
 
 ###################################################################################################
 
