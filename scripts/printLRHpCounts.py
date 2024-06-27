@@ -64,16 +64,16 @@ for line in sys.stdin:
             #sys.stdout.write("%s:%s. %s:%s. %s, %s, %s, %s\n" %(leftContext[-1], leftCount, rightContext[0], rightCount, ref, alt, leftContext, rightContext))
 
             if leftCount > rightCount and ref == leftContext[-1]:
-                print "%s --> %s. Overhang Left Snp To Right" %(ref, alt)
+                print("%s --> %s. Overhang Left Snp To Right" %(ref, alt))
             elif leftCount < rightCount and ref == rightContext[0]:
-                print "%s --> %s. Overhang Right Snp To Left" %(ref, alt)
+                print("%s --> %s. Overhang Right Snp To Left" %(ref, alt))
             elif leftCount < rightCount and ref == leftContext[-1]:
-                print "%s --> %s. Overhang Right Snp To Right" %(ref, alt)
+                print("%s --> %s. Overhang Right Snp To Right" %(ref, alt))
             elif leftCount > rightCount and ref == rightContext[0]:
-                print "%s --> %s. Overhang Left Snp To Left" %(ref, alt)
+                print("%s --> %s. Overhang Left Snp To Left" %(ref, alt))
             elif leftCount == rightCount and ref == rightContext[0]:
-                print "%s --> %s. Equal Snp To Left" %(ref, alt)
+                print("%s --> %s. Equal Snp To Left" %(ref, alt))
             elif leftCount == rightCount and ref == leftContext[-1]:
-                print "%s --> %s. Equal Snp To Right" %(ref, alt)
+                print("%s --> %s. Equal Snp To Right" %(ref, alt))
             else:
-                print "??????????????????"
+                print("??????????????????")

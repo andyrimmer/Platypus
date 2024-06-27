@@ -76,7 +76,7 @@ cdef extern from "string.h":
 ###################################################################################################
 
 @cython.profile(False)
-cdef inline int readPosComp(const void* x, const void* y) nogil:
+cdef inline int readPosComp(const void* x, const void* y) noexcept:
     """
     Comparison function for use in qsort, to sort reads by their start positions and
     then end positions.
@@ -92,7 +92,7 @@ cdef inline int readPosComp(const void* x, const void* y) nogil:
 ###################################################################################################
 
 @cython.profile(False)
-cdef int readMatePosComp(const void* x, const void* y):
+cdef int readMatePosComp(const void* x, const void* y) noexcept:
     """
     Comparison function for use in qsort, to sort reads by their mate positions, as long as
     the mates are on the same chromosome.
@@ -158,7 +158,7 @@ cdef class ReadArray:
             temp = <cAlignedRead**>(realloc(self.array, 2*sizeof(cAlignedRead*)*self.__capacity))
 
             if temp == NULL:
-                raise StandardError, "Could not re-allocate ReadArray"
+                raise Exception("Could not re-allocate ReadArray")
             else:
                 self.array = temp
                 self.__capacity *= 2
@@ -201,7 +201,7 @@ cdef class ReadArray:
             if startPosOfReads > endPosOfReads:
                 logger.error("Start pos = %s. End pos = %s. Read start pos = %s. end pos = %s" %(start, end, startPosOfReads, endPosOfReads))
                 logger.error("There are %s reads here." %(self.__size))
-                raise StandardError, "This should never happen. Read start pointer > read end pointer!!"
+                raise Exception("This should never happen. Read start pointer > read end pointer!!")
 
             return (rEnd - rStart)
 
@@ -233,7 +233,7 @@ cdef class ReadArray:
             if startPosOfReads > endPosOfReads:
                 logger.info("Start pos = %s. End pos = %s. Read start pos = %s. end pos = %s" %(start, end, startPosOfReads, endPosOfReads))
                 logger.info("There are %s reads here." %(self.__size))
-                raise StandardError, "This should never happen. Read start pointer > read end pointer!!"
+                raise Exception("This should never happen. Read start pointer > read end pointer!!")
 
     cdef void setWindowPointersBasedOnMatePos(self, int start, int end):
         """
@@ -263,7 +263,7 @@ cdef class ReadArray:
             if startPosOfReads > endPosOfReads:
                 logger.info("Start pos = %s. End pos = %s. Read start pos = %s. end pos = %s" %(start, end, startPosOfReads, endPosOfReads))
                 logger.info("There are %s reads here." %(self.__size))
-                raise StandardError, "This should never happen. Read start pointer > read end pointer!!"
+                raise Exception("This should never happen. Read start pointer > read end pointer!!")
 
     cdef int getLengthOfLongestRead(self):
         """
@@ -284,7 +284,7 @@ cdef int bisectReadsLeft(cAlignedRead** reads, int testPos, int nReads, int test
 
     while low < high:
 
-        mid = (low + high) / 2
+        mid = (low + high) // 2
 
         if not testMatePos:
             if reads[mid].pos < testPos:
@@ -312,7 +312,7 @@ cdef int bisectReadsRight(cAlignedRead** reads, int testPos, int nReads, int tes
 
     while low < high:
 
-        mid = (low + high) / 2
+        mid = (low + high) // 2
 
         if not testMatePos:
             if testPos < reads[mid].pos:

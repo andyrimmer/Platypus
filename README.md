@@ -14,7 +14,7 @@ Then to run do
 
     python bin/Platypus.py --bamFiles=BAM.bam --refFile=REF.fa --output=variants.vcf
 
-Platypus has been tested with Python 2.6 and 2.7, and requires Cython 0.20.2 or later
+Platypus has been tested with Python 3.6 and above, and requires Cython 3.0.6 or later
 to build.
 
 ####Prerequisites

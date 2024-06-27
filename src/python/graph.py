@@ -156,7 +156,7 @@ class DeBruijnGraph(object):
         theEdges = self.edgesByNode[startNode]
 
         for edge in theEdges:
-            print edge
+            print(edge)
             if edge.endNode == endNode:
                 return True
 
@@ -309,12 +309,12 @@ def printAlignments(refStart, refSeq, nodes):
         else:
             alignmentChars.append(readChar)
 
-    print ""
-    print ""
-    print refSeq
-    print "".join(alignmentChars)
-    print ""
-    print ""
+    print("")
+    print("")
+    print(refSeq)
+    print("".join(alignmentChars))
+    print("")
+    print("")
 
 ###################################################################################################
 
@@ -422,7 +422,7 @@ def buildSequenceFromGraph(theGraph):
             elif node == "-":
                 thisHap.append(node)
             else:
-                raise StandardError, "Unexpected value %s" %(node)
+                raise Exception("Unexpected value %s" %(node))
 
 ###################################################################################################
 
@@ -566,8 +566,8 @@ def printGraphInfo(theGraph):
     """
     Print some basic information about the graph. For debug purposes.
     """
-    print "There are %s nodes in the graph" %(len(theGraph.nodes))
-    print "There are %s edges in the graph" %(sum(len(value) for key,value in theGraph.edgesByNode.iteritems()))
+    print("There are %s nodes in the graph" %(len(theGraph.nodes)))
+    print("There are %s edges in the graph" %(sum(len(value) for key,value in theGraph.edgesByNode.items())))
 
 ###################################################################################################
 
@@ -653,7 +653,7 @@ def extractDeletionsFromReadPaths(refSeq, chrom, refStart, refEnd, kmerSize, min
             if index > 0:
                 diff = node.position - path[index-1].position
                 if diff > 1:
-                    print diff
+                    print(diff)
 
             #if startPosInRef is None:
             #    if 1 in node.colours and 0 in node.colours:
@@ -755,9 +755,9 @@ for line in open('/home/rimmer/Analysis/LargeDeletions/smallishDeletions.txt'):
     refStart = start - 200
     refEnd = end + 200
 
-    print "########################################################################################"
-    print "Processing region %s:%s-%s" %(chrom, start, end)
-    print "########################################################################################"
+    print("########################################################################################")
+    print("Processing region %s:%s-%s" %(chrom, start, end))
+    print("########################################################################################")
 
     refSeq = refFile.fetch(chrom, refStart, refEnd)
 
@@ -772,7 +772,7 @@ for line in open('/home/rimmer/Analysis/LargeDeletions/smallishDeletions.txt'):
         if kmerSize > 50:
             break
         else:
-            print "Found cycles in region %s:%s-%s with kmer size %s. Trying again with kmer size %s" %(chrom, start, end, kmerSize, kmerSize+5)
+            print("Found cycles in region %s:%s-%s with kmer size %s. Trying again with kmer size %s" %(chrom, start, end, kmerSize, kmerSize+5))
             kmerSize += 5
             theGraph = DeBruijnGraph(kmerSize)
             loadReferenceIntoGraph(theGraph, refFile, chrom, refStart, refEnd)
@@ -794,7 +794,7 @@ for line in open('/home/rimmer/Analysis/LargeDeletions/smallishDeletions.txt'):
         #    print "Found region %s:%s-%s of size %s with no weight" %(chrom, rStart, rEnd, rEnd - rStart)
 
 for var in sorted(theVars):
-    print var
+    print(var)
 
 
 

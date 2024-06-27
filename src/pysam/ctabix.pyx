@@ -2,7 +2,7 @@
 # adds doc-strings for sphinx
 
 import tempfile, os, sys, types, itertools, struct, ctypes, gzip
-from cpython cimport PyString_FromStringAndSize, PyString_AS_STRING
+from cpython cimport PyUnicode_FromStringAndSize, PyString_AS_STRING
 cimport TabProxies
 
 ###################################################################################################
@@ -53,7 +53,7 @@ cdef class Tabixfile:
                 raise IOError( "index `%s` not found" % filename_index)
 
             # open file and load index
-            self.tabixfile = ti_open( self._filename, filename_index )
+            self.tabixfile = ti_open( self._filename, filename_index.encode('UTF-8') )
 
         if self.tabixfile == NULL:
             raise IOError("could not open file `%s`" % filename )
@@ -239,7 +239,7 @@ cdef class TabixIterator:
         while 1:
             s = ti_read(self.tabixfile, self.iterator, &len)
             if s == NULL: raise StopIteration
-            if s[0] != '#': break
+            if s[0] != b'#': break
 
         return s
 
@@ -284,7 +284,7 @@ cdef class TabixHeaderIterator:
         s = ti_read(self.tabixfile, self.iterator, &len)
         if s == NULL: raise StopIteration
         # stop at first non-header line
-        if s[0] != '#': raise StopIteration
+        if s[0] != b'#': raise StopIteration
 
         return s
 
@@ -477,7 +477,7 @@ cdef class TabixIteratorParsed:
             s = ti_read(self.tabixfile, self.iterator, &len)
             if s == NULL: raise StopIteration
             # todo: read metachar from configuration
-            if s[0] != '#': break
+            if s[0] != b'#': break
             
         return self.parser(s, len)
 

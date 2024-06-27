@@ -9,7 +9,7 @@ cluster = []
 for line in sys.stdin:
 
     if line[0] == "#":
-        print line.strip()
+        print(line.strip())
     else:
 
         cols = line.split("\t")
@@ -25,7 +25,7 @@ for line in sys.stdin:
             elif len(cluster) == 1:
 
                 for theTuple in cluster:
-                    print theTuple[-1].strip()
+                    print(theTuple[-1].strip())
 
                 cluster = [ (chrom,pos,line) ]
 
@@ -35,4 +35,4 @@ for line in sys.stdin:
 # Catch last one
 if len(cluster) == 1:
     for theTuple in cluster:
-        print theTuple[-1].strip()
+        print(theTuple[-1].strip())
