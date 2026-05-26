@@ -3,7 +3,7 @@ This module contains utilities for generating a list windows, and the reads
 and variant candidates they contain, for processing by the Platypus variant
 caller.
 """
-from __future__ import division
+
 
 import logging
 import variant
@@ -186,7 +186,7 @@ class WindowGenerator(object):
 
                     if firstVarPos - start >= 1:
 
-                        for refBlockStart in xrange(start, firstVarPos, options.refCallBlockSize):
+                        for refBlockStart in range(start, firstVarPos, options.refCallBlockSize):
                             refBlockEnd = min(refBlockStart + options.refCallBlockSize, firstVarPos-1)
 
                             if refBlockStart == refBlockEnd:
@@ -205,7 +205,7 @@ class WindowGenerator(object):
 
                     if nextVarPos - lastVarPos > 1:
 
-                        for refBlockStart in xrange(lastVarPos+1, nextVarPos, options.refCallBlockSize):
+                        for refBlockStart in range(lastVarPos+1, nextVarPos, options.refCallBlockSize):
                             refBlockEnd = min(refBlockStart + options.refCallBlockSize, nextVarPos-1)
 
                             if refBlockStart == refBlockEnd:

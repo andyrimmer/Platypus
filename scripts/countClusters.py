@@ -9,7 +9,7 @@ nCluster = 0
 for line in sys.stdin:
 
     if line[0] == "#":
-        print line.strip()
+        print(line.strip())
     else:
 
         cols = line.split("\t")
@@ -30,4 +30,4 @@ for line in sys.stdin:
             else:
                 cluster = []
 
-print "There are %s clusters" %(nCluster)
+print("There are %s clusters" %(nCluster))

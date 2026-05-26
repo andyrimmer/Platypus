@@ -3,7 +3,7 @@ This program is used to detect and filter de novo SNP and indel mutations called
 (as well as other methods). This is the code used to provide the lists of de novos reported
 in the Platypus paper.
 """
-from __future__ import division
+
 
 import sys
 import gzip
@@ -137,11 +137,11 @@ class Variant(object):
                 elif "|" in genotypeField:
                     genotype = tuple(genotypeField.split("|"))
                 else:
-                    raise StandardError, "Invalid genotype %s in sample %s" %(genotypeField, sample)
+                    raise Exception("Invalid genotype %s in sample %s" %(genotypeField, sample))
 
                 self.samples[sample]['GT'] = genotype
             else:
-                raise StandardError, "No recognised genotype tag found in sample data for sample %s. Sample data is %s" %(sample, self.samples[sample])
+                raise Exception("No recognised genotype tag found in sample data for sample %s. Sample data is %s" %(sample, self.samples[sample]))
 
             if "GL" in self.samples[sample]:
                 likelihoods = []
@@ -210,7 +210,7 @@ class Variant(object):
                 pass
 
             else:
-                raise StandardError, "Unexpected ploidy %s" %(ploidyOfSample)
+                raise Exception("Unexpected ploidy %s" %(ploidyOfSample))
 
 ###################################################################################################
 
@@ -225,7 +225,7 @@ def readPedigreeFromFile(pedFileName, vcfLine):
     sexOfChild = None
 
     if len(samples) < 3:
-        raise StandardError, "Not enough samples in VCF input file. Need at least three samples."
+        raise Exception("Not enough samples in VCF input file. Need at least three samples.")
 
     with open(pedFileName, 'r') as theFile:
         for line in theFile:
@@ -236,7 +236,7 @@ def readPedigreeFromFile(pedFileName, vcfLine):
             sexOfChild = cols[3]
 
             if sexOfChild not in ("M", "F"):
-                raise StandardError, "Un-recognised sex of sample %s (%s). Should be either M or F" %(cols[0], sexOfChild)
+                raise Exception("Un-recognised sex of sample %s (%s). Should be either M or F" %(cols[0], sexOfChild))
 
             break # Only one line in this file
 
@@ -379,7 +379,7 @@ def isDeNovo(variant, pedigree, sexOfChild):
                 return False
 
         else:
-            raise StandardError, "?"
+            raise Exception("?")
 
     elif fatherGenotype == ("0",) and motherGenotype == ():
 
@@ -395,7 +395,7 @@ def isDeNovo(variant, pedigree, sexOfChild):
 
     # Something I forgot?
     else:
-        print "Should not be here.... variant = (%s:%s %s --> %s). Genotypes = child : %s, father: %s, mother %s" %(variant.chrom, variant.pos, variant.ref, variant.alts, childGenotype, fatherGenotype, motherGenotype)
+        print("Should not be here.... variant = (%s:%s %s --> %s). Genotypes = child : %s, father: %s, mother %s" %(variant.chrom, variant.pos, variant.ref, variant.alts, childGenotype, fatherGenotype, motherGenotype))
 
     return False # Genotype pattern does not match de novo
 
@@ -501,10 +501,10 @@ def passesBayesianFilter(variant, pedigree, sexOfChild):
 if __name__ == "__main__":
 
     if len(sys.argv) < 3:
-        print
-        print "Usage: python bayesianDeNovoFilter.py inVCF pedFile"
-        print
-        raise StandardError, "Not enough arguments"
+        print()
+        print("Usage: python bayesianDeNovoFilter.py inVCF pedFile")
+        print()
+        raise Exception("Not enough arguments")
 
     # Input VCF file of Platypus (or other) calls. Can be gzipped or
     # plain text.
@@ -582,7 +582,7 @@ if __name__ == "__main__":
                         countDNMBayes += 1
 
     # Print summary
-    print "Input VCF was %s. Found %s mendel errors, %s de novos (%s passing the bayesian filter)" %(inVCFName, countMendelError, countDNM, countDNMBayes)
+    print("Input VCF was %s. Found %s mendel errors, %s de novos (%s passing the bayesian filter)" %(inVCFName, countMendelError, countDNM, countDNMBayes))
 
     # Close all files
     outMendelErrorFile.close()

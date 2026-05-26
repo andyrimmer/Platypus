@@ -1,46 +1,81 @@
 #Platypus
 
-![Build Status](https://travis-ci.org/IvantheDugtrio/Platypus.svg?branch=master)
+![Build Status](https://github.com/huynguyen250896/Platypus#)
 
-The Platypus variant caller. The main Web site is https://github.com/andyrimmer/Platypus.
+The Platypus variant caller. This version fully supports **Python 3**. The original repository is https://github.com/andyrimmer/Platypus.
 
-##Installation and execution
+---
 
-To build Platypus, do the following:
+## Installation
+You can install and run Platypus using one of the following two methods:
 
-    make
 
-Then to run do
 
-    python bin/Platypus.py --bamFiles=BAM.bam --refFile=REF.fa --output=variants.vcf
+### Option 1: Using Docker (Recommended)
 
-Platypus has been tested with Python 2.6 and 2.7, and requires Cython 0.20.2 or later
-to build.
+Using Docker is the easiest way to ensure all dependencies (HTSlib, Cython, Numpy, Pysam) are correctly configured.
 
-####Prerequisites
+1.  **Clone the repository:**
+    ```
+    git clone [https://github.com/IvantheDugtrio/Platypus.git](https://github.com/IvantheDugtrio/Platypus.git)
 
-Platypus requires HTSlib 1.2.1 or greater. HTSlib can be downloaded from the [HTSlib Web site](http://www.htslib.org/download/).
+    cd Platypus
+    ```
 
-To build and install HTSlib, cd into HTSlib source and type `make install`. This will install HTSlib under `/usr/local/` (see note below). To install HTSlib in any other directory use `make install prefix=/path/to/dir`.
+2.  **Build the image:**
+    ```
+    docker build -t platypus:latest .
+    ```
 
-NOTE: HTSlib should be installed in a standard location (e.g. `/usr/local/`). If not installed in a standard location, you will need to set your library paths:
+3.  **Run Platypus:**
 
-For GNU/Linux:
+    ```
+    docker run -it --rm -v $(pwd):/data platypus:latest python3 Platypus.py --help
+    ```
 
-    export C_INCLUDE_PATH=/path/to/dir/include
-    export LIBRARY_PATH=/path/to/dir/lib (only for making)
-    export LD_LIBRARY_PATH=/path/to/dir/lib
+### Option 2: Build from Source
 
-Note the `/include` and `/lib` sub-directories. e.g. if you installed HTSlib under `/Users/me/htslib` then set
+If you prefer to run it natively on your machine, ensure you meet the prerequisites below:
 
-    export C_INCLUDE_PATH=/Users/me/htslib/include
-    export LIBRARY_PATH=/Users/me/htslib/lib
-    export LD_LIBRARY_PATH=/Users/me/htslib/lib
+#### System Requirements
 
-HTSlib will automatically make the `include` and `lib` directories on install.
+* **Python:** 3.10+
+* **Compiler:** `gcc` / `g++` 9.0 or greater (build-essential)
+* **Libraries:** HTSlib 1.15+ (1.23.1 is recommended)
+* **Python packages:** `cython`, `numpy`, `pysam` (Install via `pip install -r requirements.txt`).
 
-For OSX:
+#### Build Steps
 
-    export C_INCLUDE_PATH=/path/to/dir/include
-    export LIBRARY_PATH=/path/to/dir/lib (only for making)
-    export DYLD_FALLBACK_LIBRARY_PATH=/path/to/dir/lib
+1.  **Install HTSlib:**
+
+    Download from [HTSlib Web site](http://www.htslib.org/download/).
+    ```
+    cd htslib-x.x.x
+
+    ./configure && make && sudo make install
+    ```
+    *Note: If installed in a non-standard location, ensure you export `C_INCLUDE_PATH`, `LIBRARY_PATH`, and `LD_LIBRARY_PATH` accordingly.*
+
+2.  **Build Platypus:**
+    ```
+    git clone [https://github.com/huynguyen250896/Platypus.git](https://github.com/huynguyen250896/Platypus.git)
+
+    cd Platypus
+
+    pip install -r requirements.txt
+    
+    make clean
+
+    make PYTHON=python3
+    ```
+---
+
+## Execution
+
+Once installed, you can run Platypus using:
+
+```
+
+python3 Platypus.py --bamFiles=BAM.bam --refFile=REF.fa --output=variants.vcf
+
+**Note:** For legacy support or older environments (Python 2.7), please refer to the original repository: https://github.com/andyrimmer/Platypus.

@@ -34,7 +34,7 @@
 #ifdef NOT_ALWAYS_INLINE
   #define VECLIB_INLINE
 #else
-  #define VECLIB_INLINE static inline __attribute__ ((__always_inline__))
+  #define VECLIB_INLINE static __attribute__ ((__always_inline__))
 #endif
 #define VECLIB_NOINLINE static __attribute__ ((__noinline__))
 

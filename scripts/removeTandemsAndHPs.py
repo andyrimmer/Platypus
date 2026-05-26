@@ -5,7 +5,7 @@ for line in sys.stdin:
     try:
 
         if line[0] == "#":
-            print line.strip()
+            print(line.strip())
             continue
 
         cols = line.strip().split("\t")
@@ -28,7 +28,7 @@ for line in sys.stdin:
         if int(TR)*len(TU) > 5 and len(TU) == 1:
             continue
 
-        print line.strip()
+        print(line.strip())
 
     except Exception:
         continue

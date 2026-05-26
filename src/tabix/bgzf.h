@@ -134,7 +134,7 @@ int bgzf_check_bgzf(const char *fn);
 }
 #endif
 
-static inline int bgzf_getc(BGZF *fp)
+static int bgzf_getc(BGZF *fp)
 {
 	int c;
 	if (fp->block_offset >= fp->block_length) {

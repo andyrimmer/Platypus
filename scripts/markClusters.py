@@ -11,7 +11,7 @@ if len(sys.argv) > 1:
 for line in sys.stdin:
 
     if line[0] == "#":
-        print line.strip()
+        print(line.strip())
     else:
 
         cols = line.split("\t")
@@ -36,13 +36,13 @@ for line in sys.stdin:
                     else:
                         theCols[6] += ";clustered"
 
-                    print "\t".join(theCols).strip()
+                    print("\t".join(theCols).strip())
 
                 cluster = []
                 cluster.append( (chrom,pos,line) )
 
             else:
-                print cluster[-1][-1].strip()
+                print(cluster[-1][-1].strip())
                 cluster = []
                 cluster.append( (chrom,pos,line) )
 
@@ -58,6 +58,6 @@ if len(cluster) > 1:
         else:
             theCols[6] += ";clustered"
 elif len(cluster) == 1:
-    print cluster[-1][-1].strip()
+    print(cluster[-1][-1].strip())
 else:
     pass

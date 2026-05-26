@@ -1,29 +1,46 @@
-FROM ubuntu:14.04
+# Use Ubuntu 22.04 LTS as the base image
+FROM ubuntu:22.04
 
-RUN apt-get update && apt-get install -y build-essential \
-			python-dev \
-			python-pip \
-			git \
-			wget \
-			autoconf \
-			zlib1g-dev
+# Prevent interactive prompts during package installation
+ENV DEBIAN_FRONTEND=noninteractive
 
-# Make a working directory
-RUN mkdir /code
+# 1. Install necessary system dependencies
+# These packages are equivalent to the required conda dependencies
+RUN apt-get update && apt-get install -y \
+    build-essential \
+    python3 \
+    python3-dev \
+    python3-pip \
+    wget \
+    autoconf \
+    zlib1g-dev \
+    libbz2-dev \
+    liblzma-dev \
+    libcurl4-openssl-dev \
+    libncurses5-dev \
+    && rm -rf /var/lib/apt/lists/*
 
-ADD . /code/Platypus
+# 2. Install Python packages from requirements.txt
+COPY requirements.txt .
+RUN pip3 install --no-cache-dir -r requirements.txt
 
-# Install htslib
-RUN wget https://github.com/samtools/htslib/releases/download/1.3/htslib-1.3.tar.bz2
-RUN tar xjf htslib-1.3.tar.bz2
-RUN cd htslib-1.3 && autoconf && ./configure && make && make install
+# 3. Build HTSlib 1.23.1 from source
+# Matches the htslib version used in your conda environment
+RUN wget https://github.com/samtools/htslib/releases/download/1.23.1/htslib-1.23.1.tar.bz2 && \
+    tar xjf htslib-1.23.1.tar.bz2 && \
+    cd htslib-1.23.1 && \
+    ./configure && \
+    make && \
+    make install && \
+    ldconfig && \
+    cd .. && rm -rf htslib-1.23.1*
 
-# Install Cython
-RUN pip install cython
+# Set working directory and copy project files
+WORKDIR /app
+COPY . .
 
-ENV C_INCLUDE_PATH /usr/local/include
-ENV LIBRARY_PATH /usr/local/lib
-ENV LD_LIBRARY_PATH /usr/local/lib
+# Compile the project
+RUN make PYTHON=python3
 
-# Compile
-RUN cd /code/Platypus && make
+# Set the default command to run Platypus
+CMD ["python3", "Platypus.py"]

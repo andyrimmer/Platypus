@@ -8,7 +8,7 @@ for line in sys.stdin:
     try:
 
         if line[0] == "#":
-            print line.strip()
+            print(line.strip())
             continue
 
         cols = line.strip().split("\t")
@@ -19,15 +19,15 @@ for line in sys.stdin:
 
             if flag == ">":
                 if name == "PAL" and int(value) >= threshold:
-                    print line.strip()
+                    print(line.strip())
             elif flag == "<":
                 if name == "PAL" and int(value) < threshold:
-                    print line.strip()
+                    print(line.strip())
             elif flag == "=":
                 if name == "PAL" and int(value) == threshold:
-                    print line.strip()
+                    print(line.strip())
             else:
-                raise StandardError, "Flag should be <,> or = and is %s" %(flag)
+                raise Exception("Flag should be <,> or = and is %s" %(flag))
 
     except Exception:
         continue

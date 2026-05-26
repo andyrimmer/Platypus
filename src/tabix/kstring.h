@@ -28,7 +28,7 @@ int *ksBM_prep(const uint8_t *pat, int m);
  * ksBM_prep(). If it is a NULL pointer, ksBM_prep() will be called. */
 int *ksBM_search(const uint8_t *str, int n, const uint8_t *pat, int m, int *_prep, int *n_matches);
 
-static inline int kputsn(const char *p, int l, kstring_t *s)
+static int kputsn(const char *p, int l, kstring_t *s)
 {
 	if (s->l + l + 1 >= s->m) {
 		s->m = s->l + l + 2;
@@ -41,12 +41,12 @@ static inline int kputsn(const char *p, int l, kstring_t *s)
 	return l;
 }
 
-static inline int kputs(const char *p, kstring_t *s)
+static int kputs(const char *p, kstring_t *s)
 {
 	return kputsn(p, strlen(p), s);
 }
 
-static inline int kputc(int c, kstring_t *s)
+static int kputc(int c, kstring_t *s)
 {
 	if (s->l + 1 >= s->m) {
 		s->m = s->l + 2;
@@ -58,7 +58,7 @@ static inline int kputc(int c, kstring_t *s)
 	return c;
 }
 
-static inline int *ksplit(kstring_t *s, int delimiter, int *n)
+static int *ksplit(kstring_t *s, int delimiter, int *n)
 {
 	int max = 0, *offsets = 0;
 	*n = ksplit_core(s->s, delimiter, &max, &offsets);
