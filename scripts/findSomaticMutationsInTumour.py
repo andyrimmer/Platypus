@@ -96,13 +96,13 @@ with open(options.inputVCF, 'r') as vcfFile:
                 try:
                     normalCol = cols.index(options.normalSample)
                 except ValueError:
-                    print "\n\nCould not find normal sample %s in input VCF header\n\n" %(options.normalSample)
+                    print("\n\nCould not find normal sample %s in input VCF header\n\n" %(options.normalSample))
                     raise
 
                 try:
                     tumourCol = cols.index(options.tumourSample)
                 except ValueError:
-                    print "\n\nCould not find tumour sample %s in input VCF header\n\n" %(options.tumourSample)
+                    print("\n\nCould not find tumour sample %s in input VCF header\n\n" %(options.tumourSample))
                     raise
 
             else:

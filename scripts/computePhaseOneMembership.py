@@ -3,7 +3,7 @@ This script produces summary plots and tables of the Platypus SNP and indel
 calls, and comparison plots of Platypus calls with the validated 1000 genomes
 calls.
 """
-from __future__ import division
+
 
 from math import sqrt,pow,log,exp,pi,log10
 
@@ -80,15 +80,15 @@ def summariseVariantCalls():
                 else:
                     nFAILSNPsNotIn1Kg += 1
 
-    print "%s SNPs in total" %(nSNPs)
-    print "%s PASS SNPs in total (%s %% of all SNP calls)" %(nPASSSNPs, 100.0*nPASSSNPs/nSNPs)
-    print "%s FAIL SNPs in total (%s %% of all SNP calls)" %(nFAILSNPs, 100.0*nFAILSNPs/nSNPs)
-    print "%s SNPs (%s %%) in 1kg set" %(nSNPsIn1Kg, 100.0*nSNPsIn1Kg/nSNPs)
-    print "%s SNPs (%s %%) not in 1kg set" %(nSNPsNotIn1Kg, 100.0*nSNPsNotIn1Kg/nSNPs)
-    print "%s PASS SNPs (%s %%) in 1kg set" %(nPASSSNPsIn1Kg, 100.0*nPASSSNPsIn1Kg/nPASSSNPs)
-    print "%s PASS SNPs (%s %%) not in 1kg set" %(nPASSSNPsNotIn1Kg, 100.0*nPASSSNPsNotIn1Kg/nPASSSNPs)
-    print "%s FAIL SNPs (%s %%) in 1kg set" %(nFAILSNPsIn1Kg, 100.0*nFAILSNPsIn1Kg/nFAILSNPs)
-    print "%s FAIL SNPs (%s %%) not in 1kg set" %(nFAILSNPsNotIn1Kg, 100.0*nFAILSNPsNotIn1Kg/nFAILSNPs)
+    print("%s SNPs in total" %(nSNPs))
+    print("%s PASS SNPs in total (%s %% of all SNP calls)" %(nPASSSNPs, 100.0*nPASSSNPs/nSNPs))
+    print("%s FAIL SNPs in total (%s %% of all SNP calls)" %(nFAILSNPs, 100.0*nFAILSNPs/nSNPs))
+    print("%s SNPs (%s %%) in 1kg set" %(nSNPsIn1Kg, 100.0*nSNPsIn1Kg/nSNPs))
+    print("%s SNPs (%s %%) not in 1kg set" %(nSNPsNotIn1Kg, 100.0*nSNPsNotIn1Kg/nSNPs))
+    print("%s PASS SNPs (%s %%) in 1kg set" %(nPASSSNPsIn1Kg, 100.0*nPASSSNPsIn1Kg/nPASSSNPs))
+    print("%s PASS SNPs (%s %%) not in 1kg set" %(nPASSSNPsNotIn1Kg, 100.0*nPASSSNPsNotIn1Kg/nPASSSNPs))
+    print("%s FAIL SNPs (%s %%) in 1kg set" %(nFAILSNPsIn1Kg, 100.0*nFAILSNPsIn1Kg/nFAILSNPs))
+    print("%s FAIL SNPs (%s %%) not in 1kg set" %(nFAILSNPsNotIn1Kg, 100.0*nFAILSNPsNotIn1Kg/nFAILSNPs))
 
 ###################################################################################################
 

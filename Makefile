@@ -11,7 +11,7 @@ PLATYPUS_SO := $(PLATYPUS_C:.c=.so)
 PYTHONSRC := src/python/Platypus.py src/python/platypusexceptions.py src/python/runner.py src/python/variantutils.py\
 src/python/window.py src/python/vcf.py src/python/filez.py src/python/extendedoptparse.py
 
-VERSION := 0.8.1.1
+VERSION := 0.9.0.0
 TARGET := Platypus_${VERSION}
 
 # Cython source files needed for building release (these are not compiled, only distributed)
@@ -31,7 +31,9 @@ src/cython/cerrormodel.c src/c/tandem.h src/c/tandem.c src/pysam/ctabix.c src/py
 OTHER := misc/README.txt LICENSE release/setup.py release/buildPlatypus.sh
 
 platypus: ${HEADERS} ${SOURCES}
-	echo 'Building Platypus'
+	@echo "Building Platypus"
+	@echo "Compiling ksort proxy..."
+	gcc -fPIC -I src/tabix -c src/tabix/ksort_proxy.c -o src/tabix/ksort_proxy.o
 	cd src; ${PYTHON} setup.py build
 	mkdir -p bin
 	cp src/build/*/*.so bin/

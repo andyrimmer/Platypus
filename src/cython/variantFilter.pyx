@@ -762,8 +762,8 @@ cdef  Variant normaliseVar(Variant thisVar):
            
         #Trimming trailing bases
         while  len(added) >0 and len(removed)>0 and removed[len(removed)-1] == added[len(added)-1]:
-            added[len(added)-1] = '\0'
-            removed[len(removed)-1] = '\0'
+            added[len(added)-1] = b'\0'
+            removed[len(removed)-1] = b'\0'
 
         return Variant(thisVar.refName, refPos, removed, added, thisVar.nSupportingReads, thisVar.varSource)
 ###################################################################################################
@@ -783,8 +783,8 @@ cdef  Variant trimLongVar(Variant thisVar, int windowStart, int windowEnd):
         if len(added) == len(removed):
             if  refPos + len(removed) > windowEnd:
                 diff =  refPos + len(removed) - windowEnd
-                added[len(added) - diff] = '\0'
-                removed[len(removed) - diff] = '\0'
+                added[len(added) - diff] = b'\0'
+                removed[len(removed) - diff] = b'\0'
             if refPos < windowStart:
                 diff = windowStart - refPos
                 added += diff
@@ -796,8 +796,8 @@ cdef  Variant trimLongVar(Variant thisVar, int windowStart, int windowEnd):
            
         #Trimming trailing bases
         while  len(added) >0 and len(removed)>0 and removed[len(removed)-1] == added[len(added)-1]:
-            added[len(added)-1] = '\0'
-            removed[len(removed)-1] = '\0'
+            added[len(added)-1] = b'\0'
+            removed[len(removed)-1] = b'\0'
 
         return Variant(thisVar.refName, refPos, removed, added, thisVar.nSupportingReads, thisVar.varSource)
 ###################################################################################################

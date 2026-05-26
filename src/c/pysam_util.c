@@ -121,7 +121,7 @@ extern pair64_t* get_chunk_coordinates(const bam_index_t *idx, int tid, int beg,
 
 //-------------------------------------------------------------------------------------------------
 
-static inline int is_overlap(uint32_t beg, uint32_t end, const bam1_t *b)
+static int is_overlap(uint32_t beg, uint32_t end, const bam1_t *b)
 {
 	uint32_t rbeg = b->core.pos;
 	uint32_t rend = b->core.n_cigar? bam_calend(&b->core, bam1_cigar(b)) : b->core.pos + 1;

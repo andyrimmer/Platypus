@@ -8,6 +8,7 @@ from __future__ import division
 cimport cython
 
 import logging
+import math
 import htslibWrapper
 cimport cerrormodel
 cimport htslibWrapper
@@ -23,7 +24,8 @@ from htslibWrapper cimport cAlignedRead
 
 # set the size of the hash.  Ensure that hash_size == math.pow(4,hash_nucs)
 cdef int hash_nucs = 7
-cdef int hash_size = 4**hash_nucs
+#cdef int hash_size = 4**hash_nucs
+cdef int hash_size = math.pow(4,hash_nucs)
 cdef int max_sequence_length = hash_size
 cdef int mask = (1 << 2*hash_nucs) - 1
 

@@ -123,7 +123,7 @@ int ti_readline(BGZF *fp, kstring_t *str)
  * get the interval from a data line *
  *************************************/
 
-static inline int ti_reg2bin(uint32_t beg, uint32_t end)
+static int ti_reg2bin(uint32_t beg, uint32_t end)
 {
 	--end;
 	if (beg>>14 == end>>14) return 4681 + (beg>>14);
@@ -245,7 +245,7 @@ static int get_intv(ti_index_t *idx, kstring_t *str, ti_intv_t *intv)
  ************/
 
 // requirement: len <= LEN_MASK
-static inline void insert_offset(khash_t(i) *h, int bin, uint64_t beg, uint64_t end)
+static void insert_offset(khash_t(i) *h, int bin, uint64_t beg, uint64_t end)
 {
 	khint_t k;
 	ti_binlist_t *l;
@@ -263,7 +263,7 @@ static inline void insert_offset(khash_t(i) *h, int bin, uint64_t beg, uint64_t 
 	l->list[l->n].u = beg; l->list[l->n++].v = end;
 }
 
-static inline uint64_t insert_offset2(ti_lidx_t *index2, int _beg, int _end, uint64_t offset)
+static uint64_t insert_offset2(ti_lidx_t *index2, int _beg, int _end, uint64_t offset)
 {
 	int i, beg, end;
 	beg = _beg >> TAD_LIDX_SHIFT;
@@ -773,7 +773,7 @@ int ti_parse_region(const ti_index_t *idx, const char *str, int *tid, int *begin
 
 #define MAX_BIN 37450 // =(8^6-1)/7+1
 
-static inline int reg2bins(uint32_t beg, uint32_t end, uint16_t list[MAX_BIN])
+static int reg2bins(uint32_t beg, uint32_t end, uint16_t list[MAX_BIN])
 {
 	int i = 0, k;
 	if (beg >= end) return 0;

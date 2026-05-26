@@ -7,7 +7,6 @@
 #include <zlib.h>
 
 #include "ksort.h"
-KSORT_INIT_GENERIC(uint64_t)
 
 #include "kseq.h"
 KSTREAM_INIT(gzFile, gzread, 8192)
