@@ -7,8 +7,6 @@ The Platypus variant caller. This version fully supports **Python 3**.
 ## Installation
 You can install and run Platypus using one of the following two methods:
 
-
-
 ### Option 1: Using Docker (Recommended)
 
 Using Docker is the easiest way to ensure all dependencies (HTSlib, Cython, Numpy, Pysam) are correctly configured.
@@ -34,8 +32,8 @@ If you prefer to run it natively on your machine, ensure you meet the prerequisi
 
 * **Python:** 3.10+
 * **Compiler:** `gcc` / `g++` 9.0 or greater (build-essential)
-* **Libraries:** HTSlib 1.15+ (1.23.1 is recommended)
-* **Python packages:** `cython`, `numpy`, `pysam` (Install via `pip install -r requirements.txt`).
+* **Libraries:** HTSlib 1.15+ (1.24 is recommended)
+* **Python packages:** `cython`, `numpy`, `pysam` (install via `pip install -r requirements.txt`).
 
 #### Build Steps
 
@@ -61,6 +59,7 @@ If you prefer to run it natively on your machine, ensure you meet the prerequisi
 
     make PYTHON=python3
     ```
+
 ---
 
 ## Execution
@@ -68,5 +67,5 @@ If you prefer to run it natively on your machine, ensure you meet the prerequisi
 Once installed, you can run Platypus using:
 
 ```
-
 python3 Platypus.py --bamFiles=BAM.bam --refFile=REF.fa --output=variants.vcf
+```

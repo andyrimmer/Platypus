@@ -24,16 +24,17 @@ RUN apt-get update && apt-get install -y \
 COPY requirements.txt .
 RUN pip3 install --no-cache-dir -r requirements.txt
 
-# 3. Build HTSlib 1.23.1 from source
-# Matches the htslib version used in your conda environment
-RUN wget https://github.com/samtools/htslib/releases/download/1.23.1/htslib-1.23.1.tar.bz2 && \
-    tar xjf htslib-1.23.1.tar.bz2 && \
-    cd htslib-1.23.1 && \
+# 3. Build HTSlib 1.24 from source.
+# This security update retains the libhts ABI/SOVERSION 3 used by HTSlib 1.23.1.
+RUN wget https://github.com/samtools/htslib/releases/download/1.24/htslib-1.24.tar.bz2 && \
+    tar xjf htslib-1.24.tar.bz2 && \
+    cd htslib-1.24 && \
     ./configure && \
     make && \
     make install && \
+    test -e /usr/local/lib/libhts.so.3 && \
     ldconfig && \
-    cd .. && rm -rf htslib-1.23.1*
+    cd .. && rm -rf htslib-1.24*
 
 # Set working directory and copy project files
 WORKDIR /app
