@@ -1,15 +1,29 @@
-language: cpp
-sudo: required
-compiler:
-    - gcc
-before_install:
-    - sudo apt-get install cython
-    - wget https://github.com/samtools/htslib/releases/download/1.3.1/htslib-1.3.1.tar.bz2
-    - tar -xjvf htslib-1.3.1.tar.bz2
-    - cd htslib-1.3.1/ && make && sudo make install
-    - export C_INCLUDE_PATH=/home/travis/build/IvantheDugtrio/Platypus/htslib-1.3.1:$C_INCLUDE_PATH
-    - export LIBRARY_PATH=/home/travis/build/IvantheDugtrio/Platypus/htslib-1.3.1:$LIBRARY_PATH
-    - export LD_LIBRARY_PATH=/home/travis/build/IvantheDugtrio/Platypus/htslib-1.3.1:$LD_LIBRARY_PATH
-    - cd ../
+language: python
+python: "3.10"
 os: linux
-script: make
+dist: focal
+
+addons:
+  apt:
+    packages:
+      - autoconf
+      - build-essential
+      - libbz2-dev
+      - libcurl4-openssl-dev
+      - liblzma-dev
+      - libncurses5-dev
+      - python3-dev
+      - zlib1g-dev
+
+before_install:
+  - wget https://github.com/samtools/htslib/releases/download/1.23.1/htslib-1.23.1.tar.bz2
+  - tar xjf htslib-1.23.1.tar.bz2
+  - (cd htslib-1.23.1 && ./configure && make && sudo make install)
+  - sudo ldconfig
+
+install:
+  - python -m pip install --upgrade pip
+  - python -m pip install -r requirements.txt
+
+script:
+  - make PYTHON=python

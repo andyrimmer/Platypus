@@ -2,7 +2,7 @@ import pysam
 import sys
 
 
-f = pysam.Samfile(sys.argv[1], 'rb')
+f = pysam.AlignmentFile(sys.argv[1], 'rb')
 
 for index,read in enumerate(f.fetch("20", 0, 1000000)):
 

@@ -777,7 +777,7 @@ cdef void outputHLACallToVCF(list haplotypes, list readBuffers, int nIndividuals
         linefilter = "PASS"
 
     infoLine = "WS=" + str(windowStart+1) + ";WE=" + str(windowEnd) + ";Size=" + str(windowEnd - windowStart + 1) + ";varSource=" + ",".join(map(str, list(varSource)))
-    theLine = "\t".join([chrom, str(windowStart+1), theId, ref, ",".join(alts), str(qual), linefilter,  infoLine, format]) 
+    theLine = "\t".join([chrom.decode(), str(windowStart+1), theId, ref.decode(), ",".join([alt.decode() for alt in alts]), str(qual), linefilter,  infoLine, format])
 
     # Now pull out the genotype informations for each sample, and compute genotype likelihoods and
 

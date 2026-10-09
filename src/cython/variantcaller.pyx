@@ -710,10 +710,10 @@ cdef void callHLAVariantsInRegion(bytes chrom, int start, int end, bamFiles, Fas
 
     if nWindow == 0:
         if  end - start < 10:
-            ref = refFile.getSequence(chrom, start, end)
+            ref = refFile.getSequence(chrom, start, end).decode()
             format = 'GT:GL:NR:NV1:NV2'
             infoLine = "WS=" + str(start) + ";WE=" + str(end) + ";Size=" + str(end - start + 1)
-            theLine = "\t".join([chrom, str(start+1),'.', ref, ".", "100", "REFCALL", infoLine, format])
+            theLine = "\t".join([chrom.decode(), str(start+1),'.', ref, ".", "100", "REFCALL", infoLine, format])
             for i from 0 <= i < options.nInd:
                 readBuffer = readBuffers[i]
                 nReads = readBuffer.reads.windowEnd - readBuffer.reads.windowStart
@@ -808,7 +808,7 @@ def outputRefCall(bytes chrom, Population pop, vcfFile, FastaFile refFile, outpu
 
 
     # Sort out VCF output
-    ref = refFile.getSequence(chrom, windowStart, windowStart+1)
+    ref = refFile.getSequence(chrom, windowStart, windowStart+1).decode()
     alt = None
 
     # Kludge. To keep within the VCF standard, REF and ALT must be different. At least one of
@@ -852,7 +852,7 @@ def outputRefCall(bytes chrom, Population pop, vcfFile, FastaFile refFile, outpu
     # Most of these are empty
     theFormat = ['GT:GL:GOF:GQ:NR:NV']
 
-    vcfDataLine = {'chrom':chrom,'pos':windowStart,'ref':ref,'alt':alt,'id':id,'info':lineinfo,'filter':linefilter,'qual':qual,'format':theFormat}
+    vcfDataLine = {'chrom':chrom.decode(),'pos':windowStart,'ref':ref,'alt':alt,'id':id,'info':lineinfo,'filter':linefilter,'qual':qual,'format':theFormat}
 
     for i from 0 <= i < nIndividuals:
 
@@ -861,9 +861,9 @@ def outputRefCall(bytes chrom, Population pop, vcfFile, FastaFile refFile, outpu
 
         # Missing genotype call. Probably due to zero coverage for this individual.
         if theBuffer.reads.windowEnd - theBuffer.reads.windowStart == 0:
-            vcfDataLine[thisSample] = dict(GT=[[".", "/", "."]], GL=[-1,-1,-1], GQ=[-1],GOF=[-1],NR=[0], NV=[0])
+            vcfDataLine[thisSample.decode()] = dict(GT=[[".", "/", "."]], GL=[-1,-1,-1], GQ=[-1],GOF=[-1],NR=[0], NV=[0])
         else:
-            vcfDataLine[thisSample] = dict(GT=[[".", "/", "."]], GL=[-1,-1,-1], GQ=[-1],GOF=[-1],NR=[theBuffer.reads.windowEnd - theBuffer.reads.windowStart], NV=[0])
+            vcfDataLine[thisSample.decode()] = dict(GT=[[".", "/", "."]], GL=[-1,-1,-1], GQ=[-1],GOF=[-1],NR=[theBuffer.reads.windowEnd - theBuffer.reads.windowStart], NV=[0])
 
     vcfFile.write_data(outputFile, vcfDataLine)
 

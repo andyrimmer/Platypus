@@ -7,7 +7,7 @@ allele, e.g. ref sequence is AAAAAAAAAAAAAAATAAAAAAAAAA and SNP is T-->A.
 import sys
 import pysam
 
-a = pysam.Fastafile(sys.argv[1])
+a = pysam.FastaFile(sys.argv[1])
 threshold = int(sys.argv[2])
 
 for line in sys.stdin:

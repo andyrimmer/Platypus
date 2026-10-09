@@ -504,7 +504,7 @@ cdef void compressQual(cAlignedRead* read, int qualBinSize):
 
     if qualBinSize > 1:
         for i in range(read.rlen):
-            qual[i] = bytes((qual[i]/qualBinSize)*qualBinSize)
+            qual[i] = (qual[i] // qualBinSize) * qualBinSize
 
     for i in range(read.rlen):
 

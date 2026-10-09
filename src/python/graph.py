@@ -447,10 +447,10 @@ def getAllKmersFromRead(theRead, N):
     Return a list of all kmers of size N from the
     given read.
     """
-    theSeq = theRead.seq
+    theSeq = theRead.query_sequence
     theQuals = [ord(x) - 33 for x in theRead.qual]
     kmers = []
-    length = theRead.rlen
+    length = theRead.query_length
 
     for x in range(length-N):
         newKmer = theSeq[x:x+N]
@@ -479,7 +479,7 @@ def loadBAMDataIntoGraph(theGraph, bamFile, chrom, start, end, qualThreshold):
     for read in bamFile.fetch(chrom, start, end):
         for index,(kmer,minQual) in enumerate(getAllKmersFromRead(read, kmerSize)):
             if minQual >= qualThreshold and kmer.count("N") == 0:
-                theGraph.addNode(Node(kmer, 1, read.pos+index, minQual))
+                theGraph.addNode(Node(kmer, 1, read.reference_start+index, minQual))
 
 ###################################################################################################
 
@@ -707,8 +707,8 @@ def findNBestPathsThroughGraph(theGraph, N):
 
 ###################################################################################################
 
-bamFile = pysam.Samfile(sys.argv[1], 'rb')
-refFile = pysam.Fastafile(sys.argv[2])
+bamFile = pysam.AlignmentFile(sys.argv[1], 'rb')
+refFile = pysam.FastaFile(sys.argv[2])
 
 # Test 1kb sized deletion
 # Smallish deletion positions on chrom 1

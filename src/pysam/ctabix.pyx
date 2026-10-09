@@ -165,7 +165,7 @@ cdef class Tabixfile:
     property contigs:
         '''chromosome names'''
         def __get__(self):
-            cdef char ** sequences
+            cdef const char ** sequences
             cdef int nsequences
            
             ti_lazy_index_load( self.tabixfile )
@@ -229,7 +229,7 @@ cdef class TabixIterator:
         pyrex uses this non-standard name instead of next()
         """
     
-        cdef char * s
+        cdef const char *s
         cdef int len
         # metachar filtering does not work within tabix 
         # though it should. Getting the metachar is a pain
@@ -276,7 +276,7 @@ cdef class TabixHeaderIterator:
         pyrex uses this non-standard name instead of next()
         """
     
-        cdef char * s
+        cdef const char *s
         cdef int len
 
         # Getting the metachar is a pain as ti_index_t is incomplete type.
@@ -471,7 +471,7 @@ cdef class TabixIteratorParsed:
         pyrex uses this non-standard name instead of next()
         """
     
-        cdef char * s
+        cdef const char *s
         cdef int len
         while 1:
             s = ti_read(self.tabixfile, self.iterator, &len)

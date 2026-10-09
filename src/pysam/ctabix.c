@@ -6003,7 +6003,7 @@ static PyObject *__pyx_pw_6ctabix_9Tabixfile_7contigs_1__get__(PyObject *__pyx_v
 }
 
 static PyObject *__pyx_pf_6ctabix_9Tabixfile_7contigs___get__(struct __pyx_obj_6ctabix_Tabixfile *__pyx_v_self) {
-  char **__pyx_v_sequences;
+  const char **__pyx_v_sequences;
   int __pyx_v_nsequences;
   int __pyx_v_x;
   PyObject *__pyx_v_result = NULL;
@@ -6857,7 +6857,7 @@ static PyObject *__pyx_pw_6ctabix_13TabixIterator_5__next__(PyObject *__pyx_v_se
 }
 
 static PyObject *__pyx_pf_6ctabix_13TabixIterator_4__next__(struct __pyx_obj_6ctabix_TabixIterator *__pyx_v_self) {
-  char *__pyx_v_s;
+  const char *__pyx_v_s;
   int __pyx_v_len;
   PyObject *__pyx_r = NULL;
   __Pyx_RefNannyDeclarations
@@ -7509,7 +7509,7 @@ static PyObject *__pyx_pw_6ctabix_19TabixHeaderIterator_5__next__(PyObject *__py
 }
 
 static PyObject *__pyx_pf_6ctabix_19TabixHeaderIterator_4__next__(struct __pyx_obj_6ctabix_TabixHeaderIterator *__pyx_v_self) {
-  char *__pyx_v_s;
+  const char *__pyx_v_s;
   int __pyx_v_len;
   PyObject *__pyx_r = NULL;
   __Pyx_RefNannyDeclarations
@@ -10899,7 +10899,7 @@ static PyObject *__pyx_pw_6ctabix_19TabixIteratorParsed_5__next__(PyObject *__py
 }
 
 static PyObject *__pyx_pf_6ctabix_19TabixIteratorParsed_4__next__(struct __pyx_obj_6ctabix_TabixIteratorParsed *__pyx_v_self) {
-  char *__pyx_v_s;
+  const char *__pyx_v_s;
   int __pyx_v_len;
   PyObject *__pyx_r = NULL;
   __Pyx_RefNannyDeclarations

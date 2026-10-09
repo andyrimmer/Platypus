@@ -1,3 +1,4 @@
-cython==3.2.5
-numpy==2.2.6
-pysam==0.24.0
+# Accept Cython 3, but not a major release, which may have breaking changes
+Cython>=3.3.0,<4.0.0
+# pysam is pre-1.0; stay within (previously pinned) 0.24 release
+pysam>=0.24.1,<0.25.0

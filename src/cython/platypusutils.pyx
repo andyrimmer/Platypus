@@ -573,7 +573,7 @@ cdef list loadBAMData(list bamFiles, bytes chrom, int start, int end, options, l
     else:
         for sample in uniqueSamples:
             theReadBuffer = bamReadBuffer(chrom, start, end, options)
-            theReadBuffer.sample = bytes(sample)
+            theReadBuffer.sample = sample.encode("utf-8")
             buffersBySample[sample] = theReadBuffer
 
         for reader in uniqueBAMs:
@@ -1012,7 +1012,7 @@ def getRegions(options):
         for region in options.regions:
 
             split = region.rsplit(":", 1)
-            chrom = bytes(split[0])
+            chrom = split[0].encode("utf-8")
             
             if len( split ) == 2 :
                 [ start, end ] = split[1].split("-")
