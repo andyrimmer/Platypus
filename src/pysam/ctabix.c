@@ -6003,7 +6003,7 @@ static PyObject *__pyx_pw_6ctabix_9Tabixfile_7contigs_1__get__(PyObject *__pyx_v
 }
 
 static PyObject *__pyx_pf_6ctabix_9Tabixfile_7contigs___get__(struct __pyx_obj_6ctabix_Tabixfile *__pyx_v_self) {
-  char **__pyx_v_sequences;
+  const char **__pyx_v_sequences;
   int __pyx_v_nsequences;
   int __pyx_v_x;
   PyObject *__pyx_v_result = NULL;

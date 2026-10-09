@@ -165,7 +165,7 @@ cdef class Tabixfile:
     property contigs:
         '''chromosome names'''
         def __get__(self):
-            cdef char ** sequences
+            cdef const char ** sequences
             cdef int nsequences
            
             ti_lazy_index_load( self.tabixfile )

@@ -134,7 +134,7 @@ cdef extern from "tabix.h":
   #	 pointer; otherwise the index will be corrupted. The returned
   #	pointer should be freed by a single free() call by the routine
   #	calling this function. The number of sequences is returned at *n
-  char **ti_seqname(ti_index_t *idx, int *n)
+  const char **ti_seqname(const ti_index_t *idx, int *n)
   
   # Destroy the iterator
   void ti_iter_destroy(ti_iter_t iter)
