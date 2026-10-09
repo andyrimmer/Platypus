@@ -18,7 +18,7 @@ def summariseVariantCalls():
     Summarise the variant calls in a given vcf file.
     """
     kgSNPs = set()
-    kgSNPFile = pysam.Tabixfile(sys.argv[1], 'r')
+    kgSNPFile = pysam.TabixFile(sys.argv[1])
 
     for line in kgSNPFile.fetch():
 

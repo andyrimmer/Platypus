@@ -2,7 +2,7 @@ import sys
 import pysam
 from collections import defaultdict
 
-bamFile = pysam.Samfile(sys.argv[1], 'rb')
+bamFile = pysam.AlignmentFile(sys.argv[1], 'rb')
 
 
 #for chrom in [str(x) for x in range(1,23)] + ["X"] + ["Y"]:
@@ -12,9 +12,9 @@ for chrom in [str(x) for x in range(20,21)]:
     chromsWithBrokenPairs = {}
     for index,read in enumerate(bamFile.fetch(chrom)):
         nReads += 1
-        if read.rname != read.mrnm:
-            #print read.rname,read.mrnm
-            chromsWithBrokenPairs[bamFile.getrname(read.mrnm)] += 1
+        if read.reference_id != read.next_reference_id:
+            #print read.reference_id,read.next_reference_id
+            chromsWithBrokenPairs[bamFile.get_reference_name(read.next_reference_id)] += 1
             nBroken += 1
 
         if index % 1000000 == 0:

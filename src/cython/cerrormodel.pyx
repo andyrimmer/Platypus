@@ -46,35 +46,35 @@ cdef bytes normalize_repunit_fast( bytes unit ):
     for i in range(length):
         cunit[i] &= 0xDF
         if cunit[i] == b'N':
-            return <bytes>("N" * length)
+            return b"N" * length
     if length == 1:
         if cunit[0] <= b'C': return unit
-        if cunit[0] == b'G': return bytes('c')
-        return bytes('a')
+        if cunit[0] == b'G': return b'c'
+        return b'a'
     elif length == 2:
         both = <int>cunit[0]+<int>cunit[1]
-        if both == 138: return bytes('CG')   # c+g
-        elif both == 149: return bytes('AT') # a+t
-        elif both == 132: return bytes('AC') # a+c 
-        elif both == 155: return bytes('ac') # g+t
-        elif both == 136: return bytes('AG') # a+g
-        return bytes('ag') # t+c
+        if both == 138: return b'CG'   # c+g
+        elif both == 149: return b'AT' # a+t
+        elif both == 132: return b'AC' # a+c
+        elif both == 155: return b'ac' # g+t
+        elif both == 136: return b'AG' # a+g
+        return b'ag' # t+c
     cdef bytes n1,n2,n3,n4,n5,n6,n7,n8
     if repunit_dict == None:
         repunit_dict = {}
-        for n1 in bytes('ACGT'):
-            for n2 in bytes('ACGT'):
-                for n3 in bytes('ACGT'):
+        for n1 in (b'A', b'C', b'G', b'T'):
+            for n2 in (b'A', b'C', b'G', b'T'):
+                for n3 in (b'A', b'C', b'G', b'T'):
                     repunit_dict[n1+n2+n3] = normalize_repunit(n1+n2+n3)
-                    for n4 in bytes('ACGT'):
+                    for n4 in (b'A', b'C', b'G', b'T'):
                         repunit_dict[n1+n2+n3+n4] = normalize_repunit(n1+n2+n3+n4)
-                        for n5 in bytes('ACGT'):
+                        for n5 in (b'A', b'C', b'G', b'T'):
                             repunit_dict[n1+n2+n3+n4+n5] = normalize_repunit(n1+n2+n3+n4+n5)
-                            for n6 in bytes('ACGT'):
+                            for n6 in (b'A', b'C', b'G', b'T'):
                                 repunit_dict[n1+n2+n3+n4+n5+n6] = normalize_repunit(n1+n2+n3+n4+n5+n6)
-                                for n7 in bytes('ACGT'):
+                                for n7 in (b'A', b'C', b'G', b'T'):
                                     repunit_dict[n1+n2+n3+n4+n5+n6+n7] = normalize_repunit(n1+n2+n3+n4+n5+n6+n7)
-                                    for n8 in bytes('ACGT'):
+                                    for n8 in (b'A', b'C', b'G', b'T'):
                                         repunit_dict[n1+n2+n3+n4+n5+n6+n7+n8] = normalize_repunit(n1+n2+n3+n4+n5+n6+n7+n8)
     if length <= 8:
         return repunit_dict[cunit]
@@ -84,13 +84,13 @@ cdef bytes normalize_repunit_fast( bytes unit ):
 
 cdef bytes normalize_repunit( bytes unit ):
     cdef int length = len(unit)
-    cdef list unit2list = [{'A':'T','T':'A','C':'G','G':'C'}.get(c,'N') for c in unit]
+    cdef list unit2list = [{ord('A'): b'T', ord('T'): b'A', ord('C'): b'G', ord('G'): b'C'}.get(c, b'N') for c in unit]
     unit2list.reverse()
-    cdef bytes unit2 = bytes(''.join(unit2list))
+    cdef bytes unit2 = b''.join(unit2list)
     unit2 += unit2
     unit += unit
-    cdef bytes normunit = sorted([ unit[i:i+length] for i in range(length) ] + [ unit2[i:i+length]+'-' for i in range(length) ])[0]
-    if normunit[-1] == '-':
+    cdef bytes normunit = sorted([ unit[i:i+length] for i in range(length) ] + [ unit2[i:i+length]+b'-' for i in range(length) ])[0]
+    if normunit[-1] == ord('-'):
         normunit = normunit[:-1].lower()
     return normunit
 
@@ -125,7 +125,7 @@ cpdef list get_repeats( bytes sequence, int min_length, long pos ):
             displacement = <int>cdisplacements[idx]
             if len(repeats)==0 or repeats[-1][1] != size or len(repeats[-1][2]) != displacement or repeats[-1][0] + size < pos+idx:
                 tandemunit = normalize_repunit_fast(sequence[ idx : idx+displacement ])
-                if tandemunit[0] != 'N':
+                if tandemunit[0] != ord('N'):
                     repeats.append( (pos+idx, size, tandemunit) )
 
     return repeats
@@ -276,7 +276,7 @@ cdef bytes annotate_sequence_slow(sequence, dict indel_q_data, int output_base, 
     using an error model described in indel_q_data
     """
     pos = 0
-    indelq = [chr(ord(indel_q_data[1][0])-ord('!')+output_base)] * len(sequence)
+    indelq = [chr(indel_q_data[1][0]-ord('!')+output_base)] * len(sequence)
     oldoutput = [-1,-1,-1]
 
     while pos < len(sequence):
@@ -299,7 +299,7 @@ cdef bytes annotate_sequence_slow(sequence, dict indel_q_data, int output_base, 
     if oldoutput[0] != -1:
         add_tandem(oldoutput[0], oldoutput[1], oldoutput[2], indelq, indel_q_data, output_base = output_base)
 
-    return bytes(''.join(indelq))
+    return ''.join(indelq).encode('ascii')
 
 ###################################################################################################
 
@@ -308,7 +308,7 @@ cdef bytes annotate_sequence(sequence, dict indel_q_data, int output_base):
     Annotates a sequence with the local indel probability (gap opening penalty),
     using an error model described in indel_q_data.
     """
-    cdef list indelq = [chr(ord(indel_q_data[1][0])-ord('!')+output_base)] * len(sequence)
+    cdef list indelq = [chr(indel_q_data[1][0]-ord('!')+output_base)] * len(sequence)
     cdef bytes sizes = None
     cdef bytes displacements = None
 
@@ -332,7 +332,7 @@ cdef bytes annotate_sequence(sequence, dict indel_q_data, int output_base):
         tandemunit = normalize_repunit_fast(sequence[pos:pos+tandemunitlen])
 
         # concatenate or output
-        if tandemlen >= 2 and tandemunit.count('N') == 0:
+        if tandemlen >= 2 and tandemunit.count(b'N') == 0:
             if oldoutputpos + oldoutputlen >= pos and oldoutputunit == tandemunit:
                 oldoutputlen = pos + tandemlen - oldoutputpos
             else:
@@ -351,7 +351,7 @@ cdef bytes annotate_sequence(sequence, dict indel_q_data, int output_base):
         add_tandem( oldoutputpos, oldoutputlen, oldoutputunit, indelq, indel_q_data, output_base = output_base)
 
     # return result
-    return bytes(''.join(indelq))
+    return ''.join(indelq).encode('ascii')
 
 
 ###################################################################################################
@@ -362,9 +362,9 @@ cdef bytes annotate_sequence_read(sequence, dict indel_q_data, int output_base, 
     using an error model described in indel_q_data.
     """
     if reverse:
-        sequence = ''.join(reversed(sequence))
+        sequence = sequence[::-1]
 
-    cdef list indelq = [chr(ord(indel_q_data[1][0])-ord('!')+output_base)] * len(sequence)
+    cdef list indelq = [chr(indel_q_data[1][0]-ord('!')+output_base)] * len(sequence)
     cdef bytes sizes = None
     cdef bytes displacements = None
 
@@ -389,7 +389,7 @@ cdef bytes annotate_sequence_read(sequence, dict indel_q_data, int output_base, 
         tandemunit = normalize_repunit_fast(sequence[pos:pos+tandemunitlen])
 
         # concatenate or output
-        if tandemlen >= 2 and tandemunit.count('N') == 0:
+        if tandemlen >= 2 and tandemunit.count(b'N') == 0:
             if oldoutputpos + oldoutputlen >= pos and oldoutputunit == tandemunit:
                 oldoutputlen = pos + tandemlen - oldoutputpos
             else:
@@ -415,21 +415,21 @@ cdef bytes annotate_sequence_read(sequence, dict indel_q_data, int output_base, 
 
     # return result
     if reverse:
-        return bytes(''.join(reversed(indelq)))
+        return ''.join(reversed(indelq)).encode('ascii')
     else:
-        return bytes(''.join(indelq))
+        return ''.join(indelq).encode('ascii')
 
 
 ###################################################################################################
 
 cpdef testAnnotate():
-    seq1 = "TATTTGAAAAAAAAAAACATGCGCTTTCGAGCTGTTGAAGAGACGTGTATTGGAATAAGTAATCACATAAGTGTTAGTAACTTATTTAAATACGTATAGAGTCGCCTATTTGCCTAGCCTTTTGGTTCTCAGATTTTTTAATTATTACATTGCTATAAGGGTGTAACTGTGTGATAGCCAAAATTTTAAGCTGCAAATGGTTTGTAAATATGATATATTACAAGCTTCATGAAAATCGGTTTATGACTGATCCGCGATTACGTTGAAAGGCGACTGGCAGAGATACTTTTGTTCAGATGTTTTTTCAGGTAGCGATTCCAATGAATAGGTAAAATACCTTGCAAGTTTTGTTGTTGTCGTTGGAGGAAATGTGGATGTGGTTGTTATTGTTGA"
+    seq1 = b"TATTTGAAAAAAAAAAACATGCGCTTTCGAGCTGTTGAAGAGACGTGTATTGGAATAAGTAATCACATAAGTGTTAGTAACTTATTTAAATACGTATAGAGTCGCCTATTTGCCTAGCCTTTTGGTTCTCAGATTTTTTAATTATTACATTGCTATAAGGGTGTAACTGTGTGATAGCCAAAATTTTAAGCTGCAAATGGTTTGTAAATATGATATATTACAAGCTTCATGAAAATCGGTTTATGACTGATCCGCGATTACGTTGAAAGGCGACTGGCAGAGATACTTTTGTTCAGATGTTTTTTCAGGTAGCGATTCCAATGAATAGGTAAAATACCTTGCAAGTTTTGTTGTTGTCGTTGGAGGAAATGTGGATGTGGTTGTTATTGTTGA"
 
     import time
 
-    t = time.clock()
-    model = {1:'SSI?5+#',
-             'AG':'SS#'}
+    t = time.perf_counter()
+    model = {1:b'SSI?5+#',
+             b'AG':b'SS#'}
     indelq = annotate_sequence_slow(seq1, model, ord('!'), 24)
     indelq_fast = annotate_sequence(seq1, model, ord('!'))
     asr_fw = annotate_sequence_read(seq1, model, ord('!'), False)
@@ -445,6 +445,6 @@ cpdef testAnnotate():
     for i in range(10000):
         indelq = annotate_sequence(seq1, model, ord('!'))
 
-    print(time.clock()-t)
+    print(time.perf_counter()-t)
 
 

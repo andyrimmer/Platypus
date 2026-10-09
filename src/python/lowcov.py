@@ -88,7 +88,7 @@ def PreprocessBam( bamFileName, fastaFileName, orphanBamFileName=None,
         orphanSamFile = None
 
     # open fasta file
-    fastafile = pysam.Fastafile( fastaFileName )
+    fastafile = pysam.FastaFile( fastaFileName )
 
     # make a coverage ring buffer
     covbuflen = max( maxReadStretch*2, 1000 )
@@ -405,7 +405,7 @@ class Repeatqueue:
         # obtain sequence
         sequence = self.read( self.chrom, frompos - maxtandemsize, topos + maxtandemsize )
         # get repeats as (pos, size, unit) elements
-        repeats = cerrormodel.get_repeats( sequence, self.min_tandem_length, frompos - maxtandemsize )
+        repeats = cerrormodel.get_repeats( sequence.encode('ascii'), self.min_tandem_length, frompos - maxtandemsize )
         # enter into queue
         for reppos, size, unit in repeats:
             if self.curpos <= reppos < topos:

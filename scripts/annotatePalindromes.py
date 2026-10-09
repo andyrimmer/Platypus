@@ -74,7 +74,7 @@ def revcmp( unit ):
 
 ###################################################################################################
 
-fa = pysam.Fastafile(sys.argv[1])
+fa = pysam.FastaFile(sys.argv[1])
 palindrome = int(sys.argv[2])
 outFile = open(sys.argv[3], 'w')
 

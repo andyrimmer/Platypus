@@ -1,8 +1,6 @@
-#Platypus
+# Platypus
 
-![Build Status](https://github.com/huynguyen250896/Platypus#)
-
-The Platypus variant caller. This version fully supports **Python 3**. The original repository is https://github.com/andyrimmer/Platypus.
+The Platypus variant caller. This version fully supports **Python 3**.
 
 ---
 
@@ -15,12 +13,7 @@ You can install and run Platypus using one of the following two methods:
 
 Using Docker is the easiest way to ensure all dependencies (HTSlib, Cython, Numpy, Pysam) are correctly configured.
 
-1.  **Clone the repository:**
-    ```
-    git clone [https://github.com/IvantheDugtrio/Platypus.git](https://github.com/IvantheDugtrio/Platypus.git)
-
-    cd Platypus
-    ```
+1.  **Clone the repository**
 
 2.  **Build the image:**
     ```
@@ -56,10 +49,10 @@ If you prefer to run it natively on your machine, ensure you meet the prerequisi
     ```
     *Note: If installed in a non-standard location, ensure you export `C_INCLUDE_PATH`, `LIBRARY_PATH`, and `LD_LIBRARY_PATH` accordingly.*
 
-2.  **Build Platypus:**
-    ```
-    git clone [https://github.com/huynguyen250896/Platypus.git](https://github.com/huynguyen250896/Platypus.git)
+2.  **Clone the repository**
 
+3.  **Build Platypus:**
+    ```
     cd Platypus
 
     pip install -r requirements.txt
@@ -77,5 +70,3 @@ Once installed, you can run Platypus using:
 ```
 
 python3 Platypus.py --bamFiles=BAM.bam --refFile=REF.fa --output=variants.vcf
-
-**Note:** For legacy support or older environments (Python 2.7), please refer to the original repository: https://github.com/andyrimmer/Platypus.

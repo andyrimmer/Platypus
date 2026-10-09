@@ -121,7 +121,7 @@ def PreprocessBam( bamFileName, fastaFileName, orphanBamFileName=None,
 
     MAX_REPEAT_LENGTH = 64    # fixed maximum due to ffsll instruction (coreutils/tandem.c)
 
-    bamfile = pysam.Samfile( bamFileName, mode='rb' )
+    bamfile = pysam.AlignmentFile( bamFileName, mode='rb' )
 
     # extract list of read group identifiers
     readgroups = bamfile.header.get('RG',None)
@@ -141,7 +141,7 @@ def PreprocessBam( bamFileName, fastaFileName, orphanBamFileName=None,
         orphanSamFile = None
 
     # open fasta file
-    fastafile = pysam.Fastafile( fastaFileName )
+    fastafile = pysam.FastaFile( fastaFileName )
 
     # make a coverage ring buffer
     covbuflen = max( maxReadStretch*2, 1000 )
@@ -178,7 +178,7 @@ def PreprocessBam( bamFileName, fastaFileName, orphanBamFileName=None,
 
         # extract index of read group
         if readgroups:
-            readgroup = read.opt('RG')
+            readgroup = read.get_tag('RG')
             readgroupidx = readgroupdict[readgroup]
         else:
             readgroupidx = 0
@@ -189,20 +189,20 @@ def PreprocessBam( bamFileName, fastaFileName, orphanBamFileName=None,
              #(not read.is_qc_fail) and
              (not read.is_duplicate) and
              (not read.is_secondary) and
-             read.mapq >= minMapQ and
+             read.mapping_quality >= minMapQ and
              (not read.is_proper_pair) and 
              (not read.mate_is_unmapped) and 
              (not read.is_unmapped) and 
-             (read.rname != read.mrnm or abs(read.isize) > min_isize) ):
+             (read.reference_id != read.next_reference_id or abs(read.template_length) > min_isize) ):
             
-            isize = read.isize
+            isize = read.template_length
             if isize == 0: isizeS = "*"
             else:          isizeS = str(-isize)
 
-            mq = read.opt('MQ')
-            uq = read.opt('UQ')              # TODO: this should be re-computed with a sensible indel error model
+            mq = read.get_tag('MQ')
+            uq = read.get_tag('UQ')          # TODO: this should be re-computed with a sensible indel error model
 
-            optS = "\tMQ:i:%s" % read.mapq   # store original mapping quality
+            optS = "\tMQ:i:%s" % read.mapping_quality   # store original mapping quality
             optS += "\tUQ:i:%s" % uq         # store likelihood of aligning read to original location
 
             if readgroups: optS += "\tRG:Z:%s" % readgroup
@@ -217,16 +217,16 @@ def PreprocessBam( bamFileName, fastaFileName, orphanBamFileName=None,
             if flag & 0xc0 in [0x40, 0x80]:
                 flag ^= 0xc0
 
-            orphanSamFile.write( "%s\t%i\t%s\t%i\t%i\t%iM\t%s\t%i\t%i\t%s\t%s%s\n" % (read.qname,
+            orphanSamFile.write( "%s\t%i\t%s\t%i\t%i\t%iM\t%s\t%i\t%i\t%s\t%s%s\n" % (read.query_name,
                                                                                       flag,
-                                                                                      bamfile.getrname( read.mrnm ),   # mate
-                                                                                      read.mpos,                       # mate
-                                                                                      read.mapq,
-                                                                                      read.rlen,
-                                                                                      bamfile.getrname( read.tid ),    # this
-                                                                                      read.pos,                        # this
+                                                                                      bamfile.get_reference_name(read.next_reference_id), # mate
+                                                                                      read.next_reference_start,       # mate
+                                                                                      read.mapping_quality,
+                                                                                      read.query_length,
+                                                                                      bamfile.get_reference_name(read.reference_id), # this
+                                                                                      read.reference_start,            # this
                                                                                       isize,
-                                                                                      read.seq,
+                                                                                      read.query_sequence,
                                                                                       read.qual,
                                                                                       optS) )
 
@@ -236,15 +236,15 @@ def PreprocessBam( bamFileName, fastaFileName, orphanBamFileName=None,
             #read.is_qc_fail() or
             read.is_duplicate or
             read.is_secondary or
-            read.mapq < minMapQ):
+            read.mapping_quality < minMapQ):
             continue
 
         # enter any indels in queue
         indelqueue.enter( read )
 
         # prepare to enter read into coverage buffer -- flush buffer
-        readpos = read.pos
-        readchrom = read.tid
+        readpos = read.reference_start
+        readchrom = read.reference_id
 
         # calculate position to flush to
         if readchrom == curchrom:
@@ -312,7 +312,7 @@ def PreprocessBam( bamFileName, fastaFileName, orphanBamFileName=None,
         # process jumps and change of chromosome
         if readchrom != curchrom:
             curchrom = readchrom
-            curchromS = bamfile.getrname( readchrom )
+            curchromS = bamfile.get_reference_name(readchrom)
             curpos = readpos
             coveragebuf.reset( curchrom, curpos )
             repeatqueue.reset( curchromS, curpos )
@@ -363,19 +363,19 @@ class Readbuffer():
         if self._resetbuf:
             self._buffer = [self._firstread]
             self._bufend = 0            # first free location
-            self._lastrname = self._firstread.tid
+            self._lastrname = self._firstread.reference_id
             self._resetbuf = False
         try:
             self._current = next(self.generator)
         except StopIteration:
             self._current = None
         if current:
-            if current.tid != self._lastrname:
+            if current.reference_id != self._lastrname:
                 self._resetbuf = True
                 self._firstread = current  # first read in new buffer
             elif not current.is_unmapped:
                 # store mapped reads
-                if self._buffer[self._bufend].pos < current.pos - self.size:
+                if self._buffer[self._bufend].reference_start < current.reference_start - self.size:
                     # old read is stale; we can store read
                     self._buffer[self._bufend] = current
                     self._bufend = (self._bufend + 1) % len(self._buffer)
@@ -404,7 +404,7 @@ class Readbuffer():
             idx = (idx - 1) % len(self._buffer)
 
             # for efficiency, do a quick test first
-            if self._buffer[idx].pos <= start:
+            if self._buffer[idx].reference_start <= start:
 
                 ##DEBUG
                 #rstart0, rend0 = pruned_ref_start_end(self._buffer[idx], minreadq)
@@ -491,7 +491,7 @@ class Repeatqueue:
         # obtain sequence
         sequence = self.read( self.chrom, frompos - self.maxtandemsize, topos + self.maxtandemsize )
         # get repeats as (pos, size, unit) elements
-        repeats = cerrormodel.get_repeats( sequence, self.min_tandem_length, frompos - self.maxtandemsize )
+        repeats = cerrormodel.get_repeats( sequence.encode('ascii'), self.min_tandem_length, frompos - self.maxtandemsize )
         # enter into queue
         newreps = []
         for reppos, size, unit in repeats:
@@ -930,7 +930,7 @@ def get_indels( read, minAnchor, minReadQ ):
     """ Returns (position, length_type, read position, is_read_1) tuples """
     
     indels = []
-    cigar = read.cigar
+    cigar = read.cigartuples
     if not cigar or len(cigar) == 1: return indels
 
     # the algorithm to determine if an indel is properly anchored is a
@@ -945,12 +945,12 @@ def get_indels( read, minAnchor, minReadQ ):
     readstart, readend = platypusutils.pruned_read_start_end(read, minReadQ, minAnchor)
     putative_indels = []
     is_anchored = False
-    nucpos = read.pos
+    nucpos = read.reference_start
     if read.is_reverse:
         # we start at rlen, not rlen-1; this ensures deletions
         # get placed correctly, and for insertions we need to 
         # adjust by the insertion length
-        readpos = read.rlen
+        readpos = read.query_length
         readinc = -1
         # convert to sequenced read coordinates
         readstart, readend = readpos - readend, readpos - readstart
@@ -1021,8 +1021,8 @@ def pruned_read_start_end(read, minq, minAnchor=0):
 def pruned_ref_start_end(read, minq, minAnchor=0):
     """ Calculates the reference start and end of the read, pruning low-quality bases at either end,
         and removing an anchor sequence at either end """
-    cigar = read.cigar
-    refpos = read.pos
+    cigar = read.cigartuples
+    refpos = read.reference_start
     readstart, readend = pruned_read_start_end(read, minq, minAnchor)
     # deal with very low quality reads
     if readstart >= readend or not cigar: 
