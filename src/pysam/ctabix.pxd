@@ -127,7 +127,7 @@ cdef extern from "tabix.h":
   ti_iter_t ti_query(tabix_t *t, char *name, int beg, int end)
   ti_iter_t ti_queryi(tabix_t *t, int tid, int beg, int end)
   ti_iter_t ti_querys(tabix_t *t, char *reg)
-  char * ti_read(tabix_t *t, ti_iter_t iter, int *len)
+  const char *ti_read(tabix_t *t, ti_iter_t iter, int *len)
 
   # Get the list of sequence names. Each "char*" pointer points to a
   #	internal member of the index, so DO NOT modify the returned
